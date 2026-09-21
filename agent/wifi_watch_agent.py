@@ -32,9 +32,9 @@ APP_VERSION = "0.1.2"
 # NEVER use service_role / sb_secret_ here.
 # ------------------------------------------------------------
 
-SUPABASE_URL = "YOUR_SUPABASE_URL"
+SUPABASE_URL = "https://ephdcwogebxfsidytmrj.supabase.co"
 
-SUPABASE_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY"
+SUPABASE_KEY = "sb_publishable_L9TUAFyJ_S0l81UDNi8imw_FVTYm4cI"
 
 
 SCAN_INTERVAL = 30
