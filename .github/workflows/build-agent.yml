@@ -2,25 +2,42 @@ name: Build WiFi Watch Agent
 
 on:
   workflow_dispatch:
+
   push:
     paths:
       - "agent/**"
       - ".github/workflows/build-agent.yml"
 
+
+permissions:
+  contents: read
+
+
 jobs:
 
+  # ==========================================================
+  # WINDOWS
+  # ==========================================================
+
   windows:
+
     name: Windows
+
     runs-on: windows-latest
 
+
     steps:
-      - name: Checkout
+
+      - name: Checkout repository
         uses: actions/checkout@v4
+
 
       - name: Set up Python
         uses: actions/setup-python@v5
+
         with:
           python-version: "3.12"
+
 
       - name: Install dependencies
         run: |
@@ -28,29 +45,66 @@ jobs:
           pip install -r agent/requirements.txt
           pip install pyinstaller
 
-      - name: Build Windows Agent
+
+      - name: Build Windows application
+        shell: powershell
+
         run: |
-          pyinstaller --noconfirm --clean --onefile --windowed --name WiFiWatchAgent agent/wifi_watch_agent.py
 
-      - name: Upload Windows Agent
+          pyinstaller `
+            --noconfirm `
+            --clean `
+            --onefile `
+            --windowed `
+            --name WiFiWatchAgent `
+            agent/wifi_watch_agent.py
+
+          New-Item `
+            -ItemType Directory `
+            -Force `
+            -Path release
+
+          Copy-Item `
+            dist/WiFiWatchAgent.exe `
+            release/WiFiWatchAgent-Windows.exe
+
+
+      - name: Upload Windows build
         uses: actions/upload-artifact@v4
-        with:
-          name: WiFiWatchAgent-Windows
-          path: dist/WiFiWatchAgent.exe
 
+        with:
+
+          name: WiFiWatchAgent-Windows
+
+          path: release/WiFiWatchAgent-Windows.exe
+
+          if-no-files-found: error
+
+
+
+  # ==========================================================
+  # MACOS
+  # ==========================================================
 
   macos:
+
     name: macOS
+
     runs-on: macos-latest
 
+
     steps:
-      - name: Checkout
+
+      - name: Checkout repository
         uses: actions/checkout@v4
+
 
       - name: Set up Python
         uses: actions/setup-python@v5
+
         with:
           python-version: "3.12"
+
 
       - name: Install dependencies
         run: |
@@ -58,47 +112,146 @@ jobs:
           pip install -r agent/requirements.txt
           pip install pyinstaller
 
-      - name: Build macOS Agent
+
+      - name: Build macOS application
         run: |
-          pyinstaller --noconfirm --clean --windowed --name WiFiWatchAgent agent/wifi_watch_agent.py
 
-      - name: Upload macOS Agent
+          pyinstaller \
+            --noconfirm \
+            --clean \
+            --windowed \
+            --name WiFiWatchAgent \
+            --osx-bundle-identifier com.developmentlab1.wifiwatch.agent \
+            agent/wifi_watch_agent.py
+
+
+      - name: Add macOS Local Network permission
+        run: |
+
+          /usr/bin/plutil \
+            -replace NSLocalNetworkUsageDescription \
+            -string "WiFi Watch needs access to your local network to discover devices on networks you own or are authorized to manage." \
+            dist/WiFiWatchAgent.app/Contents/Info.plist
+
+
+      - name: Re-sign macOS application
+        run: |
+
+          /usr/bin/codesign \
+            --force \
+            --deep \
+            --sign - \
+            dist/WiFiWatchAgent.app
+
+
+      - name: Verify macOS application
+        run: |
+
+          /usr/bin/codesign \
+            --verify \
+            --deep \
+            --strict \
+            dist/WiFiWatchAgent.app
+
+
+      - name: Create macOS ZIP
+        run: |
+
+          /usr/bin/ditto \
+            -c \
+            -k \
+            --sequesterRsrc \
+            --keepParent \
+            dist/WiFiWatchAgent.app \
+            dist/WiFiWatchAgent-macOS.zip
+
+
+      - name: Upload macOS build
         uses: actions/upload-artifact@v4
-        with:
-          name: WiFiWatchAgent-macOS
-          path: dist/WiFiWatchAgent.app
 
+        with:
+
+          name: WiFiWatchAgent-macOS
+
+          path: dist/WiFiWatchAgent-macOS.zip
+
+          if-no-files-found: error
+
+
+
+  # ==========================================================
+  # LINUX
+  # ==========================================================
 
   linux:
+
     name: Linux
+
     runs-on: ubuntu-latest
 
+
     steps:
-      - name: Checkout
+
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Tk
+
+      - name: Install Linux GUI dependencies
         run: |
+
           sudo apt-get update
-          sudo apt-get install -y python3-tk
+
+          sudo apt-get install -y \
+            python3-tk \
+            iproute2
+
 
       - name: Set up Python
         uses: actions/setup-python@v5
+
         with:
           python-version: "3.12"
 
+
       - name: Install dependencies
         run: |
+
           python -m pip install --upgrade pip
-          pip install -r agent/requirements.txt
+
+          pip install \
+            -r agent/requirements.txt
+
           pip install pyinstaller
 
-      - name: Build Linux Agent
-        run: |
-          pyinstaller --noconfirm --clean --onefile --name WiFiWatchAgent agent/wifi_watch_agent.py
 
-      - name: Upload Linux Agent
+      - name: Build Linux application
+        run: |
+
+          pyinstaller \
+            --noconfirm \
+            --clean \
+            --onefile \
+            --windowed \
+            --name WiFiWatchAgent \
+            agent/wifi_watch_agent.py
+
+          mkdir -p release
+
+          cp \
+            dist/WiFiWatchAgent \
+            release/WiFiWatchAgent-Linux
+
+          chmod +x \
+            release/WiFiWatchAgent-Linux
+
+
+      - name: Upload Linux build
         uses: actions/upload-artifact@v4
+
         with:
+
           name: WiFiWatchAgent-Linux
-          path: dist/WiFiWatchAgent
+
+          path: release/WiFiWatchAgent-Linux
+
+          if-no-files-found: error
