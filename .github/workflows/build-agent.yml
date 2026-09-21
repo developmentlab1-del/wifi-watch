@@ -1,0 +1,104 @@
+name: Build WiFi Watch Agent
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "agent/**"
+      - ".github/workflows/build-agent.yml"
+
+jobs:
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r agent/requirements.txt
+          pip install pyinstaller
+
+      - name: Build Windows Agent
+        run: |
+          pyinstaller --noconfirm --clean --onefile --windowed --name WiFiWatchAgent agent/wifi_watch_agent.py
+
+      - name: Upload Windows Agent
+        uses: actions/upload-artifact@v4
+        with:
+          name: WiFiWatchAgent-Windows
+          path: dist/WiFiWatchAgent.exe
+
+
+  macos:
+    name: macOS
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r agent/requirements.txt
+          pip install pyinstaller
+
+      - name: Build macOS Agent
+        run: |
+          pyinstaller --noconfirm --clean --windowed --name WiFiWatchAgent agent/wifi_watch_agent.py
+
+      - name: Upload macOS Agent
+        uses: actions/upload-artifact@v4
+        with:
+          name: WiFiWatchAgent-macOS
+          path: dist/WiFiWatchAgent.app
+
+
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Tk
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r agent/requirements.txt
+          pip install pyinstaller
+
+      - name: Build Linux Agent
+        run: |
+          pyinstaller --noconfirm --clean --onefile --name WiFiWatchAgent agent/wifi_watch_agent.py
+
+      - name: Upload Linux Agent
+        uses: actions/upload-artifact@v4
+        with:
+          name: WiFiWatchAgent-Linux
+          path: dist/WiFiWatchAgent
