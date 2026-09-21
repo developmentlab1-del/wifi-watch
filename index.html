@@ -5,19 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>WiFi Watch</title>
+
 <meta
   name="description"
-  content="WiFi Watch helps you see devices connected to networks you own or manage."
+  content="WiFi Watch helps you monitor devices on networks you own or are authorized to manage."
 >
 
 <script type="module">
+
 import { createClient }
 from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 
 /* =========================================================
    SUPABASE
-   REPLACE ONLY THESE TWO VALUES
 ========================================================= */
 
 const SUPABASE_URL =
@@ -27,10 +28,11 @@ const SUPABASE_KEY =
   "sb_publishable_L9TUAFyJ_S0l81UDNi8imw_FVTYm4cI";
 
 
-const supabase = createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+const supabase =
+  createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 
 /* =========================================================
@@ -73,29 +75,44 @@ const trustedDevices =
 const refreshButton =
   document.getElementById("refreshButton");
 
+const networkSelect =
+  document.getElementById("networkSelect");
+
+const selectedNetworkName =
+  document.getElementById("selectedNetworkName");
+
 
 let refreshTimer = null;
+
+let activeNetworkId = null;
 
 
 /* =========================================================
    HELPERS
 ========================================================= */
 
-function showMessage(text, type = "info") {
+function showMessage(
+  text,
+  type = "info"
+) {
 
-  authMessage.textContent = text;
+  authMessage.textContent =
+    text;
 
   authMessage.className =
     `auth-message ${type}`;
+
 }
 
 
 function clearMessage() {
 
-  authMessage.textContent = "";
+  authMessage.textContent =
+    "";
 
   authMessage.className =
     "auth-message";
+
 }
 
 
@@ -107,72 +124,103 @@ function escapeHTML(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+
 }
 
 
 function normalizeMac(mac) {
 
-  if (!mac) return "Unknown";
+  if (!mac)
+    return "Unknown";
 
-  return String(mac).toUpperCase();
+  return String(mac)
+    .toUpperCase();
+
 }
 
 
 function formatLastSeen(value) {
 
-  if (!value) return "Unknown";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime()))
+  if (!value)
     return "Unknown";
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "Unknown";
+  }
+
 
   const seconds =
     Math.floor(
-      (Date.now() - date.getTime()) / 1000
+      (
+        Date.now() -
+        date.getTime()
+      ) / 1000
     );
+
 
   if (seconds < 30)
     return "Just now";
 
+
   if (seconds < 60)
     return `${seconds}s ago`;
 
+
   const minutes =
-    Math.floor(seconds / 60);
+    Math.floor(
+      seconds / 60
+    );
+
 
   if (minutes < 60)
     return `${minutes}m ago`;
 
+
   const hours =
-    Math.floor(minutes / 60);
+    Math.floor(
+      minutes / 60
+    );
+
 
   if (hours < 24)
     return `${hours}h ago`;
 
+
   const days =
-    Math.floor(hours / 24);
+    Math.floor(
+      hours / 24
+    );
+
 
   return `${days}d ago`;
+
 }
 
 
 function getDeviceIcon(device) {
 
-  const text =
-    `${device.hostname || ""}
-     ${device.custom_name || ""}
-     ${device.vendor || ""}`
-    .toLowerCase();
+  const text = `
+    ${device.hostname || ""}
+    ${device.custom_name || ""}
+    ${device.vendor || ""}
+  `.toLowerCase();
+
 
   if (
     text.includes("iphone") ||
     text.includes("android") ||
-    text.includes("phone") ||
-    text.includes("samsung galaxy")
+    text.includes("phone")
   ) {
     return "📱";
   }
+
 
   if (
     text.includes("macbook") ||
@@ -185,12 +233,14 @@ function getDeviceIcon(device) {
     return "💻";
   }
 
+
   if (
     text.includes("ipad") ||
     text.includes("tablet")
   ) {
     return "▣";
   }
+
 
   if (
     text.includes("tv") ||
@@ -199,11 +249,13 @@ function getDeviceIcon(device) {
     return "📺";
   }
 
+
   if (
     text.includes("printer")
   ) {
     return "🖨️";
   }
+
 
   if (
     text.includes("router") ||
@@ -213,6 +265,7 @@ function getDeviceIcon(device) {
     return "📡";
   }
 
+
   if (
     text.includes("playstation") ||
     text.includes("xbox") ||
@@ -221,7 +274,9 @@ function getDeviceIcon(device) {
     return "🎮";
   }
 
+
   return "◉";
+
 }
 
 
@@ -233,6 +288,7 @@ window.registerUser =
 async function () {
 
   clearMessage();
+
 
   const email =
     emailInput.value.trim();
@@ -252,7 +308,9 @@ async function () {
   }
 
 
-  if (password.length < 6) {
+  if (
+    password.length < 6
+  ) {
 
     showMessage(
       "Please use a password with at least 6 characters.",
@@ -317,6 +375,7 @@ async function () {
   showDashboard(
     data.user
   );
+
 };
 
 
@@ -329,6 +388,7 @@ async function () {
 
   clearMessage();
 
+
   const email =
     emailInput.value.trim();
 
@@ -336,7 +396,10 @@ async function () {
     passwordInput.value;
 
 
-  if (!email || !password) {
+  if (
+    !email ||
+    !password
+  ) {
 
     showMessage(
       "Enter your email and password.",
@@ -356,12 +419,13 @@ async function () {
     data,
     error
   } =
-  await supabase.auth.signInWithPassword({
+  await supabase.auth
+    .signInWithPassword({
 
-    email,
-    password
+      email,
+      password
 
-  });
+    });
 
 
   if (error) {
@@ -377,14 +441,16 @@ async function () {
 
   clearMessage();
 
+
   showDashboard(
     data.user
   );
+
 };
 
 
 /* =========================================================
-   PASSWORD RESET
+   RESET PASSWORD
 ========================================================= */
 
 window.resetPassword =
@@ -413,16 +479,19 @@ async function () {
   const {
     error
   } =
-  await supabase.auth.resetPasswordForEmail(
+  await supabase.auth
+    .resetPasswordForEmail(
 
-    email,
+      email,
 
-    {
-      redirectTo:
-        redirectURL
-    }
+      {
 
-  );
+        redirectTo:
+          redirectURL
+
+      }
+
+    );
 
 
   if (error) {
@@ -440,6 +509,7 @@ async function () {
     "Password reset email sent.",
     "success"
   );
+
 };
 
 
@@ -452,18 +522,28 @@ async function () {
 
   stopAutoRefresh();
 
-  await supabase.auth.signOut();
+
+  await supabase.auth
+    .signOut();
+
 
   dashboard.style.display =
     "none";
 
+
   authScreen.style.display =
     "flex";
 
-  emailInput.value = "";
-  passwordInput.value = "";
+
+  emailInput.value =
+    "";
+
+  passwordInput.value =
+    "";
+
 
   clearMessage();
+
 };
 
 
@@ -471,20 +551,350 @@ async function () {
    DASHBOARD
 ========================================================= */
 
-async function showDashboard(user) {
+async function showDashboard(
+  user
+) {
 
   authScreen.style.display =
     "none";
 
+
   dashboard.style.display =
     "block";
+
 
   userEmail.textContent =
     user?.email || "";
 
-  await loadDevices();
+
+  await loadNetworks();
+
 
   startAutoRefresh();
+
+}
+
+
+/* =========================================================
+   NETWORKS
+========================================================= */
+
+async function loadNetworks() {
+
+  const {
+    data,
+    error
+  } =
+  await supabase
+    .from("networks")
+    .select("*")
+    .order(
+      "created_at",
+      {
+        ascending: true
+      }
+    );
+
+
+  if (error) {
+
+    console.error(
+      "Network loading error:",
+      error
+    );
+
+
+    networkSelect.innerHTML = `
+
+      <option value="">
+        Error loading networks
+      </option>
+
+    `;
+
+
+    clearDeviceDashboard(
+      "Unable to load networks."
+    );
+
+
+    return;
+
+  }
+
+
+  const networks =
+    data || [];
+
+
+  if (
+    networks.length === 0
+  ) {
+
+    activeNetworkId =
+      null;
+
+
+    networkSelect.innerHTML = `
+
+      <option value="">
+        No network added
+      </option>
+
+    `;
+
+
+    selectedNetworkName.textContent =
+      "No network selected";
+
+
+    clearDeviceDashboard();
+
+
+    return;
+
+  }
+
+
+  networkSelect.innerHTML =
+    networks
+      .map(
+        network => `
+
+          <option
+            value="${escapeHTML(network.id)}"
+          >
+
+            ${escapeHTML(network.name)}
+
+          </option>
+
+        `
+      )
+      .join("");
+
+
+  const activeStillExists =
+    networks.some(
+      network =>
+        network.id ===
+        activeNetworkId
+    );
+
+
+  if (!activeStillExists) {
+
+    activeNetworkId =
+      networks[0].id;
+
+  }
+
+
+  networkSelect.value =
+    activeNetworkId;
+
+
+  const currentNetwork =
+    networks.find(
+      network =>
+        network.id ===
+        activeNetworkId
+    );
+
+
+  selectedNetworkName.textContent =
+    currentNetwork?.name ||
+    "Network";
+
+
+  await loadDevices();
+
+}
+
+
+/* =========================================================
+   CREATE NETWORK
+========================================================= */
+
+window.createNetwork =
+async function () {
+
+  const name =
+    window.prompt(
+      "Enter a name for this network:",
+      "Home WiFi"
+    );
+
+
+  if (!name)
+    return;
+
+
+  const cleanName =
+    name.trim();
+
+
+  if (!cleanName)
+    return;
+
+
+  const {
+    data,
+    error
+  } =
+  await supabase
+    .from("networks")
+    .insert({
+
+      name:
+        cleanName
+
+    })
+    .select()
+    .single();
+
+
+  if (error) {
+
+    alert(
+      "Could not create network: " +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  activeNetworkId =
+    data.id;
+
+
+  await loadNetworks();
+
+};
+
+
+/* =========================================================
+   CHANGE NETWORK
+========================================================= */
+
+window.changeNetwork =
+async function () {
+
+  activeNetworkId =
+    networkSelect.value ||
+    null;
+
+
+  const selectedOption =
+    networkSelect.options[
+      networkSelect.selectedIndex
+    ];
+
+
+  selectedNetworkName.textContent =
+    selectedOption?.text ||
+    "Network";
+
+
+  await loadDevices();
+
+};
+
+
+/* =========================================================
+   CLEAR DEVICE DASHBOARD
+========================================================= */
+
+function clearDeviceDashboard(
+  message = null
+) {
+
+  totalDevices.textContent =
+    "0";
+
+  onlineDevices.textContent =
+    "0";
+
+  offlineDevices.textContent =
+    "0";
+
+  trustedDevices.textContent =
+    "0";
+
+
+  devicesContainer.innerHTML = `
+
+    <div class="empty-state">
+
+      <div class="empty-radar">
+
+        <div
+          class="radar-ring ring1"
+        ></div>
+
+        <div
+          class="radar-ring ring2"
+        ></div>
+
+        <div
+          class="radar-ring ring3"
+        ></div>
+
+        <div
+          class="radar-dot"
+        ></div>
+
+      </div>
+
+
+      <h2>
+
+        ${
+          message
+          ?
+          escapeHTML(message)
+          :
+          "Add your first network"
+        }
+
+      </h2>
+
+
+      <p>
+
+        ${
+          message
+          ?
+          "Please try again."
+          :
+          "Create a network first. After that you will be able to connect a WiFi Watch Agent to it."
+        }
+
+      </p>
+
+
+      ${
+        !message
+        ?
+        `
+
+        <div class="coming-soon">
+
+          Click + Add Network above
+
+        </div>
+
+        `
+        :
+        ""
+      }
+
+    </div>
+
+  `;
+
 }
 
 
@@ -494,9 +904,26 @@ async function showDashboard(user) {
 
 async function loadDevices() {
 
-  refreshButton.classList.add(
-    "spinning"
-  );
+  refreshButton.classList
+    .add(
+      "spinning"
+    );
+
+
+  if (!activeNetworkId) {
+
+    refreshButton.classList
+      .remove(
+        "spinning"
+      );
+
+
+    clearDeviceDashboard();
+
+
+    return;
+
+  }
 
 
   const {
@@ -506,6 +933,10 @@ async function loadDevices() {
   await supabase
     .from("devices")
     .select("*")
+    .eq(
+      "network_id",
+      activeNetworkId
+    )
     .order(
       "last_seen",
       {
@@ -514,9 +945,10 @@ async function loadDevices() {
     );
 
 
-  refreshButton.classList.remove(
-    "spinning"
-  );
+  refreshButton.classList
+    .remove(
+      "spinning"
+    );
 
 
   if (error) {
@@ -534,14 +966,20 @@ async function loadDevices() {
         </h2>
 
         <p>
-          ${escapeHTML(error.message)}
+
+          ${escapeHTML(
+            error.message
+          )}
+
         </p>
 
       </div>
 
     `;
 
+
     return;
+
   }
 
 
@@ -550,50 +988,64 @@ async function loadDevices() {
 
 
   const sortedDevices =
-    [...devices].sort(
-      (a, b) => {
+    [...devices]
+      .sort(
+        (
+          a,
+          b
+        ) => {
 
-        if (
-          a.status === "online" &&
-          b.status !== "online"
-        ) {
-          return -1;
+          if (
+            a.status === "online" &&
+            b.status !== "online"
+          ) {
+            return -1;
+          }
+
+
+          if (
+            a.status !== "online" &&
+            b.status === "online"
+          ) {
+            return 1;
+          }
+
+
+          return (
+            new Date(
+              b.last_seen
+            )
+            -
+            new Date(
+              a.last_seen
+            )
+          );
+
         }
-
-        if (
-          a.status !== "online" &&
-          b.status === "online"
-        ) {
-          return 1;
-        }
-
-        return (
-          new Date(b.last_seen) -
-          new Date(a.last_seen)
-        );
-
-      }
-    );
+      );
 
 
   const online =
     devices.filter(
       device =>
-        device.status === "online"
+        device.status ===
+        "online"
     ).length;
 
 
   const offline =
     devices.filter(
       device =>
-        device.status === "offline"
+        device.status ===
+        "offline"
     ).length;
 
 
   const trusted =
     devices.filter(
       device =>
-        device.trusted === true
+        device.trusted ===
+        true
     ).length;
 
 
@@ -619,195 +1071,261 @@ async function loadDevices() {
       <div class="empty-state">
 
         <div class="empty-radar">
-          <div class="radar-ring ring1"></div>
-          <div class="radar-ring ring2"></div>
-          <div class="radar-ring ring3"></div>
-          <div class="radar-dot"></div>
+
+          <div
+            class="radar-ring ring1"
+          ></div>
+
+          <div
+            class="radar-ring ring2"
+          ></div>
+
+          <div
+            class="radar-ring ring3"
+          ></div>
+
+          <div
+            class="radar-dot"
+          ></div>
+
         </div>
+
 
         <h2>
           Waiting for WiFi Agent
         </h2>
 
+
         <p>
-          Your account and dashboard are ready.
-          Install the WiFi Watch Agent on a
-          computer connected to your own network
-          to discover devices.
+
+          Your network is ready.
+          The next step is connecting
+          the WiFi Watch Agent so this
+          network can start discovering
+          devices.
+
         </p>
 
+
         <div class="coming-soon">
-          Agent setup coming next
+
+          Agent pairing coming next
+
         </div>
 
       </div>
 
     `;
 
+
     return;
+
   }
 
 
   devicesContainer.innerHTML =
     sortedDevices
-    .map(
-      device => {
-
-        const isOnline =
-          device.status === "online";
-
-        const isTrusted =
-          device.trusted === true;
-
-        const displayName =
-          device.custom_name ||
-          device.hostname ||
-          "Unknown Device";
-
-        return `
-
-        <div class="device-row">
-
-          <div class="device-icon">
-
-            ${getDeviceIcon(device)}
-
-          </div>
+      .map(
+        device => {
 
 
-          <div class="device-main">
+          const isOnline =
+            device.status ===
+            "online";
 
-            <div class="device-title-row">
 
-              <div class="device-name">
+          const isTrusted =
+            device.trusted ===
+            true;
 
-                ${escapeHTML(
-                  displayName
-                )}
+
+          const displayName =
+            device.custom_name ||
+            device.hostname ||
+            "Unknown Device";
+
+
+          return `
+
+            <div class="device-row">
+
+
+              <div class="device-icon">
+
+                ${getDeviceIcon(device)}
 
               </div>
 
 
-              ${
-                isTrusted
-                ?
-                `
-                <span class="trusted-badge">
-                  ✓ Trusted
-                </span>
-                `
-                :
-                `
-                <span class="unknown-badge">
-                  Unknown
-                </span>
-                `
-              }
-
-            </div>
+              <div class="device-main">
 
 
-            <div class="device-vendor">
-
-              ${escapeHTML(
-                device.vendor ||
-                "Manufacturer unknown"
-              )}
-
-            </div>
+                <div class="device-title-row">
 
 
-            <div class="device-network-info">
+                  <div class="device-name">
 
-              <span>
+                    ${escapeHTML(
+                      displayName
+                    )}
 
-                IP
-                <strong>
-
-                  ${escapeHTML(
-                    device.ip ||
-                    "Unknown"
-                  )}
-
-                </strong>
-
-              </span>
+                  </div>
 
 
-              <span>
+                  ${
+                    isTrusted
+                    ?
+                    `
 
-                MAC
-                <strong>
+                    <span
+                      class="trusted-badge"
+                    >
+
+                      ✓ Trusted
+
+                    </span>
+
+                    `
+                    :
+                    `
+
+                    <span
+                      class="unknown-badge"
+                    >
+
+                      Unknown
+
+                    </span>
+
+                    `
+                  }
+
+
+                </div>
+
+
+                <div class="device-vendor">
 
                   ${escapeHTML(
-                    normalizeMac(
-                      device.mac
-                    )
+                    device.vendor ||
+                    "Manufacturer unknown"
                   )}
 
-                </strong>
-
-              </span>
+                </div>
 
 
-              <span>
+                <div class="device-network-info">
 
-                Last seen
-                <strong>
 
-                  ${escapeHTML(
-                    formatLastSeen(
-                      device.last_seen
-                    )
-                  )}
+                  <span>
 
-                </strong>
+                    IP
 
-              </span>
+                    <strong>
+
+                      ${escapeHTML(
+                        device.ip ||
+                        "Unknown"
+                      )}
+
+                    </strong>
+
+                  </span>
+
+
+                  <span>
+
+                    MAC
+
+                    <strong>
+
+                      ${escapeHTML(
+                        normalizeMac(
+                          device.mac
+                        )
+                      )}
+
+                    </strong>
+
+                  </span>
+
+
+                  <span>
+
+                    Last seen
+
+                    <strong>
+
+                      ${escapeHTML(
+                        formatLastSeen(
+                          device.last_seen
+                        )
+                      )}
+
+                    </strong>
+
+                  </span>
+
+
+                </div>
+
+
+              </div>
+
+
+              <div class="device-status">
+
+
+                <div
+                  class="${
+                    isOnline
+                    ?
+                    "status-pill online"
+                    :
+                    "status-pill offline"
+                  }"
+                >
+
+                  <span
+                    class="status-light"
+                  ></span>
+
+
+                  ${
+                    isOnline
+                    ?
+                    "Online"
+                    :
+                    "Offline"
+                  }
+
+
+                </div>
+
+
+              </div>
+
 
             </div>
 
-          </div>
+          `;
 
+        }
+      )
+      .join("");
 
-          <div class="device-status">
-
-            <div class="${
-              isOnline
-                ? "status-pill online"
-                : "status-pill offline"
-            }">
-
-              <span class="status-light"></span>
-
-              ${
-                isOnline
-                  ? "Online"
-                  : "Offline"
-              }
-
-            </div>
-
-          </div>
-
-        </div>
-
-        `;
-
-      }
-    )
-    .join("");
 }
 
 
 /* =========================================================
-   MANUAL REFRESH
+   REFRESH
 ========================================================= */
 
 window.refreshDevices =
 async function () {
 
   await loadDevices();
+
 };
 
 
@@ -819,11 +1337,16 @@ function startAutoRefresh() {
 
   stopAutoRefresh();
 
+
   refreshTimer =
     setInterval(
+
       loadDevices,
+
       5000
+
     );
+
 }
 
 
@@ -835,8 +1358,12 @@ function stopAutoRefresh() {
       refreshTimer
     );
 
-    refreshTimer = null;
+
+    refreshTimer =
+      null;
+
   }
+
 }
 
 
@@ -844,37 +1371,51 @@ function stopAutoRefresh() {
    AUTH STATE
 ========================================================= */
 
-supabase.auth.onAuthStateChange(
+supabase.auth
+  .onAuthStateChange(
 
-  async (event, session) => {
+    async (
+      event,
+      session
+    ) => {
 
-    if (
-      event === "SIGNED_IN" &&
-      session?.user
-    ) {
+      if (
+        event ===
+        "SIGNED_IN" &&
+        session?.user
+      ) {
 
-      showDashboard(
-        session.user
-      );
+        await showDashboard(
+          session.user
+        );
+
+      }
+
+
+      if (
+        event ===
+        "SIGNED_OUT"
+      ) {
+
+        stopAutoRefresh();
+
+
+        activeNetworkId =
+          null;
+
+
+        dashboard.style.display =
+          "none";
+
+
+        authScreen.style.display =
+          "flex";
+
+      }
+
     }
 
-
-    if (
-      event === "SIGNED_OUT"
-    ) {
-
-      stopAutoRefresh();
-
-      dashboard.style.display =
-        "none";
-
-      authScreen.style.display =
-        "flex";
-    }
-
-  }
-
-);
+  );
 
 
 /* =========================================================
@@ -886,16 +1427,18 @@ const {
     session
   }
 } =
-await supabase.auth.getSession();
+await supabase.auth
+  .getSession();
 
 
 if (
   session?.user
 ) {
 
-  showDashboard(
+  await showDashboard(
     session.user
   );
+
 }
 
 </script>
@@ -912,17 +1455,21 @@ if (
   --bg:
     #071017;
 
-  --bg2:
-    #091720;
-
   --panel:
-    rgba(15, 29, 39, 0.88);
-
-  --panel2:
-    #101f29;
+    rgba(
+      15,
+      29,
+      39,
+      .90
+    );
 
   --border:
-    rgba(255,255,255,0.08);
+    rgba(
+      255,
+      255,
+      255,
+      .08
+    );
 
   --text:
     #f4f8fa;
@@ -941,6 +1488,7 @@ if (
 
   --orange:
     #ffbd67;
+
 }
 
 
@@ -948,6 +1496,7 @@ if (
 
   box-sizing:
     border-box;
+
 }
 
 
@@ -955,14 +1504,17 @@ html {
 
   scroll-behavior:
     smooth;
+
 }
 
 
 body {
 
-  margin: 0;
+  margin:
+    0;
 
-  min-height: 100vh;
+  min-height:
+    100vh;
 
   font-family:
     Inter,
@@ -981,13 +1533,23 @@ body {
 
     radial-gradient(
       circle at 20% 0%,
-      rgba(53,231,154,.08),
+      rgba(
+        53,
+        231,
+        154,
+        .08
+      ),
       transparent 30%
     ),
 
     radial-gradient(
       circle at 100% 100%,
-      rgba(52,136,255,.06),
+      rgba(
+        52,
+        136,
+        255,
+        .06
+      ),
       transparent 35%
     ),
 
@@ -997,7 +1559,7 @@ body {
 
 
 /* =========================================================
-   AUTH
+   AUTH SCREEN
 ========================================================= */
 
 .auth-screen {
@@ -1016,6 +1578,7 @@ body {
 
   padding:
     30px 20px;
+
 }
 
 
@@ -1038,6 +1601,7 @@ body {
 
   align-items:
     center;
+
 }
 
 
@@ -1053,7 +1617,13 @@ body {
     8px;
 
   border:
-    1px solid rgba(53,231,154,.22);
+    1px solid
+    rgba(
+      53,
+      231,
+      154,
+      .22
+    );
 
   color:
     var(--green);
@@ -1071,7 +1641,13 @@ body {
     20px;
 
   background:
-    rgba(53,231,154,.05);
+    rgba(
+      53,
+      231,
+      154,
+      .05
+    );
+
 }
 
 
@@ -1092,6 +1668,7 @@ body {
 
   letter-spacing:
     -3px;
+
 }
 
 
@@ -1099,6 +1676,7 @@ body {
 
   color:
     var(--green);
+
 }
 
 
@@ -1115,6 +1693,7 @@ body {
 
   line-height:
     1.7;
+
 }
 
 
@@ -1128,6 +1707,7 @@ body {
 
   margin-top:
     30px;
+
 }
 
 
@@ -1147,6 +1727,7 @@ body {
 
   font-size:
     14px;
+
 }
 
 
@@ -1174,23 +1755,41 @@ body {
     var(--green);
 
   background:
-    rgba(53,231,154,.08);
+    rgba(
+      53,
+      231,
+      154,
+      .08
+    );
 
   border:
-    1px solid rgba(53,231,154,.18);
+    1px solid
+    rgba(
+      53,
+      231,
+      154,
+      .18
+    );
+
 }
 
 
 .auth-card {
 
   background:
-    rgba(13, 27, 36, .88);
+    rgba(
+      13,
+      27,
+      36,
+      .88
+    );
 
   backdrop-filter:
     blur(20px);
 
   border:
-    1px solid var(--border);
+    1px solid
+    var(--border);
 
   border-radius:
     25px;
@@ -1200,7 +1799,13 @@ body {
 
   box-shadow:
     0 35px 100px
-    rgba(0,0,0,.38);
+    rgba(
+      0,
+      0,
+      0,
+      .38
+    );
+
 }
 
 
@@ -1236,9 +1841,6 @@ body {
   margin-bottom:
     23px;
 
-  box-shadow:
-    0 15px 40px
-    rgba(53,231,154,.18);
 }
 
 
@@ -1250,8 +1852,6 @@ body {
   font-size:
     28px;
 
-  letter-spacing:
-    -1px;
 }
 
 
@@ -1268,6 +1868,7 @@ body {
 
   margin:
     8px 0 25px;
+
 }
 
 
@@ -1275,6 +1876,7 @@ body {
 
   margin-bottom:
     13px;
+
 }
 
 
@@ -1291,6 +1893,7 @@ body {
 
   margin:
     0 0 7px 2px;
+
 }
 
 
@@ -1310,7 +1913,12 @@ input {
 
   border:
     1px solid
-    rgba(255,255,255,.09);
+    rgba(
+      255,
+      255,
+      255,
+      .09
+    );
 
   color:
     white;
@@ -1324,19 +1932,19 @@ input {
   font-size:
     15px;
 
-  transition:
-    .2s ease;
 }
 
 
 input:focus {
 
   border-color:
-    rgba(53,231,154,.65);
+    rgba(
+      53,
+      231,
+      154,
+      .65
+    );
 
-  box-shadow:
-    0 0 0 3px
-    rgba(53,231,154,.07);
 }
 
 
@@ -1347,6 +1955,7 @@ button {
 
   cursor:
     pointer;
+
 }
 
 
@@ -1373,19 +1982,6 @@ button {
   color:
     #042116;
 
-  transition:
-    .2s ease;
-}
-
-
-.primary-button:hover {
-
-  transform:
-    translateY(-1px);
-
-  box-shadow:
-    0 10px 30px
-    rgba(53,231,154,.15);
 }
 
 
@@ -1405,13 +2001,14 @@ button {
 
   border:
     1px solid
-    rgba(255,255,255,.08);
+    var(--border);
 
   background:
     #13232d;
 
   color:
     white;
+
 }
 
 
@@ -1434,13 +2031,7 @@ button {
 
   font-size:
     13px;
-}
 
-
-.forgot-button:hover {
-
-  color:
-    white;
 }
 
 
@@ -1458,8 +2049,6 @@ button {
   font-size:
     13px;
 
-  line-height:
-    1.5;
 }
 
 
@@ -1467,6 +2056,7 @@ button {
 
   color:
     #ff8c8c;
+
 }
 
 
@@ -1474,6 +2064,7 @@ button {
 
   color:
     var(--green);
+
 }
 
 
@@ -1481,6 +2072,7 @@ button {
 
   color:
     var(--orange);
+
 }
 
 
@@ -1493,7 +2085,8 @@ button {
     18px;
 
   border-top:
-    1px solid var(--border);
+    1px solid
+    var(--border);
 
   display:
     flex;
@@ -1509,6 +2102,7 @@ button {
 
   line-height:
     1.55;
+
 }
 
 
@@ -1523,6 +2117,7 @@ button {
 
   min-height:
     100vh;
+
 }
 
 
@@ -1553,13 +2148,20 @@ button {
     0 32px;
 
   border-bottom:
-    1px solid var(--border);
+    1px solid
+    var(--border);
 
   background:
-    rgba(7,16,23,.82);
+    rgba(
+      7,
+      16,
+      23,
+      .88
+    );
 
   backdrop-filter:
     blur(18px);
+
 }
 
 
@@ -1573,6 +2175,7 @@ button {
 
   gap:
     12px;
+
 }
 
 
@@ -1607,6 +2210,7 @@ button {
 
   font-weight:
     900;
+
 }
 
 
@@ -1617,6 +2221,7 @@ button {
 
   font-weight:
     800;
+
 }
 
 
@@ -1630,6 +2235,7 @@ button {
 
   font-size:
     11px;
+
 }
 
 
@@ -1643,6 +2249,7 @@ button {
 
   gap:
     10px;
+
 }
 
 
@@ -1667,6 +2274,7 @@ button {
 
   padding:
     0 15px;
+
 }
 
 
@@ -1680,6 +2288,7 @@ button {
 
   font-size:
     17px;
+
 }
 
 
@@ -1687,19 +2296,24 @@ button {
 
   animation:
     spin .7s linear infinite;
+
 }
 
 
 @keyframes spin {
 
   from {
+
     transform:
       rotate(0deg);
+
   }
 
   to {
+
     transform:
       rotate(360deg);
+
   }
 
 }
@@ -1708,13 +2322,19 @@ button {
 .dashboard-content {
 
   width:
-    min(1280px, calc(100% - 40px));
+    min(
+      1280px,
+      calc(
+        100% - 40px
+      )
+    );
 
   margin:
     0 auto;
 
   padding:
     42px 0 80px;
+
 }
 
 
@@ -1734,6 +2354,7 @@ button {
 
   margin-bottom:
     25px;
+
 }
 
 
@@ -1745,8 +2366,6 @@ button {
   font-size:
     35px;
 
-  letter-spacing:
-    -1.5px;
 }
 
 
@@ -1757,6 +2376,7 @@ button {
 
   color:
     var(--muted);
+
 }
 
 
@@ -1778,17 +2398,28 @@ button {
     999px;
 
   background:
-    rgba(53,231,154,.07);
+    rgba(
+      53,
+      231,
+      154,
+      .07
+    );
 
   border:
     1px solid
-    rgba(53,231,154,.17);
+    rgba(
+      53,
+      231,
+      154,
+      .17
+    );
 
   color:
     var(--green);
 
   font-size:
     12px;
+
 }
 
 
@@ -1806,9 +2437,6 @@ button {
   background:
     var(--green);
 
-  box-shadow:
-    0 0 0 5px
-    rgba(53,231,154,.09);
 }
 
 
@@ -1831,23 +2459,158 @@ button {
     14px 17px;
 
   margin-bottom:
-    24px;
+    20px;
 
   border-radius:
     13px;
 
   border:
     1px solid
-    rgba(53,231,154,.12);
+    rgba(
+      53,
+      231,
+      154,
+      .12
+    );
 
   background:
-    rgba(53,231,154,.04);
+    rgba(
+      53,
+      231,
+      154,
+      .04
+    );
 
   color:
     #96bea9;
 
   font-size:
     13px;
+
+}
+
+
+/* =========================================================
+   NETWORK MANAGER
+========================================================= */
+
+.network-manager {
+
+  display:
+    flex;
+
+  align-items:
+    flex-end;
+
+  justify-content:
+    space-between;
+
+  gap:
+    15px;
+
+  margin-bottom:
+    24px;
+
+  padding:
+    18px;
+
+  border-radius:
+    16px;
+
+  background:
+    var(--panel);
+
+  border:
+    1px solid
+    var(--border);
+
+}
+
+
+.network-manager-left {
+
+  flex:
+    1;
+
+}
+
+
+.network-label {
+
+  color:
+    var(--muted);
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    .8px;
+
+  margin-bottom:
+    7px;
+
+}
+
+
+#networkSelect {
+
+  width:
+    100%;
+
+  max-width:
+    350px;
+
+  height:
+    43px;
+
+  padding:
+    0 12px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:
+    10px;
+
+  background:
+    #0b1922;
+
+  color:
+    white;
+
+  outline:
+    none;
+
+}
+
+
+.add-network-button {
+
+  height:
+    43px;
+
+  padding:
+    0 18px;
+
+  border:
+    none;
+
+  border-radius:
+    10px;
+
+  background:
+    var(--green);
+
+  color:
+    #042116;
+
+  font-weight:
+    750;
+
 }
 
 
@@ -1861,13 +2624,17 @@ button {
     grid;
 
   grid-template-columns:
-    repeat(4,1fr);
+    repeat(
+      4,
+      1fr
+    );
 
   gap:
     14px;
 
   margin-bottom:
     24px;
+
 }
 
 
@@ -1889,7 +2656,9 @@ button {
     var(--panel);
 
   border:
-    1px solid var(--border);
+    1px solid
+    var(--border);
+
 }
 
 
@@ -1906,6 +2675,7 @@ button {
 
   letter-spacing:
     .7px;
+
 }
 
 
@@ -1920,8 +2690,6 @@ button {
   font-weight:
     800;
 
-  letter-spacing:
-    -1px;
 }
 
 
@@ -1955,10 +2723,16 @@ button {
     10px;
 
   background:
-    rgba(255,255,255,.04);
+    rgba(
+      255,
+      255,
+      255,
+      .04
+    );
 
   color:
     #8ca1af;
+
 }
 
 
@@ -1980,6 +2754,7 @@ button {
 
   overflow:
     hidden;
+
 }
 
 
@@ -2000,6 +2775,7 @@ button {
   border-bottom:
     1px solid
     var(--border);
+
 }
 
 
@@ -2010,6 +2786,7 @@ button {
 
   font-size:
     17px;
+
 }
 
 
@@ -2020,6 +2797,7 @@ button {
 
   font-size:
     12px;
+
 }
 
 
@@ -2039,17 +2817,13 @@ button {
 
   border-bottom:
     1px solid
-    rgba(255,255,255,.055);
+    rgba(
+      255,
+      255,
+      255,
+      .055
+    );
 
-  transition:
-    background .15s ease;
-}
-
-
-.device-row:hover {
-
-  background:
-    rgba(255,255,255,.018);
 }
 
 
@@ -2057,6 +2831,7 @@ button {
 
   border-bottom:
     none;
+
 }
 
 
@@ -2088,6 +2863,7 @@ button {
 
   font-size:
     24px;
+
 }
 
 
@@ -2098,6 +2874,7 @@ button {
 
   flex:
     1;
+
 }
 
 
@@ -2114,6 +2891,7 @@ button {
 
   flex-wrap:
     wrap;
+
 }
 
 
@@ -2124,6 +2902,7 @@ button {
 
   font-size:
     15px;
+
 }
 
 
@@ -2145,28 +2924,38 @@ button {
   font-weight:
     800;
 
-  letter-spacing:
-    .4px;
 }
 
 
 .trusted-badge {
 
   background:
-    rgba(53,231,154,.08);
+    rgba(
+      53,
+      231,
+      154,
+      .08
+    );
 
   color:
     var(--green);
+
 }
 
 
 .unknown-badge {
 
   background:
-    rgba(255,189,103,.08);
+    rgba(
+      255,
+      189,
+      103,
+      .08
+    );
 
   color:
     var(--orange);
+
 }
 
 
@@ -2180,6 +2969,7 @@ button {
 
   margin-top:
     4px;
+
 }
 
 
@@ -2206,8 +2996,6 @@ button {
   text-transform:
     uppercase;
 
-  letter-spacing:
-    .45px;
 }
 
 
@@ -2228,15 +3016,6 @@ button {
   text-transform:
     none;
 
-  letter-spacing:
-    0;
-}
-
-
-.device-status {
-
-  flex:
-    0 0 auto;
 }
 
 
@@ -2262,6 +3041,7 @@ button {
 
   font-weight:
     700;
+
 }
 
 
@@ -2271,7 +3051,13 @@ button {
     var(--green);
 
   background:
-    rgba(53,231,154,.07);
+    rgba(
+      53,
+      231,
+      154,
+      .07
+    );
+
 }
 
 
@@ -2281,7 +3067,13 @@ button {
     #ff8888;
 
   background:
-    rgba(255,107,107,.07);
+    rgba(
+      255,
+      107,
+      107,
+      .07
+    );
+
 }
 
 
@@ -2298,11 +3090,12 @@ button {
 
   background:
     currentColor;
+
 }
 
 
 /* =========================================================
-   EMPTY STATE
+   EMPTY
 ========================================================= */
 
 .empty-state {
@@ -2315,6 +3108,7 @@ button {
 
   color:
     var(--muted);
+
 }
 
 
@@ -2328,6 +3122,7 @@ button {
 
   font-size:
     20px;
+
 }
 
 
@@ -2344,6 +3139,7 @@ button {
 
   font-size:
     13px;
+
 }
 
 
@@ -2365,10 +3161,16 @@ button {
     var(--green);
 
   background:
-    rgba(53,231,154,.06);
+    rgba(
+      53,
+      231,
+      154,
+      .06
+    );
 
   font-size:
     11px;
+
 }
 
 
@@ -2397,13 +3199,19 @@ button {
 
   border:
     1px solid
-    rgba(255,107,107,.22);
+    rgba(
+      255,
+      107,
+      107,
+      .22
+    );
 
   color:
     var(--red);
 
   font-size:
     22px;
+
 }
 
 
@@ -2429,6 +3237,7 @@ button {
 
   justify-content:
     center;
+
 }
 
 
@@ -2439,10 +3248,16 @@ button {
 
   border:
     1px solid
-    rgba(53,231,154,.15);
+    rgba(
+      53,
+      231,
+      154,
+      .15
+    );
 
   border-radius:
     50%;
+
 }
 
 
@@ -2453,6 +3268,7 @@ button {
 
   height:
     32px;
+
 }
 
 
@@ -2463,6 +3279,7 @@ button {
 
   height:
     58px;
+
 }
 
 
@@ -2473,6 +3290,7 @@ button {
 
   height:
     86px;
+
 }
 
 
@@ -2493,14 +3311,17 @@ button {
   box-shadow:
     0 0 22px
     var(--green);
+
 }
 
 
 /* =========================================================
-   MOBILE
+   RESPONSIVE
 ========================================================= */
 
-@media(max-width:900px) {
+@media(
+  max-width:900px
+) {
 
   .auth-layout {
 
@@ -2512,6 +3333,7 @@ button {
 
     gap:
       35px;
+
   }
 
 
@@ -2519,16 +3341,7 @@ button {
 
     text-align:
       center;
-  }
 
-
-  .hero p {
-
-    margin-left:
-      auto;
-
-    margin-right:
-      auto;
   }
 
 
@@ -2536,24 +3349,32 @@ button {
 
     display:
       none;
+
   }
 
 
   .stats {
 
     grid-template-columns:
-      repeat(2,1fr);
+      repeat(
+        2,
+        1fr
+      );
+
   }
 
 }
 
 
-@media(max-width:650px) {
+@media(
+  max-width:650px
+) {
 
   .topbar {
 
     padding:
       0 15px;
+
   }
 
 
@@ -2561,23 +3382,20 @@ button {
 
     display:
       none;
-  }
 
-
-  .logout-button {
-
-    padding:
-      0 11px;
   }
 
 
   .dashboard-content {
 
     width:
-      calc(100% - 24px);
+      calc(
+        100% - 24px
+      );
 
     padding-top:
       25px;
+
   }
 
 
@@ -2588,6 +3406,7 @@ button {
 
     flex-direction:
       column;
+
   }
 
 
@@ -2595,6 +3414,34 @@ button {
 
     font-size:
       28px;
+
+  }
+
+
+  .network-manager {
+
+    align-items:
+      stretch;
+
+    flex-direction:
+      column;
+
+  }
+
+
+  #networkSelect {
+
+    max-width:
+      none;
+
+  }
+
+
+  .add-network-button {
+
+    width:
+      100%;
+
   }
 
 
@@ -2602,6 +3449,7 @@ button {
 
     gap:
       10px;
+
   }
 
 
@@ -2609,6 +3457,7 @@ button {
 
     padding:
       18px;
+
   }
 
 
@@ -2616,6 +3465,7 @@ button {
 
     font-size:
       29px;
+
   }
 
 
@@ -2626,30 +3476,10 @@ button {
 
     padding:
       17px;
-  }
-
-
-  .device-status {
-
-    position:
-      absolute;
-
-    right:
-      16px;
-  }
-
-
-  .device-row {
 
     position:
       relative;
-  }
 
-
-  .device-title-row {
-
-    padding-right:
-      70px;
   }
 
 
@@ -2660,29 +3490,26 @@ button {
 
     gap:
       5px;
+
   }
 
 
-  .device-icon {
+  .device-status {
 
-    width:
-      44px;
+    position:
+      absolute;
 
-    height:
-      44px;
+    right:
+      16px;
 
-    font-size:
-      20px;
   }
 
 
-  .status-pill {
+  .device-title-row {
 
-    font-size:
-      9px;
+    padding-right:
+      70px;
 
-    padding:
-      6px 8px;
   }
 
 
@@ -2690,232 +3517,226 @@ button {
 
     padding:
       27px 21px;
-  }
 
-
-  .hero h1 {
-
-    letter-spacing:
-      -2px;
   }
 
 }
 
 </style>
+
 </head>
 
 
 <body>
 
 
-<!-- =====================================================
-     LOGIN / SIGNUP
-===================================================== -->
+<!-- =========================================================
+     AUTH
+========================================================= -->
 
 <section
   id="authScreen"
   class="auth-screen"
 >
 
-  <div class="auth-layout">
+<div class="auth-layout">
 
 
-    <div class="hero">
+<div class="hero">
 
-      <div class="hero-badge">
+  <div class="hero-badge">
 
-        <span>●</span>
+    ● Network visibility made simple
 
-        Network visibility made simple
-
-      </div>
+  </div>
 
 
-      <h1>
+  <h1>
 
-        Know what's on
-        your <span>WiFi.</span>
+    Know what's on
+    your <span>WiFi.</span>
 
-      </h1>
-
-
-      <p>
-
-        WiFi Watch gives you a clear view of
-        devices connected to networks you own
-        or are authorized to manage.
-
-      </p>
+  </h1>
 
 
-      <div class="feature-list">
+  <p>
 
-        <div class="feature">
+    WiFi Watch gives you a clear view
+    of devices connected to networks
+    you own or are authorized to manage.
 
-          <span class="feature-check">
-            ✓
-          </span>
-
-          Detect connected devices
-
-        </div>
+  </p>
 
 
-        <div class="feature">
-
-          <span class="feature-check">
-            ✓
-          </span>
-
-          Track online and offline status
-
-        </div>
+  <div class="feature-list">
 
 
-        <div class="feature">
+    <div class="feature">
 
-          <span class="feature-check">
-            ✓
-          </span>
+      <span class="feature-check">
+        ✓
+      </span>
 
-          Identify unknown devices
-
-        </div>
-
-
-        <div class="feature">
-
-          <span class="feature-check">
-            ✓
-          </span>
-
-          Private dashboard for every account
-
-        </div>
-
-      </div>
+      Multiple networks per account
 
     </div>
 
 
+    <div class="feature">
 
-    <div class="auth-card">
+      <span class="feature-check">
+        ✓
+      </span>
 
-      <div class="logo">
-        ⌁
-      </div>
+      Track connected devices
 
-
-      <h2>
-        Welcome to WiFi Watch
-      </h2>
+    </div>
 
 
-      <div class="auth-subtitle">
+    <div class="feature">
 
-        Sign in to view your network,
-        or create a new account.
+      <span class="feature-check">
+        ✓
+      </span>
 
-      </div>
+      Online and offline status
 
-
-      <div class="field">
-
-        <label>
-          EMAIL
-        </label>
-
-        <input
-          id="email"
-          type="email"
-          placeholder="you@example.com"
-          autocomplete="email"
-        >
-
-      </div>
+    </div>
 
 
-      <div class="field">
+    <div class="feature">
 
-        <label>
-          PASSWORD
-        </label>
+      <span class="feature-check">
+        ✓
+      </span>
 
-        <input
-          id="password"
-          type="password"
-          placeholder="Your password"
-          autocomplete="current-password"
-        >
-
-      </div>
-
-
-      <button
-        class="primary-button"
-        onclick="loginUser()"
-      >
-
-        Sign In
-
-      </button>
-
-
-      <button
-        class="secondary-button"
-        onclick="registerUser()"
-      >
-
-        Create Account
-
-      </button>
-
-
-      <button
-        class="forgot-button"
-        onclick="resetPassword()"
-      >
-
-        Forgot password?
-
-      </button>
-
-
-      <div
-        id="authMessage"
-        class="auth-message"
-      ></div>
-
-
-      <div class="security-note">
-
-        <span>
-          🔒
-        </span>
-
-        <span>
-
-          WiFi Watch only monitors networks
-          you own or have permission to
-          administer. Each account can access
-          only its own device records.
-
-        </span>
-
-      </div>
+      Identify unknown devices
 
     </div>
 
 
   </div>
 
+</div>
+
+
+
+<div class="auth-card">
+
+
+  <div class="logo">
+    ⌁
+  </div>
+
+
+  <h2>
+    Welcome to WiFi Watch
+  </h2>
+
+
+  <div class="auth-subtitle">
+
+    Sign in to manage your networks
+    or create a new account.
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      EMAIL
+    </label>
+
+    <input
+      id="email"
+      type="email"
+      placeholder="you@example.com"
+      autocomplete="email"
+    >
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      PASSWORD
+    </label>
+
+    <input
+      id="password"
+      type="password"
+      placeholder="Your password"
+      autocomplete="current-password"
+    >
+
+  </div>
+
+
+  <button
+    class="primary-button"
+    onclick="loginUser()"
+  >
+
+    Sign In
+
+  </button>
+
+
+  <button
+    class="secondary-button"
+    onclick="registerUser()"
+  >
+
+    Create Account
+
+  </button>
+
+
+  <button
+    class="forgot-button"
+    onclick="resetPassword()"
+  >
+
+    Forgot password?
+
+  </button>
+
+
+  <div
+    id="authMessage"
+    class="auth-message"
+  ></div>
+
+
+  <div class="security-note">
+
+    <span>
+      🔒
+    </span>
+
+    <span>
+
+      Each account can only access
+      its own networks and device data.
+
+    </span>
+
+  </div>
+
+
+</div>
+
+
+</div>
+
 </section>
 
 
-
-<!-- =====================================================
+<!-- =========================================================
      DASHBOARD
-===================================================== -->
+========================================================= -->
 
 <section
   id="dashboard"
@@ -2923,247 +3744,305 @@ button {
 >
 
 
-  <header class="topbar">
+<header class="topbar">
 
 
-    <div class="brand-wrap">
+  <div class="brand-wrap">
 
-      <div class="small-logo">
-        ⌁
+
+    <div class="small-logo">
+      ⌁
+    </div>
+
+
+    <div>
+
+      <div class="brand-name">
+        WiFi Watch
       </div>
 
-
-      <div>
-
-        <div class="brand-name">
-          WiFi Watch
-        </div>
-
-        <div
-          id="userEmail"
-          class="brand-sub"
-        ></div>
-
-      </div>
+      <div
+        id="userEmail"
+        class="brand-sub"
+      ></div>
 
     </div>
 
 
+  </div>
 
-    <div class="top-actions">
 
-      <button
-        id="refreshButton"
-        class="refresh-button"
-        title="Refresh devices"
-        onclick="refreshDevices()"
+  <div class="top-actions">
+
+
+    <button
+      id="refreshButton"
+      class="refresh-button"
+      title="Refresh"
+      onclick="refreshDevices()"
+    >
+
+      ↻
+
+    </button>
+
+
+    <button
+      class="logout-button"
+      onclick="logoutUser()"
+    >
+
+      Logout
+
+    </button>
+
+
+  </div>
+
+
+</header>
+
+
+<main class="dashboard-content">
+
+
+  <div class="dashboard-heading">
+
+
+    <div>
+
+      <h1>
+        Network Overview
+      </h1>
+
+      <p>
+
+        Currently viewing:
+        <strong
+          id="selectedNetworkName"
+        >
+          No network selected
+        </strong>
+
+      </p>
+
+    </div>
+
+
+    <div class="network-status">
+
+      <span class="pulse-dot"></span>
+
+      Dashboard online
+
+    </div>
+
+
+  </div>
+
+
+  <div class="notice">
+
+    <span>
+      🛡️
+    </span>
+
+    Only use WiFi Watch on networks
+    you own or are authorized to manage.
+
+  </div>
+
+
+  <!-- NETWORK SELECTOR -->
+
+  <div class="network-manager">
+
+
+    <div class="network-manager-left">
+
+
+      <div class="network-label">
+
+        CURRENT NETWORK
+
+      </div>
+
+
+      <select
+        id="networkSelect"
+        onchange="changeNetwork()"
       >
 
-        ↻
+        <option value="">
 
-      </button>
+          No network added
+
+        </option>
+
+      </select>
 
 
-      <button
-        class="logout-button"
-        onclick="logoutUser()"
+    </div>
+
+
+    <button
+      class="add-network-button"
+      onclick="createNetwork()"
+    >
+
+      + Add Network
+
+    </button>
+
+
+  </div>
+
+
+  <!-- STATS -->
+
+  <div class="stats">
+
+
+    <div class="stat-card">
+
+      <div class="stat-label">
+        Total devices
+      </div>
+
+      <div
+        id="totalDevices"
+        class="stat-number"
       >
+        0
+      </div>
 
-        Logout
-
-      </button>
+      <div class="stat-icon">
+        ◉
+      </div>
 
     </div>
 
 
-  </header>
+    <div class="stat-card">
 
-
-
-  <main class="dashboard-content">
-
-
-    <div class="dashboard-heading">
-
-
-      <div>
-
-        <h1>
-          Network Overview
-        </h1>
-
-        <p>
-          Devices discovered on your network.
-        </p>
-
+      <div class="stat-label">
+        Online
       </div>
 
-
-      <div class="network-status">
-
-        <span class="pulse-dot"></span>
-
-        Dashboard online
-
+      <div
+        id="onlineDevices"
+        class="stat-number"
+      >
+        0
       </div>
 
+      <div class="stat-icon">
+        ●
+      </div>
 
     </div>
 
 
+    <div class="stat-card">
 
-    <div class="notice">
+      <div class="stat-label">
+        Offline
+      </div>
+
+      <div
+        id="offlineDevices"
+        class="stat-number"
+      >
+        0
+      </div>
+
+      <div class="stat-icon">
+        ○
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-label">
+        Trusted
+      </div>
+
+      <div
+        id="trustedDevices"
+        class="stat-number"
+      >
+        0
+      </div>
+
+      <div class="stat-icon">
+        ✓
+      </div>
+
+    </div>
+
+
+  </div>
+
+
+  <!-- DEVICES -->
+
+  <div class="device-panel">
+
+
+    <div class="panel-header">
+
+      <h2>
+        Connected Devices
+      </h2>
 
       <span>
-        🛡️
+        Auto refresh every 5 seconds
       </span>
 
-      Only use WiFi Watch on networks
-      you own or are authorized to manage.
-
     </div>
 
 
+    <div id="devicesContainer">
 
-    <div class="stats">
+
+      <div class="empty-state">
 
 
-      <div class="stat-card">
+        <div class="empty-radar">
 
-        <div class="stat-label">
-          Total devices
+          <div
+            class="radar-ring ring1"
+          ></div>
+
+          <div
+            class="radar-ring ring2"
+          ></div>
+
+          <div
+            class="radar-ring ring3"
+          ></div>
+
+          <div
+            class="radar-dot"
+          ></div>
+
         </div>
 
-        <div
-          id="totalDevices"
-          class="stat-number"
-        >
-          0
-        </div>
-
-        <div class="stat-icon">
-          ◉
-        </div>
-
-      </div>
-
-
-
-      <div class="stat-card">
-
-        <div class="stat-label">
-          Online
-        </div>
-
-        <div
-          id="onlineDevices"
-          class="stat-number"
-        >
-          0
-        </div>
-
-        <div class="stat-icon">
-          ●
-        </div>
-
-      </div>
-
-
-
-      <div class="stat-card">
-
-        <div class="stat-label">
-          Offline
-        </div>
-
-        <div
-          id="offlineDevices"
-          class="stat-number"
-        >
-          0
-        </div>
-
-        <div class="stat-icon">
-          ○
-        </div>
-
-      </div>
-
-
-
-      <div class="stat-card">
-
-        <div class="stat-label">
-          Trusted
-        </div>
-
-        <div
-          id="trustedDevices"
-          class="stat-number"
-        >
-          0
-        </div>
-
-        <div class="stat-icon">
-          ✓
-        </div>
-
-      </div>
-
-
-    </div>
-
-
-
-    <div class="device-panel">
-
-
-      <div class="panel-header">
 
         <h2>
-          Connected Devices
+          Add your first network
         </h2>
 
-        <span>
-          Auto refresh every 5 seconds
-        </span>
 
-      </div>
+        <p>
 
+          Click + Add Network above
+          to create your first network.
 
-      <div id="devicesContainer">
+        </p>
 
-        <div class="empty-state">
-
-          <div class="empty-radar">
-
-            <div class="radar-ring ring1"></div>
-            <div class="radar-ring ring2"></div>
-            <div class="radar-ring ring3"></div>
-            <div class="radar-dot"></div>
-
-          </div>
-
-          <h2>
-            Waiting for WiFi Agent
-          </h2>
-
-          <p>
-
-            Your WiFi Watch dashboard is ready.
-            Once the local agent is installed,
-            detected devices will automatically
-            appear here.
-
-          </p>
-
-          <div class="coming-soon">
-
-            Agent setup coming next
-
-          </div>
-
-        </div>
 
       </div>
 
@@ -3171,8 +4050,10 @@ button {
     </div>
 
 
-  </main>
+  </div>
 
+
+</main>
 
 </section>
 
