@@ -22,8 +22,8 @@ import requests
 
 APP_VERSION = "0.1.0"
 
-SUPABASE_URL = "YOUR_SUPABASE_URL"
-SUPABASE_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY"
+SUPABASE_URL = "https://ephdcwogebxfsidytmrj.supabase.co"
+SUPABASE_KEY = "sb_publishable_L9TUAFyJ_S0l81UDNi8imw_FVTYm4cI"
 
 SCAN_INTERVAL = 30
 REQUEST_TIMEOUT = 20
