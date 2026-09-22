@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-
 <head>
 <meta charset="UTF-8">
 
@@ -20,57 +19,51 @@
 
 :root {
     --bg: #061017;
-    --bg-soft: #08151d;
-
+    --bg2: #081720;
     --panel: #0b2029;
-    --panel-2: #102a35;
-    --panel-3: #153541;
+    --panel2: #102a35;
+    --panel3: #153541;
 
     --border: rgba(255,255,255,.075);
 
-    --text: #f3f8fa;
-    --muted: #93a9b5;
-    --muted-2: #657f8b;
+    --text: #f4f8fa;
+    --muted: #91a7b3;
+    --muted2: #637c88;
 
     --green: #35e79a;
-    --green-dark: #062b1e;
-    --green-soft: rgba(53,231,154,.10);
+    --green-bg: rgba(53,231,154,.10);
 
     --yellow: #ffbd63;
-    --yellow-soft: rgba(255,189,99,.12);
+    --yellow-bg: rgba(255,189,99,.12);
 
-    --red: #ff7c84;
-    --red-soft: rgba(255,124,132,.12);
+    --red: #ff8087;
+    --red-bg: rgba(255,128,135,.12);
 
-    --blue: #6caaff;
-    --blue-soft: rgba(108,170,255,.12);
+    --blue: #75b6ff;
+    --blue-bg: rgba(117,182,255,.12);
 
-    --purple: #b798ff;
-    --purple-soft: rgba(183,152,255,.12);
+    --purple: #bea5ff;
+    --purple-bg: rgba(190,165,255,.12);
 
-    --radius: 18px;
-    --radius-sm: 11px;
-
-    --shadow:
-        0 25px 70px rgba(0,0,0,.33);
+    --radius: 17px;
+    --shadow: 0 28px 80px rgba(0,0,0,.35);
 }
-
 
 * {
     box-sizing: border-box;
 }
 
-
 html,
 body {
     margin: 0;
-
     min-height: 100%;
+}
 
+body {
     background:
         radial-gradient(
             circle at 20% 0%,
-            rgba(53,231,154,.07),
+            rgba(53,231,154,.065),
             transparent 30%
         ),
         var(--bg);
@@ -85,30 +78,25 @@ body {
         sans-serif;
 }
 
-
 button,
 input,
 select {
     font: inherit;
 }
 
-
 button {
     cursor: pointer;
 }
 
-
 button:disabled {
+    opacity: .5;
     cursor: not-allowed;
-    opacity: .55;
 }
-
 
 a {
     color: inherit;
     text-decoration: none;
 }
-
 
 .hidden {
     display: none !important;
@@ -123,12 +111,10 @@ a {
     min-height: 100vh;
 
     display: grid;
-
     grid-template-columns:
-        minmax(0, 1.12fr)
-        minmax(420px, .88fr);
+        minmax(0, 1.15fr)
+        minmax(420px, .85fr);
 }
-
 
 .auth-hero {
     padding: 70px;
@@ -139,12 +125,11 @@ a {
 
     background:
         radial-gradient(
-            circle at 32% 24%,
+            circle at 30% 30%,
             rgba(53,231,154,.15),
             transparent 35%
         );
 }
-
 
 .brand {
     display: flex;
@@ -152,9 +137,8 @@ a {
     gap: 12px;
 
     font-size: 21px;
-    font-weight: 850;
+    font-weight: 900;
 }
-
 
 .logo {
     width: 42px;
@@ -172,28 +156,22 @@ a {
     font-weight: 950;
 }
 
-
 .hero-copy {
     max-width: 700px;
 }
 
-
 .hero-copy h1 {
     margin: 0 0 20px;
-
-    max-width: 700px;
 
     font-size:
         clamp(44px, 6vw, 78px);
 
     line-height: .98;
-
     letter-spacing: -3px;
 }
 
-
 .hero-copy p {
-    max-width: 590px;
+    max-width: 600px;
 
     color: var(--muted);
 
@@ -201,32 +179,25 @@ a {
     line-height: 1.65;
 }
 
+.hero-tags {
+    margin-top: 28px;
 
-.hero-features {
     display: flex;
     flex-wrap: wrap;
-    gap: 9px;
-
-    margin-top: 28px;
+    gap: 8px;
 }
 
+.hero-tag {
+    padding: 9px 13px;
 
-.hero-feature {
-    padding: 10px 13px;
-
-    border:
-        1px solid var(--border);
-
+    border: 1px solid var(--border);
     border-radius: 999px;
 
-    background:
-        rgba(255,255,255,.025);
-
-    color: #c7d6dc;
+    color: #c9d6dc;
+    background: rgba(255,255,255,.025);
 
     font-size: 13px;
 }
-
 
 .auth-side {
     padding: 40px;
@@ -234,13 +205,11 @@ a {
     display: grid;
     place-items: center;
 
-    border-left:
-        1px solid var(--border);
+    border-left: 1px solid var(--border);
 
     background:
-        rgba(4,12,18,.55);
+        rgba(5,15,21,.55);
 }
-
 
 .auth-card {
     width: 100%;
@@ -248,62 +217,46 @@ a {
 
     padding: 34px;
 
-    border:
-        1px solid var(--border);
-
-    border-radius: 24px;
+    border: 1px solid var(--border);
+    border-radius: 23px;
 
     background:
-        rgba(12,32,42,.80);
+        rgba(12,32,42,.82);
 
-    backdrop-filter:
-        blur(16px);
+    backdrop-filter: blur(15px);
 
-    box-shadow:
-        var(--shadow);
+    box-shadow: var(--shadow);
 }
-
 
 .auth-card h2 {
-    margin:
-        0 0 7px;
+    margin: 0 0 7px;
 
-    font-size: 28px;
+    font-size: 29px;
 }
-
 
 .auth-subtitle {
-    margin:
-        0 0 25px;
+    margin: 0 0 25px;
 
     color: var(--muted);
-
-    line-height: 1.55;
+    line-height: 1.5;
 }
 
-
-.tabs {
-    display: grid;
-
-    grid-template-columns:
-        1fr 1fr;
-
+.auth-tabs {
+    margin-bottom: 22px;
     padding: 4px;
 
-    margin-bottom: 22px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
 
     border-radius: 12px;
 
-    background:
-        #07171f;
+    background: #07171f;
 }
 
-
-.tab {
+.auth-tab {
     padding: 10px;
 
     border: 0;
-
     border-radius: 9px;
 
     background: transparent;
@@ -312,17 +265,24 @@ a {
     font-weight: 750;
 }
 
-
-.tab.active {
-    background: var(--panel-3);
+.auth-tab.active {
+    background: var(--panel3);
     color: white;
 }
 
+.auth-footer {
+    margin-top: 18px;
+    text-align: center;
+}
+
+
+/* ============================================================
+   FORM
+============================================================ */
 
 .field {
     margin-bottom: 16px;
 }
-
 
 .field label {
     display: block;
@@ -335,25 +295,23 @@ a {
     font-weight: 750;
 }
 
-
-.input {
+.input,
+.select {
     width: 100%;
 
-    padding: 13px 14px;
+    padding: 12px 13px;
 
-    border:
-        1px solid var(--border);
-
+    border: 1px solid var(--border);
     border-radius: 11px;
 
     outline: none;
 
     background: #07171f;
-    color: var(--text);
+    color: white;
 }
 
-
-.input:focus {
+.input:focus,
+.select:focus {
     border-color:
         rgba(53,231,154,.55);
 
@@ -362,19 +320,12 @@ a {
         rgba(53,231,154,.08);
 }
 
-
-.auth-foot {
-    margin-top: 18px;
-    text-align: center;
-}
-
-
 .link-button {
     padding: 0;
 
     border: 0;
 
-    background: none;
+    background: transparent;
     color: var(--green);
 }
 
@@ -384,68 +335,54 @@ a {
 ============================================================ */
 
 .btn {
-    display: inline-flex;
+    min-height: 40px;
 
+    padding: 9px 14px;
+
+    display: inline-flex;
     align-items: center;
     justify-content: center;
 
-    gap: 8px;
+    gap: 7px;
 
-    min-height: 41px;
-
-    padding:
-        10px 15px;
-
-    border:
-        1px solid transparent;
-
-    border-radius: 11px;
+    border: 1px solid transparent;
+    border-radius: 10px;
 
     font-weight: 780;
 
-    transition:
-        .15s ease;
+    transition: .14s ease;
 }
-
 
 .btn:hover {
-    transform:
-        translateY(-1px);
+    transform: translateY(-1px);
 }
-
 
 .btn-primary {
     background: var(--green);
     color: #042116;
 }
 
-
 .btn-secondary {
-    border-color:
-        var(--border);
+    border-color: var(--border);
 
-    background: var(--panel-2);
+    background: var(--panel2);
     color: white;
 }
 
-
-.btn-danger {
-    border-color:
-        rgba(255,124,132,.20);
-
-    background: var(--red-soft);
-    color: #ff969d;
-}
-
-
 .btn-ghost {
-    border-color:
-        var(--border);
+    border-color: var(--border);
 
     background: transparent;
     color: var(--muted);
 }
 
+.btn-danger {
+    border-color:
+        rgba(255,128,135,.22);
+
+    background: var(--red-bg);
+    color: #ff9aa0;
+}
 
 .btn-full {
     width: 100%;
@@ -453,19 +390,17 @@ a {
 
 
 /* ============================================================
-   APPLICATION SHELL
+   APP
 ============================================================ */
 
 .app-shell {
     min-height: 100vh;
 
     display: grid;
-
     grid-template-columns:
-        255px
+        260px
         minmax(0,1fr);
 }
-
 
 .sidebar {
     position: sticky;
@@ -473,74 +408,46 @@ a {
 
     height: 100vh;
 
-    padding: 22px 16px;
+    padding: 21px 15px;
 
     display: flex;
     flex-direction: column;
 
-    border-right:
-        1px solid var(--border);
+    border-right: 1px solid var(--border);
 
     background:
-        rgba(5,15,21,.94);
+        rgba(5,15,21,.95);
 
-    backdrop-filter:
-        blur(16px);
+    backdrop-filter: blur(14px);
 }
-
 
 .sidebar-brand {
-    padding:
-        3px 8px 26px;
+    padding: 4px 8px 26px;
 }
-
 
 .network-picker {
-    padding:
-        0 6px 20px;
+    padding: 0 6px 20px;
 }
-
 
 .network-picker label {
     display: block;
 
     margin-bottom: 7px;
 
-    color: var(--muted-2);
+    color: var(--muted2);
 
-    font-size: 11px;
-    font-weight: 850;
-
+    font-size: 10px;
+    font-weight: 900;
     letter-spacing: .8px;
 
-    text-transform:
-        uppercase;
+    text-transform: uppercase;
 }
 
-
-.select {
-    width: 100%;
-
-    padding: 11px 12px;
-
-    border:
-        1px solid var(--border);
-
-    border-radius: 10px;
-
-    outline: none;
-
-    background: var(--panel);
-    color: white;
-}
-
-
-.nav {
+.navigation {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
 }
-
 
 .nav-btn {
     width: 100%;
@@ -550,10 +457,9 @@ a {
     display: flex;
     align-items: center;
 
-    gap: 11px;
+    gap: 10px;
 
     border: 0;
-
     border-radius: 10px;
 
     background: transparent;
@@ -561,9 +467,8 @@ a {
 
     text-align: left;
 
-    font-weight: 730;
+    font-weight: 720;
 }
-
 
 .nav-btn:hover {
     background:
@@ -572,28 +477,43 @@ a {
     color: white;
 }
 
-
 .nav-btn.active {
-    background: var(--green-soft);
+    background: var(--green-bg);
     color: var(--green);
 }
 
+.nav-count {
+    margin-left: auto;
+
+    min-width: 22px;
+    height: 22px;
+
+    padding: 0 6px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 999px;
+
+    background: var(--red-bg);
+    color: #ff9ba1;
+
+    font-size: 11px;
+    font-weight: 850;
+}
 
 .sidebar-bottom {
     margin-top: auto;
 
-    padding:
-        15px 7px 3px;
+    padding: 15px 7px 3px;
 
-    border-top:
-        1px solid var(--border);
+    border-top: 1px solid var(--border);
 }
 
-
-.account-email {
-    overflow: hidden;
-
+.sidebar-email {
     margin-bottom: 10px;
+
+    overflow: hidden;
 
     color: var(--muted);
 
@@ -602,151 +522,139 @@ a {
     text-overflow: ellipsis;
 }
 
-
 .main {
     min-width: 0;
 
-    padding: 32px;
+    padding: 30px 32px 60px;
 }
 
 
-.topbar {
-    display: flex;
+/* ============================================================
+   PAGE HEADER
+============================================================ */
 
+.topbar {
+    margin-bottom: 27px;
+
+    display: flex;
     align-items: flex-start;
     justify-content: space-between;
 
     gap: 20px;
-
-    margin-bottom: 28px;
 }
-
 
 .page-title {
     margin: 0;
 
     font-size: 31px;
-
     letter-spacing: -1px;
 }
 
-
 .page-subtitle {
-    margin:
-        7px 0 0;
+    margin: 7px 0 0;
 
     color: var(--muted);
-
     line-height: 1.5;
 }
-
 
 .top-actions {
     display: flex;
     flex-wrap: wrap;
-
-    gap: 10px;
+    gap: 8px;
 }
 
 
 /* ============================================================
-   CARDS / STATS
+   CARDS
 ============================================================ */
 
 .grid {
     display: grid;
-    gap: 18px;
+    gap: 17px;
 }
-
 
 .stats-grid {
     grid-template-columns:
-        repeat(4,1fr);
+        repeat(5,1fr);
 
     margin-bottom: 20px;
 }
 
-
 .stat {
-    padding: 21px;
+    min-width: 0;
 
-    border:
-        1px solid var(--border);
+    padding: 20px;
 
+    border: 1px solid var(--border);
     border-radius: var(--radius);
 
     background: var(--panel);
 }
 
-
 .stat-label {
     color: var(--muted);
 
-    font-size: 12px;
-    font-weight: 850;
-
-    letter-spacing: .7px;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .65px;
 
     text-transform: uppercase;
 }
 
-
 .stat-value {
     margin-top: 9px;
 
-    font-size: 38px;
+    font-size: 35px;
     font-weight: 900;
 }
 
+.stat-caption {
+    margin-top: 5px;
+
+    color: var(--muted2);
+
+    font-size: 12px;
+}
 
 .card {
     margin-bottom: 20px;
 
     overflow: hidden;
 
-    border:
-        1px solid var(--border);
-
+    border: 1px solid var(--border);
     border-radius: var(--radius);
 
     background: var(--panel);
 }
 
-
 .card-head {
-    padding: 20px 22px;
+    padding: 19px 21px;
 
     display: flex;
-
     align-items: center;
     justify-content: space-between;
 
     gap: 15px;
 
-    border-bottom:
-        1px solid var(--border);
+    border-bottom: 1px solid var(--border);
 }
-
 
 .card-title {
     margin: 0;
 
-    font-size: 20px;
+    font-size: 19px;
 }
 
-
 .card-subtitle {
-    margin:
-        4px 0 0;
+    margin: 4px 0 0;
 
     color: var(--muted);
 
-    font-size: 14px;
+    font-size: 13px;
 }
 
-
 .card-body {
-    padding: 20px 22px;
+    padding: 20px 21px;
 }
 
 
@@ -755,115 +663,110 @@ a {
 ============================================================ */
 
 .badge {
+    padding: 5px 8px;
+
     display: inline-flex;
-
     align-items: center;
-    gap: 6px;
 
-    padding: 5px 9px;
+    gap: 5px;
 
     border-radius: 999px;
 
-    font-size: 11px;
-    font-weight: 880;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .3px;
 
     text-transform: uppercase;
-
-    letter-spacing: .3px;
 }
-
 
 .badge-green {
+    background: var(--green-bg);
     color: var(--green);
-    background: var(--green-soft);
 }
-
 
 .badge-yellow {
+    background: var(--yellow-bg);
     color: var(--yellow);
-    background: var(--yellow-soft);
 }
-
 
 .badge-red {
-    color: #ff969d;
-    background: var(--red-soft);
+    background: var(--red-bg);
+    color: #ff9ba1;
 }
-
 
 .badge-blue {
-    color: #8bc2ff;
-    background: var(--blue-soft);
+    background: var(--blue-bg);
+    color: #91c7ff;
 }
-
 
 .badge-purple {
-    color: #cab7ff;
-    background: var(--purple-soft);
+    background: var(--purple-bg);
+    color: #d0c0ff;
 }
 
-
 .badge-gray {
-    color: var(--muted);
     background: rgba(255,255,255,.05);
+    color: var(--muted);
 }
 
 
 /* ============================================================
-   AGENTS
+   AGENT
 ============================================================ */
 
-.agent {
-    display: grid;
+.agent-row {
+    padding: 16px 0;
 
+    display: grid;
     grid-template-columns:
-        auto 1fr auto;
+        auto
+        minmax(0,1fr)
+        auto;
 
     align-items: center;
 
-    gap: 15px;
+    gap: 14px;
 
-    padding:
-        17px 0;
-
-    border-bottom:
-        1px solid var(--border);
+    border-bottom: 1px solid var(--border);
 }
 
-
-.agent:last-child {
+.agent-row:last-child {
     border-bottom: 0;
 }
 
-
 .agent-icon {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
 
     display: grid;
     place-items: center;
 
-    border-radius: 15px;
+    border-radius: 13px;
 
-    background: var(--panel-2);
+    background: var(--panel2);
 
-    font-size: 23px;
+    font-size: 21px;
 }
-
 
 .agent-name {
     font-weight: 850;
 }
-
 
 .agent-meta {
     margin-top: 5px;
 
     color: var(--muted);
 
-    font-size: 13px;
+    font-size: 12px;
+    line-height: 1.55;
+}
 
-    line-height: 1.5;
+.agent-health {
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+
+    gap: 5px;
 }
 
 
@@ -875,62 +778,53 @@ a {
     overflow-x: auto;
 }
 
-
 table {
     width: 100%;
 
     border-collapse: collapse;
 }
 
-
 th {
-    padding: 12px 14px;
+    padding: 12px 13px;
 
-    color: var(--muted-2);
+    color: var(--muted2);
 
-    font-size: 11px;
-    font-weight: 850;
-
-    letter-spacing: .65px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .6px;
 
     text-align: left;
-
     text-transform: uppercase;
 }
 
-
 td {
-    padding: 15px 14px;
+    padding: 14px 13px;
 
-    border-top:
-        1px solid var(--border);
+    border-top: 1px solid var(--border);
 
-    color: #dce8ec;
+    color: #dae7eb;
 
-    font-size: 14px;
+    font-size: 13px;
 }
-
 
 tbody tr {
     cursor: pointer;
 
-    transition:
-        background .12s ease;
+    transition: background .12s ease;
 }
-
 
 tbody tr:hover {
-    background:
-        rgba(255,255,255,.025);
+    background: rgba(255,255,255,.025);
 }
-
 
 .device-main {
+    min-width: 220px;
+
     display: flex;
     align-items: center;
-    gap: 11px;
-}
 
+    gap: 10px;
+}
 
 .device-icon {
     width: 39px;
@@ -943,11 +837,10 @@ tbody tr:hover {
 
     border-radius: 11px;
 
-    background: var(--panel-2);
+    background: var(--panel2);
 
     font-size: 18px;
 }
-
 
 .device-name {
     color: white;
@@ -955,43 +848,32 @@ tbody tr:hover {
     font-weight: 850;
 }
 
-
 .device-small {
     margin-top: 3px;
 
     color: var(--muted);
 
-    font-size: 12px;
-
+    font-size: 11px;
     line-height: 1.45;
 }
-
-
-.identity-cell {
-    min-width: 120px;
-}
-
 
 .confidence {
     display: flex;
     align-items: center;
 
-    gap: 8px;
+    gap: 7px;
 }
 
-
-.confidence-bar {
-    width: 62px;
+.confidence-track {
+    width: 60px;
     height: 6px;
 
     overflow: hidden;
 
-    border-radius: 999px;
+    border-radius: 99px;
 
-    background:
-        rgba(255,255,255,.07);
+    background: rgba(255,255,255,.06);
 }
-
 
 .confidence-fill {
     height: 100%;
@@ -999,6 +881,91 @@ tbody tr:hover {
     border-radius: inherit;
 
     background: var(--green);
+}
+
+
+/* ============================================================
+   FILTER BAR
+============================================================ */
+
+.filters {
+    padding: 13px;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(200px,2fr)
+        repeat(3,minmax(130px,1fr));
+
+    gap: 9px;
+
+    border-bottom: 1px solid var(--border);
+}
+
+
+/* ============================================================
+   ALERTS / ACTIVITY
+============================================================ */
+
+.feed-item {
+    padding: 17px 0;
+
+    display: grid;
+
+    grid-template-columns:
+        auto
+        minmax(0,1fr)
+        auto;
+
+    gap: 13px;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.feed-item:last-child {
+    border-bottom: 0;
+}
+
+.feed-icon {
+    width: 38px;
+    height: 38px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 11px;
+
+    background: var(--panel2);
+}
+
+.feed-title {
+    font-weight: 820;
+}
+
+.feed-message {
+    margin-top: 4px;
+
+    color: var(--muted);
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.feed-time {
+    color: var(--muted2);
+
+    font-size: 11px;
+
+    white-space: nowrap;
+}
+
+.unread-item {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(53,231,154,.035),
+            transparent
+        );
 }
 
 
@@ -1015,21 +982,17 @@ tbody tr:hover {
             minmax(280px,1fr)
         );
 
-    gap: 16px;
+    gap: 15px;
 }
-
 
 .network-card {
     padding: 20px;
 
-    border:
-        1px solid var(--border);
-
+    border: 1px solid var(--border);
     border-radius: var(--radius);
 
     background: var(--panel);
 }
-
 
 .network-card.selected {
     border-color:
@@ -1037,31 +1000,26 @@ tbody tr:hover {
 
     box-shadow:
         inset 0 0 0 1px
-        rgba(53,231,154,.09);
+        rgba(53,231,154,.08);
 }
-
 
 .network-card h3 {
-    margin:
-        0 0 7px;
+    margin: 0 0 5px;
 }
 
-
 .network-card p {
-    margin:
-        0 0 20px;
+    margin: 0 0 18px;
 
     color: var(--muted);
 
-    font-size: 13px;
+    font-size: 12px;
 }
-
 
 .network-actions {
     display: flex;
     flex-wrap: wrap;
 
-    gap: 8px;
+    gap: 7px;
 }
 
 
@@ -1073,82 +1031,121 @@ tbody tr:hover {
     display: grid;
 
     grid-template-columns:
-        minmax(0,1fr)
-        minmax(0,1fr);
+        repeat(2,minmax(0,1fr));
 
-    gap: 18px;
+    gap: 17px;
 }
 
-
 .setting-card {
-    padding: 22px;
+    padding: 21px;
 
-    border:
-        1px solid var(--border);
-
+    border: 1px solid var(--border);
     border-radius: var(--radius);
 
     background: var(--panel);
 }
 
-
 .setting-card h3 {
-    margin:
-        0 0 8px;
+    margin: 0 0 8px;
 }
-
 
 .setting-card p {
     color: var(--muted);
 
+    font-size: 13px;
     line-height: 1.55;
 }
 
-
 .setting-row {
-    padding: 13px 0;
+    padding: 12px 0;
 
     display: flex;
-
     align-items: center;
     justify-content: space-between;
 
-    gap: 20px;
+    gap: 15px;
 
-    border-bottom:
-        1px solid var(--border);
+    border-bottom: 1px solid var(--border);
 }
-
 
 .setting-row:last-child {
     border-bottom: 0;
 }
 
+.setting-row-name {
+    font-weight: 720;
+}
+
+.setting-row-note {
+    margin-top: 3px;
+
+    color: var(--muted2);
+
+    font-size: 11px;
+}
 
 .factor {
-    display: flex;
+    margin-top: 8px;
+    padding: 12px;
 
+    display: flex;
     align-items: center;
     justify-content: space-between;
 
     gap: 10px;
 
-    padding: 13px;
-
-    margin-top: 9px;
-
-    border:
-        1px solid var(--border);
-
+    border: 1px solid var(--border);
     border-radius: 11px;
 
-    background:
-        rgba(255,255,255,.025);
+    background: rgba(255,255,255,.02);
+}
+
+.toggle {
+    width: 46px;
+    height: 25px;
+
+    position: relative;
+
+    appearance: none;
+
+    border-radius: 999px;
+
+    background: #27404a;
+
+    cursor: pointer;
+
+    transition: .15s;
+}
+
+.toggle:checked {
+    background: var(--green);
+}
+
+.toggle::after {
+    content: "";
+
+    position: absolute;
+
+    top: 3px;
+    left: 3px;
+
+    width: 19px;
+    height: 19px;
+
+    border-radius: 50%;
+
+    background: white;
+
+    transition: .15s;
+}
+
+.toggle:checked::after {
+    transform: translateX(21px);
 }
 
 
 /* ============================================================
-   DEVICE DETAIL
+   DETAILS
 ============================================================ */
 
 .detail-grid {
@@ -1157,113 +1154,91 @@ tbody tr:hover {
     grid-template-columns:
         repeat(2,1fr);
 
-    gap: 10px;
+    gap: 9px;
 }
-
 
 .detail-item {
-    padding: 13px;
+    padding: 12px;
 
-    border:
-        1px solid var(--border);
-
+    border: 1px solid var(--border);
     border-radius: 11px;
 
-    background:
-        rgba(255,255,255,.022);
+    background: rgba(255,255,255,.02);
 }
-
 
 .detail-label {
     margin-bottom: 5px;
 
-    color: var(--muted-2);
+    color: var(--muted2);
 
-    font-size: 11px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: .45px;
 
     text-transform: uppercase;
-
-    letter-spacing: .5px;
 }
-
 
 .detail-value {
     color: white;
 
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 720;
 
     overflow-wrap: anywhere;
 }
 
-
 .section-heading {
-    margin:
-        25px 0 10px;
+    margin: 24px 0 10px;
 
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 850;
 }
-
 
 .chips {
     display: flex;
     flex-wrap: wrap;
 
-    gap: 7px;
+    gap: 6px;
 }
-
 
 .chip {
     padding: 6px 9px;
 
-    border:
-        1px solid var(--border);
-
+    border: 1px solid var(--border);
     border-radius: 999px;
 
-    background:
-        rgba(255,255,255,.025);
+    background: rgba(255,255,255,.02);
+    color: #cad8dd;
 
-    color: #c8d7dd;
-
-    font-size: 12px;
+    font-size: 11px;
 }
-
 
 .finding {
-    margin-top: 9px;
+    margin-top: 8px;
+    padding: 12px;
 
-    padding: 13px;
-
-    border:
-        1px solid var(--border);
-
+    border: 1px solid var(--border);
     border-radius: 11px;
 
-    background:
-        rgba(255,255,255,.022);
+    background: rgba(255,255,255,.02);
 }
-
 
 .finding-title {
     font-weight: 800;
 }
 
-
 .finding-detail {
-    margin-top: 5px;
+    margin-top: 4px;
 
     color: var(--muted);
 
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.5;
 }
 
 
 /* ============================================================
-   EMPTY STATE
+   EMPTY
 ============================================================ */
 
 .empty {
@@ -1274,11 +1249,10 @@ tbody tr:hover {
     color: var(--muted);
 }
 
-
 .empty strong {
     display: block;
 
-    margin-bottom: 7px;
+    margin-bottom: 6px;
 
     color: white;
 }
@@ -1290,7 +1264,6 @@ tbody tr:hover {
 
 .modal-backdrop {
     position: fixed;
-
     inset: 0;
 
     z-index: 1000;
@@ -1303,79 +1276,61 @@ tbody tr:hover {
     background:
         rgba(0,0,0,.72);
 
-    backdrop-filter:
-        blur(8px);
+    backdrop-filter: blur(7px);
 }
 
-
 .modal {
-    width:
-        min(520px,100%);
-
-    max-height:
-        calc(100vh - 40px);
+    width: min(520px,100%);
+    max-height: calc(100vh - 40px);
 
     overflow-y: auto;
 
     padding: 25px;
 
-    border:
-        1px solid var(--border);
-
-    border-radius: 21px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
 
     background: #091b24;
 
     box-shadow: var(--shadow);
 }
 
-
 .modal-wide {
-    width:
-        min(760px,100%);
+    width: min(800px,100%);
 }
-
 
 .modal h2 {
-    margin:
-        0 0 8px;
+    margin: 0 0 7px;
 }
 
-
 .modal-description {
-    margin:
-        0 0 20px;
+    margin: 0 0 19px;
 
     color: var(--muted);
 
-    line-height: 1.55;
+    line-height: 1.5;
 }
 
-
 .modal-actions {
-    display: flex;
+    margin-top: 20px;
 
+    display: flex;
     justify-content: flex-end;
     flex-wrap: wrap;
 
-    gap: 9px;
-
-    margin-top: 20px;
+    gap: 8px;
 }
 
-
-.code {
-    padding: 17px;
-
+.pair-code {
     margin: 18px 0;
+    padding: 16px;
 
-    border:
-        1px solid
+    border: 1px solid
         rgba(53,231,154,.24);
 
-    border-radius: 13px;
+    border-radius: 12px;
 
-    background: var(--green-soft);
+    background: var(--green-bg);
     color: var(--green);
 
     text-align: center;
@@ -1386,37 +1341,32 @@ tbody tr:hover {
         Menlo,
         monospace;
 
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 900;
 
-    letter-spacing: 1px;
+    letter-spacing: .8px;
 }
 
-
 .download-grid {
-    display: grid;
+    margin-top: 17px;
 
+    display: grid;
     grid-template-columns:
         repeat(3,1fr);
 
     gap: 8px;
-
-    margin-top: 17px;
 }
-
 
 .qr-box {
     width: 230px;
 
-    margin: 20px auto;
+    margin: 18px auto;
+    padding: 12px;
 
-    padding: 13px;
-
-    border-radius: 16px;
+    border-radius: 15px;
 
     background: white;
 }
-
 
 .qr-box img {
     width: 100%;
@@ -1424,19 +1374,15 @@ tbody tr:hover {
     display: block;
 }
 
-
 .secret {
-    padding: 12px;
+    padding: 11px;
 
-    border:
-        1px dashed
-        rgba(255,255,255,.15);
+    border: 1px dashed
+        rgba(255,255,255,.16);
 
     border-radius: 10px;
 
     background: #061017;
-
-    color: #d9e6ea;
 
     font-family:
         ui-monospace,
@@ -1444,7 +1390,7 @@ tbody tr:hover {
         Menlo,
         monospace;
 
-    font-size: 12px;
+    font-size: 11px;
 
     overflow-wrap: anywhere;
 }
@@ -1457,37 +1403,32 @@ tbody tr:hover {
 .toast {
     position: fixed;
 
-    z-index: 3000;
-
     right: 22px;
     bottom: 22px;
 
+    z-index: 3000;
+
     max-width: 390px;
 
-    padding: 13px 16px;
+    padding: 13px 15px;
 
-    border:
-        1px solid var(--border);
-
-    border-radius: 12px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
 
     background: #102630;
+    color: white;
 
     box-shadow: var(--shadow);
-
-    color: white;
 }
-
 
 .toast.error {
     border-color:
-        rgba(255,124,132,.30);
+        rgba(255,128,135,.35);
 }
-
 
 .toast.success {
     border-color:
-        rgba(53,231,154,.30);
+        rgba(53,231,154,.35);
 }
 
 
@@ -1495,32 +1436,24 @@ tbody tr:hover {
    RESPONSIVE
 ============================================================ */
 
-@media (
-    max-width: 1100px
-) {
+@media (max-width: 1200px) {
 
     .stats-grid {
         grid-template-columns:
-            repeat(2,1fr);
+            repeat(3,1fr);
     }
 
 }
 
-
-@media (
-    max-width: 1000px
-) {
+@media (max-width: 1000px) {
 
     .auth-screen {
-        grid-template-columns:
-            1fr;
+        grid-template-columns: 1fr;
     }
-
 
     .auth-hero {
         display: none;
     }
-
 
     .auth-side {
         min-height: 100vh;
@@ -1528,117 +1461,102 @@ tbody tr:hover {
         border-left: 0;
     }
 
-
     .settings-grid {
-        grid-template-columns:
-            1fr;
+        grid-template-columns: 1fr;
     }
 
 }
 
-
-@media (
-    max-width: 760px
-) {
+@media (max-width: 760px) {
 
     .app-shell {
         display: block;
     }
-
 
     .sidebar {
         position: static;
 
         height: auto;
 
-        padding: 13px;
+        padding: 12px;
 
         border-right: 0;
-
-        border-bottom:
-            1px solid var(--border);
+        border-bottom: 1px solid var(--border);
     }
-
 
     .sidebar-brand {
-        padding-bottom: 12px;
+        padding-bottom: 11px;
     }
-
 
     .network-picker {
-        padding-bottom: 12px;
+        padding-bottom: 11px;
     }
 
-
-    .nav {
+    .navigation {
         display: grid;
 
         grid-template-columns:
             repeat(4,1fr);
     }
 
-
     .nav-btn {
         justify-content: center;
 
-        padding: 9px 5px;
+        padding: 9px 4px;
 
-        font-size: 11px;
+        font-size: 10px;
     }
 
+    .nav-count {
+        display: none;
+    }
 
     .sidebar-bottom {
         display: none;
     }
 
-
     .main {
-        padding: 19px 13px;
+        padding: 18px 12px 45px;
     }
-
 
     .topbar {
         display: block;
     }
 
-
     .top-actions {
-        margin-top: 16px;
+        margin-top: 14px;
     }
-
 
     .stats-grid {
         grid-template-columns:
             repeat(2,1fr);
     }
 
-
     .stat-value {
-        font-size: 30px;
+        font-size: 29px;
     }
 
+    .filters {
+        grid-template-columns: 1fr;
+    }
 
-    .agent {
+    .agent-row {
         grid-template-columns:
             auto 1fr;
     }
 
+    .agent-health {
+        grid-column: 1 / -1;
 
-    .agent > :last-child {
-        grid-column:
-            1 / -1;
+        align-items: flex-start;
     }
-
-
-    .download-grid {
-        grid-template-columns:
-            1fr;
-    }
-
 
     .detail-grid {
-        grid-template-columns:
-            1fr;
+        grid-template-columns: 1fr;
+    }
+
+    .download-grid {
+        grid-template-columns: 1fr;
     }
 
 }
@@ -1646,12 +1564,11 @@ tbody tr:hover {
 </style>
 </head>
 
-
 <body>
 
 
 <!-- ============================================================
-     AUTH
+     AUTH SCREEN
 ============================================================ -->
 
 <section
@@ -1675,36 +1592,39 @@ tbody tr:hover {
         <div class="hero-copy">
 
             <h1>
-                Know every device on your network.
+                Know what is on your network.
             </h1>
 
             <p>
-                WiFi Watch discovers connected devices,
-                builds intelligent device identities,
-                monitors activity and highlights observable
-                network security concerns.
+                Discover devices, build intelligent device identities,
+                monitor changes and review observable security concerns
+                from one dashboard.
             </p>
 
 
-            <div class="hero-features">
+            <div class="hero-tags">
 
-                <div class="hero-feature">
-                    Expert device intelligence
+                <div class="hero-tag">
+                    Expert Device Intelligence
                 </div>
 
-                <div class="hero-feature">
-                    Live monitoring
+                <div class="hero-tag">
+                    Network Inventory
                 </div>
 
-                <div class="hero-feature">
-                    Security observations
+                <div class="hero-tag">
+                    New Device Alerts
                 </div>
 
-                <div class="hero-feature">
-                    Multi-network
+                <div class="hero-tag">
+                    Security Review
                 </div>
 
-                <div class="hero-feature">
+                <div class="hero-tag">
+                    Activity History
+                </div>
+
+                <div class="hero-tag">
                     Mandatory 2FA
                 </div>
 
@@ -1715,7 +1635,7 @@ tbody tr:hover {
 
         <div class="device-small">
 
-            Only use WiFi Watch on networks you own
+            Use WiFi Watch only on networks you own
             or are authorized to administer.
 
         </div>
@@ -1732,15 +1652,15 @@ tbody tr:hover {
             </h2>
 
             <p class="auth-subtitle">
-                Sign in to monitor your networks securely.
+                Sign in to manage and monitor your networks.
             </p>
 
 
-            <div class="tabs">
+            <div class="auth-tabs">
 
                 <button
                     id="loginTab"
-                    class="tab active"
+                    class="auth-tab active"
                     type="button"
                 >
                     Sign in
@@ -1748,7 +1668,7 @@ tbody tr:hover {
 
                 <button
                     id="registerTab"
-                    class="tab"
+                    class="auth-tab"
                     type="button"
                 >
                     Create account
@@ -1786,8 +1706,8 @@ tbody tr:hover {
                         id="authPassword"
                         class="input"
                         type="password"
-                        autocomplete="current-password"
                         minlength="10"
+                        autocomplete="current-password"
                         required
                     >
 
@@ -1805,7 +1725,7 @@ tbody tr:hover {
             </form>
 
 
-            <div class="auth-foot">
+            <div class="auth-footer">
 
                 <button
                     id="forgotPassword"
@@ -1826,7 +1746,7 @@ tbody tr:hover {
 
 
 <!-- ============================================================
-     APP
+     APPLICATION
 ============================================================ -->
 
 <section
@@ -1865,7 +1785,7 @@ tbody tr:hover {
         </div>
 
 
-        <nav class="nav">
+        <nav class="navigation">
 
             <button
                 class="nav-btn active"
@@ -1877,10 +1797,10 @@ tbody tr:hover {
 
             <button
                 class="nav-btn"
-                data-view="networks"
+                data-view="devices"
                 type="button"
             >
-                ◎ Networks
+                ◉ Devices
             </button>
 
             <button
@@ -1889,6 +1809,38 @@ tbody tr:hover {
                 type="button"
             >
                 ◈ Security
+            </button>
+
+            <button
+                class="nav-btn"
+                data-view="alerts"
+                type="button"
+            >
+                ◇ Alerts
+
+                <span
+                    id="alertNavCount"
+                    class="nav-count hidden"
+                >
+                    0
+                </span>
+
+            </button>
+
+            <button
+                class="nav-btn"
+                data-view="activity"
+                type="button"
+            >
+                ≡ Activity
+            </button>
+
+            <button
+                class="nav-btn"
+                data-view="networks"
+                type="button"
+            >
+                ◎ Networks
             </button>
 
             <button
@@ -1906,7 +1858,7 @@ tbody tr:hover {
 
             <div
                 id="sidebarEmail"
-                class="account-email"
+                class="sidebar-email"
             ></div>
 
             <button
@@ -1946,7 +1898,7 @@ tbody tr:hover {
                     </h1>
 
                     <p class="page-subtitle">
-                        Live inventory and expert device intelligence.
+                        Live inventory, Agent health and network activity.
                     </p>
 
                 </div>
@@ -1963,7 +1915,7 @@ tbody tr:hover {
                     </button>
 
                     <button
-                        id="addNetworkButtonTop"
+                        id="addNetworkTopButton"
                         class="btn btn-primary"
                         type="button"
                     >
@@ -1980,14 +1932,18 @@ tbody tr:hover {
                 <div class="stat">
 
                     <div class="stat-label">
-                        Total devices
+                        Devices
                     </div>
 
                     <div
-                        id="totalDevices"
+                        id="statDevices"
                         class="stat-value"
                     >
                         0
+                    </div>
+
+                    <div class="stat-caption">
+                        Total discovered
                     </div>
 
                 </div>
@@ -2000,10 +1956,14 @@ tbody tr:hover {
                     </div>
 
                     <div
-                        id="onlineDevices"
+                        id="statOnline"
                         class="stat-value"
                     >
                         0
+                    </div>
+
+                    <div class="stat-caption">
+                        Seen recently
                     </div>
 
                 </div>
@@ -2012,14 +1972,18 @@ tbody tr:hover {
                 <div class="stat">
 
                     <div class="stat-label">
-                        New devices
+                        New
                     </div>
 
                     <div
-                        id="newDevices"
+                        id="statNew"
                         class="stat-value"
                     >
                         0
+                    </div>
+
+                    <div class="stat-caption">
+                        Awaiting review
                     </div>
 
                 </div>
@@ -2028,14 +1992,38 @@ tbody tr:hover {
                 <div class="stat">
 
                     <div class="stat-label">
-                        Security review
+                        Security
                     </div>
 
                     <div
-                        id="securityReview"
+                        id="statSecurity"
                         class="stat-value"
                     >
                         0
+                    </div>
+
+                    <div class="stat-caption">
+                        Warning / review
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div class="stat-label">
+                        Unread alerts
+                    </div>
+
+                    <div
+                        id="statAlerts"
+                        class="stat-value"
+                    >
+                        0
+                    </div>
+
+                    <div class="stat-caption">
+                        Needs attention
                     </div>
 
                 </div>
@@ -2054,15 +2042,16 @@ tbody tr:hover {
                         </h2>
 
                         <p class="card-subtitle">
-                            Computers monitoring this network
+                            Scanner health and fingerprint engine information
                         </p>
 
                     </div>
 
                 </div>
 
+
                 <div
-                    id="agentsContainer"
+                    id="overviewAgents"
                     class="card-body"
                 ></div>
 
@@ -2076,21 +2065,402 @@ tbody tr:hover {
                     <div>
 
                         <h2 class="card-title">
-                            Connected Devices
+                            New Devices
                         </h2>
 
                         <p class="card-subtitle">
-                            Expert identities built from network evidence
+                            Recently discovered devices awaiting review
                         </p>
 
                     </div>
+
+
+                    <button
+                        class="btn btn-ghost"
+                        data-go-view="devices"
+                        type="button"
+                    >
+                        View all
+                    </button>
 
                 </div>
 
 
                 <div
-                    id="devicesContainer"
+                    id="overviewNewDevices"
                     class="table-wrap"
+                ></div>
+
+            </div>
+
+
+            <div class="grid"
+                 style="
+                    grid-template-columns:
+                    repeat(2,minmax(0,1fr));
+                 "
+            >
+
+                <div class="card">
+
+                    <div class="card-head">
+
+                        <div>
+
+                            <h2 class="card-title">
+                                Latest Alerts
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="overviewAlerts"
+                        class="card-body"
+                    ></div>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-head">
+
+                        <div>
+
+                            <h2 class="card-title">
+                                Recent Activity
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="overviewActivity"
+                        class="card-body"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ====================================================
+             DEVICES
+        ===================================================== -->
+
+        <section
+            id="viewDevices"
+            class="view hidden"
+        >
+
+            <div class="topbar">
+
+                <div>
+
+                    <h1 class="page-title">
+                        Devices
+                    </h1>
+
+                    <p class="page-subtitle">
+                        Search and review every device discovered on this network.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="filters">
+
+                    <input
+                        id="deviceSearch"
+                        class="input"
+                        placeholder="Search name, IP, MAC, manufacturer or model..."
+                    >
+
+
+                    <select
+                        id="deviceStatusFilter"
+                        class="select"
+                    >
+
+                        <option value="all">
+                            All statuses
+                        </option>
+
+                        <option value="online">
+                            Online
+                        </option>
+
+                        <option value="offline">
+                            Offline
+                        </option>
+
+                    </select>
+
+
+                    <select
+                        id="deviceSecurityFilter"
+                        class="select"
+                    >
+
+                        <option value="all">
+                            All security
+                        </option>
+
+                        <option value="warning">
+                            Warning
+                        </option>
+
+                        <option value="review">
+                            Review
+                        </option>
+
+                        <option value="no_obvious_issues">
+                            No obvious issues
+                        </option>
+
+                        <option value="unknown">
+                            Unknown
+                        </option>
+
+                    </select>
+
+
+                    <select
+                        id="deviceTypeFilter"
+                        class="select"
+                    >
+
+                        <option value="all">
+                            All device types
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div
+                    id="devicesTable"
+                    class="table-wrap"
+                ></div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ====================================================
+             SECURITY
+        ===================================================== -->
+
+        <section
+            id="viewSecurity"
+            class="view hidden"
+        >
+
+            <div class="topbar">
+
+                <div>
+
+                    <h1 class="page-title">
+                        Security
+                    </h1>
+
+                    <p class="page-subtitle">
+                        Observable LAN services and findings requiring review.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="grid stats-grid">
+
+                <div class="stat">
+
+                    <div class="stat-label">
+                        Warnings
+                    </div>
+
+                    <div
+                        id="securityWarningCount"
+                        class="stat-value"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div class="stat-label">
+                        Review
+                    </div>
+
+                    <div
+                        id="securityReviewCount"
+                        class="stat-value"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div class="stat-label">
+                        No obvious issues
+                    </div>
+
+                    <div
+                        id="securityGoodCount"
+                        class="stat-value"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div class="stat-label">
+                        Unknown
+                    </div>
+
+                    <div
+                        id="securityUnknownCount"
+                        class="stat-value"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div
+                    id="securityTable"
+                    class="table-wrap"
+                ></div>
+
+            </div>
+
+
+            <p class="page-subtitle">
+
+                WiFi Watch performs limited and non-invasive local network
+                observations. “No obvious issues” does not guarantee that a
+                device or network is fully secure.
+
+            </p>
+
+        </section>
+
+
+
+        <!-- ====================================================
+             ALERTS
+        ===================================================== -->
+
+        <section
+            id="viewAlerts"
+            class="view hidden"
+        >
+
+            <div class="topbar">
+
+                <div>
+
+                    <h1 class="page-title">
+                        Alerts
+                    </h1>
+
+                    <p class="page-subtitle">
+                        New devices, identity changes and security notifications.
+                    </p>
+
+                </div>
+
+
+                <div class="top-actions">
+
+                    <button
+                        id="markAllAlertsReadButton"
+                        class="btn btn-secondary"
+                        type="button"
+                    >
+                        Mark all read
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div
+                    id="alertsContainer"
+                    class="card-body"
+                ></div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ====================================================
+             ACTIVITY
+        ===================================================== -->
+
+        <section
+            id="viewActivity"
+            class="view hidden"
+        >
+
+            <div class="topbar">
+
+                <div>
+
+                    <h1 class="page-title">
+                        Activity
+                    </h1>
+
+                    <p class="page-subtitle">
+                        Historical changes recorded across this network.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div
+                    id="activityContainer"
+                    class="card-body"
                 ></div>
 
             </div>
@@ -2117,7 +2487,7 @@ tbody tr:hover {
                     </h1>
 
                     <p class="page-subtitle">
-                        Manage all networks saved to your account.
+                        Manage all networks linked to your account.
                     </p>
 
                 </div>
@@ -2144,140 +2514,6 @@ tbody tr:hover {
 
 
         <!-- ====================================================
-             SECURITY
-        ===================================================== -->
-
-        <section
-            id="viewSecurity"
-            class="view hidden"
-        >
-
-            <div class="topbar">
-
-                <div>
-
-                    <h1 class="page-title">
-                        Security
-                    </h1>
-
-                    <p class="page-subtitle">
-                        Review observable network services and potential risks.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="grid stats-grid">
-
-                <div class="stat">
-
-                    <div class="stat-label">
-                        Warnings
-                    </div>
-
-                    <div
-                        id="warningCount"
-                        class="stat-value"
-                    >
-                        0
-                    </div>
-
-                </div>
-
-
-                <div class="stat">
-
-                    <div class="stat-label">
-                        Review
-                    </div>
-
-                    <div
-                        id="reviewCount"
-                        class="stat-value"
-                    >
-                        0
-                    </div>
-
-                </div>
-
-
-                <div class="stat">
-
-                    <div class="stat-label">
-                        No obvious issues
-                    </div>
-
-                    <div
-                        id="goodCount"
-                        class="stat-value"
-                    >
-                        0
-                    </div>
-
-                </div>
-
-
-                <div class="stat">
-
-                    <div class="stat-label">
-                        Unknown
-                    </div>
-
-                    <div
-                        id="unknownCount"
-                        class="stat-value"
-                    >
-                        0
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="card">
-
-                <div class="card-head">
-
-                    <div>
-
-                        <h2 class="card-title">
-                            Device Security
-                        </h2>
-
-                        <p class="card-subtitle">
-                            Click any device for full details
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <div
-                    id="securityDevicesContainer"
-                    class="table-wrap"
-                ></div>
-
-            </div>
-
-
-            <p class="page-subtitle">
-
-                WiFi Watch performs limited,
-                non-invasive network observations.
-                “No obvious issues” does not guarantee
-                that a device is fully secure.
-
-            </p>
-
-        </section>
-
-
-
-        <!-- ====================================================
              SETTINGS
         ===================================================== -->
 
@@ -2295,7 +2531,7 @@ tbody tr:hover {
                     </h1>
 
                     <p class="page-subtitle">
-                        Account and security settings.
+                        Account, authentication and alert preferences.
                     </p>
 
                 </div>
@@ -2313,15 +2549,19 @@ tbody tr:hover {
                     </h3>
 
                     <p>
-                        Your WiFi Watch account information.
+                        WiFi Watch account information and session security.
                     </p>
 
 
                     <div class="setting-row">
 
-                        <span>
-                            Email
-                        </span>
+                        <div>
+
+                            <div class="setting-row-name">
+                                Email
+                            </div>
+
+                        </div>
 
                         <strong id="settingsEmail">
                             —
@@ -2332,12 +2572,40 @@ tbody tr:hover {
 
                     <div class="setting-row">
 
-                        <span>
-                            Account security
-                        </span>
+                        <div>
 
-                        <span class="badge badge-green">
-                            MFA required
+                            <div class="setting-row-name">
+                                Inactivity timeout
+                            </div>
+
+                            <div class="setting-row-note">
+                                Browser signs out automatically
+                            </div>
+
+                        </div>
+
+                        <strong>
+                            15 minutes
+                        </strong>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+
+                            <div class="setting-row-name">
+                                Authentication level
+                            </div>
+
+                        </div>
+
+                        <span
+                            id="aalDisplay"
+                            class="badge badge-green"
+                        >
+                            AAL2
                         </span>
 
                     </div>
@@ -2352,8 +2620,7 @@ tbody tr:hover {
                     </h3>
 
                     <p>
-                        Google Authenticator, Microsoft Authenticator,
-                        1Password and other TOTP apps are supported.
+                        WiFi Watch requires a verified authenticator.
                     </p>
 
 
@@ -2364,7 +2631,7 @@ tbody tr:hover {
                         id="addAuthenticatorButton"
                         class="btn btn-secondary"
                         type="button"
-                        style="margin-top:15px"
+                        style="margin-top:14px"
                     >
                         + Add Authenticator
                     </button>
@@ -2375,39 +2642,110 @@ tbody tr:hover {
                 <div class="setting-card">
 
                     <h3>
-                        Session Security
+                        Alert Preferences
                     </h3>
 
                     <p>
-                        WiFi Watch automatically signs this browser
-                        out after inactivity.
+                        Choose which network events create alerts.
                     </p>
 
 
                     <div class="setting-row">
 
-                        <span>
-                            Inactivity timeout
-                        </span>
+                        <div>
 
-                        <strong>
-                            15 minutes
-                        </strong>
+                            <div class="setting-row-name">
+                                New devices
+                            </div>
+
+                            <div class="setting-row-note">
+                                Alert when a new device is discovered
+                            </div>
+
+                        </div>
+
+                        <input
+                            id="prefNewDevices"
+                            class="toggle"
+                            type="checkbox"
+                        >
 
                     </div>
 
 
                     <div class="setting-row">
 
-                        <span>
-                            Authentication level
-                        </span>
+                        <div>
 
-                        <strong id="aalDisplay">
-                            AAL2
-                        </strong>
+                            <div class="setting-row-name">
+                                Security findings
+                            </div>
+
+                            <div class="setting-row-note">
+                                Alert when security status needs review
+                            </div>
+
+                        </div>
+
+                        <input
+                            id="prefSecurity"
+                            class="toggle"
+                            type="checkbox"
+                        >
 
                     </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+
+                            <div class="setting-row-name">
+                                Identity changes
+                            </div>
+
+                            <div class="setting-row-note">
+                                Alert when WiFi Watch identifies a device differently
+                            </div>
+
+                        </div>
+
+                        <input
+                            id="prefIdentity"
+                            class="toggle"
+                            type="checkbox"
+                        >
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+
+                            <div class="setting-row-name">
+                                Agent offline
+                            </div>
+
+                        </div>
+
+                        <input
+                            id="prefAgentOffline"
+                            class="toggle"
+                            type="checkbox"
+                        >
+
+                    </div>
+
+
+                    <button
+                        id="savePreferencesButton"
+                        class="btn btn-primary"
+                        type="button"
+                        style="margin-top:15px"
+                    >
+                        Save Preferences
+                    </button>
 
                 </div>
 
@@ -2415,12 +2753,11 @@ tbody tr:hover {
                 <div class="setting-card">
 
                     <h3>
-                        Other Sessions
+                        Sessions
                     </h3>
 
                     <p>
-                        End WiFi Watch sessions active on other
-                        browsers or computers.
+                        Sign your account out on other browsers and computers.
                     </p>
 
 
@@ -2434,7 +2771,6 @@ tbody tr:hover {
 
                 </div>
 
-
             </div>
 
         </section>
@@ -2446,7 +2782,7 @@ tbody tr:hover {
 
 
 <!-- ============================================================
-     ADD NETWORK
+     ADD NETWORK MODAL
 ============================================================ -->
 
 <div
@@ -2461,7 +2797,7 @@ tbody tr:hover {
         </h2>
 
         <p class="modal-description">
-            Give this network an easy-to-recognize name.
+            Give the network a name that is easy to recognize.
         </p>
 
 
@@ -2508,7 +2844,7 @@ tbody tr:hover {
 
 
 <!-- ============================================================
-     PAIR AGENT
+     PAIR AGENT MODAL
 ============================================================ -->
 
 <div
@@ -2523,14 +2859,14 @@ tbody tr:hover {
         </h2>
 
         <p class="modal-description">
-            Install the Agent on a computer connected to this
-            network and enter the pairing code below.
+            Install the Agent on a computer connected to this network,
+            then enter this one-time pairing code in the Agent.
         </p>
 
 
         <div
             id="pairingCode"
-            class="code"
+            class="pair-code"
         >
             —
         </div>
@@ -2548,25 +2884,28 @@ tbody tr:hover {
         <div class="download-grid">
 
             <a
-                id="downloadMac"
-                class="btn btn-secondary"
-                target="_blank"
-            >
-                macOS
-            </a>
-
-            <a
                 id="downloadWindows"
                 class="btn btn-secondary"
                 target="_blank"
+                rel="noopener"
             >
                 Windows
+            </a>
+
+            <a
+                id="downloadMac"
+                class="btn btn-secondary"
+                target="_blank"
+                rel="noopener"
+            >
+                macOS
             </a>
 
             <a
                 id="downloadLinux"
                 class="btn btn-secondary"
                 target="_blank"
+                rel="noopener"
             >
                 Linux
             </a>
@@ -2601,7 +2940,7 @@ tbody tr:hover {
 
 
 <!-- ============================================================
-     DEVICE DETAILS
+     DEVICE MODAL
 ============================================================ -->
 
 <div
@@ -2698,9 +3037,8 @@ tbody tr:hover {
         </h2>
 
         <p class="modal-description">
-            Scan this QR code with Google Authenticator,
-            Microsoft Authenticator, 1Password or another
-            TOTP authenticator app.
+            Scan the QR code with Google Authenticator,
+            Microsoft Authenticator, 1Password or another TOTP app.
         </p>
 
 
@@ -2731,14 +3069,14 @@ tbody tr:hover {
         <div class="field">
 
             <label>
-                Enter the 6-digit code
+                Six-digit authentication code
             </label>
 
             <input
                 id="mfaSetupCode"
                 class="input"
-                inputmode="numeric"
                 maxlength="6"
+                inputmode="numeric"
                 autocomplete="one-time-code"
                 placeholder="123456"
             >
@@ -2773,7 +3111,7 @@ tbody tr:hover {
 
 
 <!-- ============================================================
-     MFA CHALLENGE
+     MFA LOGIN CHALLENGE
 ============================================================ -->
 
 <div
@@ -2788,8 +3126,7 @@ tbody tr:hover {
         </h2>
 
         <p class="modal-description">
-            Enter the current six-digit code from your
-            authenticator app.
+            Enter the six-digit code from your authenticator.
         </p>
 
 
@@ -2802,8 +3139,8 @@ tbody tr:hover {
             <input
                 id="mfaChallengeCode"
                 class="input"
-                inputmode="numeric"
                 maxlength="6"
+                inputmode="numeric"
                 autocomplete="one-time-code"
                 placeholder="123456"
             >
@@ -2852,10 +3189,6 @@ tbody tr:hover {
             Set a new password
         </h2>
 
-        <p class="modal-description">
-            Choose a new password for your account.
-        </p>
-
 
         <div class="field">
 
@@ -2892,7 +3225,7 @@ tbody tr:hover {
 
 
 <!-- ============================================================
-     CONFIRM
+     CONFIRM MODAL
 ============================================================ -->
 
 <div
@@ -2954,9 +3287,8 @@ from
 "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 
-
 /* ============================================================
-   IMPORTANT CONFIGURATION
+   CONFIG
 ============================================================ */
 
 const SUPABASE_URL =
@@ -2967,21 +3299,16 @@ const SUPABASE_KEY =
     "sb_publishable_L9TUAFyJ_S0l81UDNi8imw_FVTYm4cI";
 
 
-
-/* ============================================================
-   WIFI WATCH SETTINGS
-============================================================ */
-
 const SITE_URL =
     "https://developmentlab1-del.github.io/wifi-watch/";
 
 
-const DOWNLOAD_MAC =
-    "https://github.com/developmentlab1-del/wifi-watch/releases/latest/download/WiFiWatchAgent-macOS.zip";
-
-
 const DOWNLOAD_WINDOWS =
     "https://github.com/developmentlab1-del/wifi-watch/releases/latest/download/WiFiWatchAgent-Windows.exe";
+
+
+const DOWNLOAD_MAC =
+    "https://github.com/developmentlab1-del/wifi-watch/releases/latest/download/WiFiWatchAgent-macOS.zip";
 
 
 const DOWNLOAD_LINUX =
@@ -3023,48 +3350,37 @@ const supabase =
 let currentUser = null;
 
 let networks = [];
-
 let selectedNetwork = null;
 
 let agents = [];
-
 let devices = [];
+let alerts = [];
+let events = [];
+
+let notificationPreferences = null;
+
+let authMode = "login";
 
 let refreshTimer = null;
-
 let inactivityTimer = null;
+let lastActivity = Date.now();
 
-let lastActivity =
-    Date.now();
+let authGateBusy = false;
 
-let authMode =
-    "login";
+let currentDeviceId = null;
 
-let authFlowRunning =
-    false;
+let mfaEnrollment = null;
+let mfaMandatory = false;
+let mfaLoginFactor = null;
 
-let mfaEnrollmentFactor =
-    null;
+let confirmResolver = null;
 
-let mfaEnrollmentMandatory =
-    false;
-
-let mfaLoginFactor =
-    null;
-
-let currentDeviceId =
-    null;
-
-let confirmResolver =
-    null;
-
-let pairingCountdown =
-    null;
+let pairingCountdown = null;
 
 
 
 /* ============================================================
-   HELPERS
+   BASIC HELPERS
 ============================================================ */
 
 const $ = id =>
@@ -3078,27 +3394,22 @@ function escapeHtml(
     return String(
         value ?? ""
     )
-
     .replaceAll(
         "&",
         "&amp;"
     )
-
     .replaceAll(
         "<",
         "&lt;"
     )
-
     .replaceAll(
         ">",
         "&gt;"
     )
-
     .replaceAll(
         '"',
         "&quot;"
     )
-
     .replaceAll(
         "'",
         "&#039;"
@@ -3193,17 +3504,20 @@ function timeAgo(
         return "Never";
 
 
+    const diff =
+        Math.max(
+            0,
+            Date.now()
+            -
+            new Date(
+                value
+            ).getTime()
+        );
+
+
     const seconds =
         Math.floor(
-            (
-                Date.now()
-                -
-                new Date(
-                    value
-                ).getTime()
-            )
-            /
-            1000
+            diff / 1000
         );
 
 
@@ -3277,111 +3591,121 @@ function qrSource(
 }
 
 
-function securityBadge(
-    status
+
+/* ============================================================
+   DEVICE LABELS
+============================================================ */
+
+const DEVICE_TYPE_LABELS = {
+
+    router_gateway:
+        "Router / Gateway",
+
+    computer:
+        "Computer",
+
+    computer_or_nas:
+        "Computer / NAS",
+
+    computer_or_server:
+        "Computer / Server",
+
+    smart_tv_media:
+        "Smart TV / Media",
+
+    mobile:
+        "Phone / Tablet",
+
+    printer:
+        "Printer",
+
+    game_console:
+        "Game Console",
+
+    camera:
+        "Camera",
+
+    smart_home:
+        "Smart Home",
+
+    nas:
+        "NAS",
+
+    media_server:
+        "Media Server",
+
+    apple_device:
+        "Apple Device",
+
+    unknown:
+        "Unknown Device"
+
+};
+
+
+function deviceTypeLabel(
+    value
 ) {
 
-    switch (
-        status
-    ) {
-
-        case "warning":
-
-            return `
-                <span class="badge badge-red">
-                    Warning
-                </span>
-            `;
-
-
-        case "review":
-
-            return `
-                <span class="badge badge-yellow">
-                    Review
-                </span>
-            `;
-
-
-        case "no_obvious_issues":
-
-            return `
-                <span class="badge badge-green">
-                    No obvious issues
-                </span>
-            `;
-
-
-        default:
-
-            return `
-                <span class="badge badge-gray">
-                    Unknown
-                </span>
-            `;
-
-    }
-
-}
-
-
-function onlineBadge(
-    online
-) {
-
-    return online
-
-        ? `
-            <span class="badge badge-green">
-                ● Online
-            </span>
-          `
-
-        : `
-            <span class="badge badge-gray">
-                Offline
-            </span>
-          `;
-
-}
-
-
-function confidenceBadge(
-    confidence
-) {
-
-    const value =
-        Math.max(
-            0,
-            Math.min(
-                100,
-                Number(
-                    confidence
-                    ||
-                    0
+    return (
+        DEVICE_TYPE_LABELS[
+            value
+        ]
+        ||
+        (
+            value
+            ?
+            String(value)
+                .replaceAll(
+                    "_",
+                    " "
                 )
-            )
-        );
+                .replace(
+                    /\b\w/g,
+                    char =>
+                        char.toUpperCase()
+                )
+            :
+            "Unknown Device"
+        )
+    );
+
+}
 
 
-    return `
-        <div class="confidence">
+function deviceDisplayName(
+    device
+) {
 
-            <div class="confidence-bar">
-
-                <div
-                    class="confidence-fill"
-                    style="width:${value}%"
-                ></div>
-
-            </div>
-
-            <span>
-                ${value}%
-            </span>
-
-        </div>
-    `;
+    return (
+        device.custom_name
+        ||
+        device.friendly_name
+        ||
+        device.hostname
+        ||
+        device.model
+        ||
+        (
+            device.vendor
+            &&
+            device.device_type
+            &&
+            device.device_type
+            !==
+            "unknown"
+            ?
+            `${device.vendor} ${deviceTypeLabel(device.device_type)}`
+            :
+            null
+        )
+        ||
+        device.vendor
+        ||
+        device.ip
+        ||
+        "Unknown Device"
+    );
 
 }
 
@@ -3486,40 +3810,161 @@ function deviceIcon(
 
 
 /* ============================================================
-   DEVICE DISPLAY NAME
+   BADGES
 ============================================================ */
 
-function deviceDisplayName(
+function onlineBadge(
     device
 ) {
 
-    return (
-        device.custom_name
-        ||
-        device.friendly_name
-        ||
-        device.hostname
-        ||
-        device.model
-        ||
-        (
-            device.vendor
-            &&
-            device.device_type
-            &&
-            device.device_type !== "unknown"
-            ?
-            `${device.vendor} ${device.device_type}`
-            :
-            null
-        )
-        ||
-        device.vendor
-        ||
-        device.ip
-        ||
-        "Unknown Device"
-    );
+    const online =
+        device.status
+        ===
+        "online";
+
+
+    return online
+
+        ?
+        `
+            <span class="badge badge-green">
+                ● Online
+            </span>
+        `
+
+        :
+        `
+            <span class="badge badge-gray">
+                Offline
+            </span>
+        `;
+
+}
+
+
+function securityBadge(
+    status
+) {
+
+    switch (
+        status
+    ) {
+
+        case "warning":
+
+            return `
+                <span class="badge badge-red">
+                    Warning
+                </span>
+            `;
+
+
+        case "review":
+
+            return `
+                <span class="badge badge-yellow">
+                    Review
+                </span>
+            `;
+
+
+        case "no_obvious_issues":
+
+            return `
+                <span class="badge badge-green">
+                    No obvious issues
+                </span>
+            `;
+
+
+        default:
+
+            return `
+                <span class="badge badge-gray">
+                    Unknown
+                </span>
+            `;
+
+    }
+
+}
+
+
+function alertSeverityBadge(
+    severity
+) {
+
+    switch (
+        severity
+    ) {
+
+        case "warning":
+
+            return `
+                <span class="badge badge-red">
+                    Warning
+                </span>
+            `;
+
+
+        case "review":
+
+            return `
+                <span class="badge badge-yellow">
+                    Review
+                </span>
+            `;
+
+
+        default:
+
+            return `
+                <span class="badge badge-blue">
+                    Info
+                </span>
+            `;
+
+    }
+
+}
+
+
+function confidenceHtml(
+    value
+) {
+
+    const confidence =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                Number(
+                    value
+                    ||
+                    0
+                )
+            )
+        );
+
+
+    return `
+        <div class="confidence">
+
+            <div class="confidence-track">
+
+                <div
+                    class="confidence-fill"
+                    style="width:${confidence}%"
+                ></div>
+
+            </div>
+
+            <span>
+                ${confidence}%
+            </span>
+
+        </div>
+    `;
 
 }
 
@@ -3538,7 +3983,9 @@ function setAuthMode(
 
 
     const login =
-        mode === "login";
+        mode
+        ===
+        "login";
 
 
     $("loginTab")
@@ -3597,13 +4044,10 @@ function showAuthScreen() {
 
 
     networks = [];
-
-    selectedNetwork =
-        null;
-
     agents = [];
-
     devices = [];
+    alerts = [];
+    events = [];
 
 
     $("appScreen")
@@ -3633,14 +4077,14 @@ async function showAppScreen(
     $("sidebarEmail")
         .textContent =
             user.email
-            ??
+            ||
             "";
 
 
     $("settingsEmail")
         .textContent =
             user.email
-            ??
+            ||
             "—";
 
 
@@ -3664,6 +4108,8 @@ async function showAppScreen(
     await loadNetworks();
 
     await loadMfaSettings();
+
+    await loadNotificationPreferences();
 
 
     startAutoRefresh();
@@ -3716,7 +4162,9 @@ $("authForm")
 
 
             if (
-                password.length < 10
+                password.length
+                <
+                10
             ) {
 
                 showToast(
@@ -3749,12 +4197,16 @@ $("authForm")
                         await supabase
                         .auth
                         .signUp({
+
                             email,
+
                             password,
+
                             options: {
                                 emailRedirectTo:
                                     SITE_URL
                             }
+
                         });
 
 
@@ -3771,7 +4223,7 @@ $("authForm")
                     } else {
 
                         showToast(
-                            "Account created. Check your email to confirm your address, then sign in."
+                            "Account created. Check your email to confirm your address."
                         );
 
 
@@ -3781,6 +4233,7 @@ $("authForm")
 
                     }
 
+
                 } else {
 
                     const {
@@ -3789,8 +4242,11 @@ $("authForm")
                         await supabase
                         .auth
                         .signInWithPassword({
+
                             email,
+
                             password
+
                         });
 
 
@@ -3846,7 +4302,7 @@ $("forgotPassword")
             if (!email) {
 
                 showToast(
-                    "Enter your email address first.",
+                    "Enter your email first.",
                     "error"
                 );
 
@@ -3900,7 +4356,9 @@ $("saveNewPassword")
 
 
             if (
-                password.length < 10
+                password.length
+                <
+                10
             ) {
 
                 showToast(
@@ -3953,7 +4411,7 @@ $("saveNewPassword")
    MFA
 ============================================================ */
 
-async function getMfaFactors() {
+async function listTotpFactors() {
 
     const {
         data,
@@ -3971,7 +4429,7 @@ async function getMfaFactors() {
 
     return (
         data?.totp
-        ??
+        ||
         []
     );
 
@@ -3981,7 +4439,7 @@ async function getMfaFactors() {
 async function verifiedFactors() {
 
     const factors =
-        await getMfaFactors();
+        await listTotpFactors();
 
 
     return factors.filter(
@@ -3997,12 +4455,12 @@ async function verifiedFactors() {
 async function beginAuthGate() {
 
     if (
-        authFlowRunning
+        authGateBusy
     )
         return;
 
 
-    authFlowRunning =
+    authGateBusy =
         true;
 
 
@@ -4035,7 +4493,9 @@ async function beginAuthGate() {
 
 
         if (
-            factors.length === 0
+            factors.length
+            ===
+            0
         ) {
 
             await beginMfaEnrollment(
@@ -4081,14 +4541,6 @@ async function beginAuthGate() {
             );
 
 
-            setTimeout(
-                () =>
-                    $("mfaChallengeCode")
-                    .focus(),
-                100
-            );
-
-
             return;
 
         }
@@ -4118,7 +4570,7 @@ async function beginAuthGate() {
 
     } finally {
 
-        authFlowRunning =
+        authGateBusy =
             false;
 
     }
@@ -4132,17 +4584,17 @@ async function beginMfaEnrollment(
 
     try {
 
-        mfaEnrollmentMandatory =
+        mfaMandatory =
             mandatory;
 
 
-        const existing =
-            await getMfaFactors();
+        const allFactors =
+            await listTotpFactors();
 
 
         for (
             const factor
-            of existing
+            of allFactors
         ) {
 
             if (
@@ -4176,11 +4628,13 @@ async function beginMfaEnrollment(
             .auth
             .mfa
             .enroll({
+
                 factorType:
                     "totp",
 
                 friendlyName:
                     "WiFi Watch Authenticator"
+
             });
 
 
@@ -4188,7 +4642,7 @@ async function beginMfaEnrollment(
             throw error;
 
 
-        mfaEnrollmentFactor =
+        mfaEnrollment =
             data;
 
 
@@ -4223,14 +4677,6 @@ async function beginMfaEnrollment(
         );
 
 
-        setTimeout(
-            () =>
-                $("mfaSetupCode")
-                .focus(),
-            100
-        );
-
-
     } catch (
         error
     ) {
@@ -4238,7 +4684,7 @@ async function beginMfaEnrollment(
         showToast(
             error.message
             ||
-            "Could not start 2FA setup.",
+            "Unable to start authenticator setup.",
             "error"
         );
 
@@ -4253,7 +4699,7 @@ $("verifyMfaSetup")
         async () => {
 
             if (
-                !mfaEnrollmentFactor
+                !mfaEnrollment
             )
                 return;
 
@@ -4272,7 +4718,7 @@ $("verifyMfaSetup")
             ) {
 
                 showToast(
-                    "Enter the 6-digit authenticator code.",
+                    "Enter the six-digit code.",
                     "error"
                 );
 
@@ -4295,10 +4741,12 @@ $("verifyMfaSetup")
                     .auth
                     .mfa
                     .challengeAndVerify({
+
                         factorId:
-                            mfaEnrollmentFactor.id,
+                            mfaEnrollment.id,
 
                         code
+
                     });
 
 
@@ -4311,7 +4759,7 @@ $("verifyMfaSetup")
                 );
 
 
-                mfaEnrollmentFactor =
+                mfaEnrollment =
                     null;
 
 
@@ -4329,7 +4777,7 @@ $("verifyMfaSetup")
 
 
                 if (
-                    mfaEnrollmentMandatory
+                    mfaMandatory
                 ) {
 
                     await showAppScreen(
@@ -4350,7 +4798,7 @@ $("verifyMfaSetup")
                 showToast(
                     error.message
                     ||
-                    "Incorrect authentication code.",
+                    "Authentication code was not accepted.",
                     "error"
                 );
 
@@ -4373,7 +4821,7 @@ $("cancelMfaSetup")
         async () => {
 
             if (
-                mfaEnrollmentFactor
+                mfaEnrollment
             ) {
 
                 try {
@@ -4383,7 +4831,7 @@ $("cancelMfaSetup")
                         .mfa
                         .unenroll({
                             factorId:
-                                mfaEnrollmentFactor.id
+                                mfaEnrollment.id
                         });
 
                 } catch (_) {}
@@ -4391,7 +4839,7 @@ $("cancelMfaSetup")
             }
 
 
-            mfaEnrollmentFactor =
+            mfaEnrollment =
                 null;
 
 
@@ -4401,7 +4849,7 @@ $("cancelMfaSetup")
 
 
             if (
-                mfaEnrollmentMandatory
+                mfaMandatory
             ) {
 
                 await logoutLocal();
@@ -4437,7 +4885,7 @@ $("verifyMfaChallenge")
             ) {
 
                 showToast(
-                    "Enter the 6-digit code.",
+                    "Enter the six-digit code.",
                     "error"
                 );
 
@@ -4460,10 +4908,12 @@ $("verifyMfaChallenge")
                     .auth
                     .mfa
                     .challengeAndVerify({
+
                         factorId:
                             mfaLoginFactor.id,
 
                         code
+
                     });
 
 
@@ -4496,7 +4946,7 @@ $("verifyMfaChallenge")
                 showToast(
                     error.message
                     ||
-                    "Incorrect authentication code.",
+                    "Authentication code was not accepted.",
                     "error"
                 );
 
@@ -4531,7 +4981,7 @@ $("cancelMfaChallenge")
 
 
 /* ============================================================
-   SESSION SECURITY
+   SESSION TIMEOUT
 ============================================================ */
 
 function noteActivity() {
@@ -4551,24 +5001,22 @@ function startInactivityGuard() {
         Date.now();
 
 
-    const events = [
-        "pointerdown",
-        "keydown",
-        "touchstart",
-        "scroll"
-    ];
-
-
     for (
-        const event
-        of events
+        const eventName
+        of [
+            "pointerdown",
+            "keydown",
+            "touchstart",
+            "scroll"
+        ]
     ) {
 
         window.addEventListener(
-            event,
+            eventName,
             noteActivity,
             {
-                passive: true
+                passive:
+                    true
             }
         );
 
@@ -4623,21 +5071,18 @@ function stopInactivityGuard() {
     }
 
 
-    const events = [
-        "pointerdown",
-        "keydown",
-        "touchstart",
-        "scroll"
-    ];
-
-
     for (
-        const event
-        of events
+        const eventName
+        of [
+            "pointerdown",
+            "keydown",
+            "touchstart",
+            "scroll"
+        ]
     ) {
 
         window.removeEventListener(
-            event,
+            eventName,
             noteActivity
         );
 
@@ -4658,7 +5103,9 @@ async function visibilityCheck() {
         document.visibilityState
         ===
         "visible"
+
         &&
+
         Date.now()
         -
         lastActivity
@@ -4679,9 +5126,9 @@ async function logoutLocal(
     message = null
 ) {
 
-    stopInactivityGuard();
-
     stopAutoRefresh();
+
+    stopInactivityGuard();
 
 
     await supabase
@@ -4713,7 +5160,7 @@ async function logoutLocal(
    NETWORKS
 ============================================================ */
 
-function networkStorageKey() {
+function selectedNetworkStorageKey() {
 
     return (
         "wifiwatch:selectedNetwork:"
@@ -4752,12 +5199,14 @@ async function loadNetworks() {
 
     networks =
         data
-        ??
+        ||
         [];
 
 
     if (
-        networks.length === 0
+        networks.length
+        ===
+        0
     ) {
 
         const {
@@ -4787,30 +5236,30 @@ async function loadNetworks() {
     }
 
 
-    const saved =
+    const stored =
         localStorage.getItem(
-            networkStorageKey()
+            selectedNetworkStorageKey()
         );
 
 
     selectedNetwork =
         networks.find(
-            item =>
-                item.id
+            network =>
+                network.id
                 ===
-                saved
+                stored
         )
         ||
         networks[0];
 
 
     localStorage.setItem(
-        networkStorageKey(),
+        selectedNetworkStorageKey(),
         selectedNetwork.id
     );
 
 
-    renderNetworkSelect();
+    renderNetworkSelector();
 
     renderNetworks();
 
@@ -4820,18 +5269,19 @@ async function loadNetworks() {
 }
 
 
-function renderNetworkSelect() {
+function renderNetworkSelector() {
 
     $("networkSelect")
         .innerHTML =
             networks.map(
                 network => `
+
                     <option
                         value="${escapeHtml(network.id)}"
                         ${
-                            selectedNetwork?.id
-                            ===
                             network.id
+                            ===
+                            selectedNetwork?.id
                             ?
                             "selected"
                             :
@@ -4840,6 +5290,7 @@ function renderNetworkSelect() {
                     >
                         ${escapeHtml(network.name)}
                     </option>
+
                 `
             )
             .join("");
@@ -4869,12 +5320,12 @@ async function selectNetwork(
 
 
     localStorage.setItem(
-        networkStorageKey(),
-        network.id
+        selectedNetworkStorageKey(),
+        id
     );
 
 
-    renderNetworkSelect();
+    renderNetworkSelector();
 
     renderNetworks();
 
@@ -4897,110 +5348,137 @@ $("networkSelect")
     );
 
 
-async function createNetwork() {
-
-    const name =
-        $("newNetworkName")
-        .value
-        .trim();
-
-
-    if (!name) {
-
-        showToast(
-            "Enter a network name.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    const {
-        data,
-        error
-    } =
-        await supabase
-        .from(
-            "networks"
-        )
-        .insert({
-            name
-        })
-        .select()
-        .single();
-
-
-    if (error) {
-
-        showToast(
-            error.message,
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    networks.push(
-        data
-    );
-
-
-    selectedNetwork =
-        data;
-
-
-    localStorage.setItem(
-        networkStorageKey(),
-        data.id
-    );
-
+function showAddNetworkModal() {
 
     $("newNetworkName")
         .value =
             "";
 
 
-    hideModal(
+    showModal(
         "networkModal"
     );
 
-
-    renderNetworkSelect();
-
-    renderNetworks();
-
-
-    await loadNetworkData();
-
-
-    navigate(
-        "overview"
-    );
-
-
-    showToast(
-        "Network created."
-    );
-
 }
+
+
+$("addNetworkButton")
+    .addEventListener(
+        "click",
+        showAddNetworkModal
+    );
+
+
+$("addNetworkTopButton")
+    .addEventListener(
+        "click",
+        showAddNetworkModal
+    );
+
+
+$("createNetworkButton")
+    .addEventListener(
+        "click",
+        async () => {
+
+            const name =
+                $("newNetworkName")
+                .value
+                .trim();
+
+
+            if (!name) {
+
+                showToast(
+                    "Enter a network name.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            const {
+                data,
+                error
+            } =
+                await supabase
+                .from(
+                    "networks"
+                )
+                .insert({
+                    name
+                })
+                .select()
+                .single();
+
+
+            if (error) {
+
+                showToast(
+                    error.message,
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            networks.push(
+                data
+            );
+
+
+            selectedNetwork =
+                data;
+
+
+            localStorage.setItem(
+                selectedNetworkStorageKey(),
+                data.id
+            );
+
+
+            hideModal(
+                "networkModal"
+            );
+
+
+            renderNetworkSelector();
+
+            renderNetworks();
+
+
+            await loadNetworkData();
+
+
+            navigate(
+                "overview"
+            );
+
+
+            showToast(
+                "Network created."
+            );
+
+        }
+    );
 
 
 async function deleteNetwork(
     network
 ) {
 
-    const accepted =
+    const confirmed =
         await askConfirm(
             "Delete network?",
-            `Delete "${network.name}" and its devices, Agents and pairing codes? This cannot be undone.`
+            `Delete "${network.name}" and all of its device data, Agents, alerts and history?`
         );
 
 
-    if (!accepted)
+    if (!confirmed)
         return;
 
 
@@ -5040,7 +5518,9 @@ async function deleteNetwork(
 
 
     if (
-        networks.length === 0
+        networks.length
+        ===
+        0
     ) {
 
         const {
@@ -5078,25 +5558,17 @@ async function deleteNetwork(
     }
 
 
-    if (
-        selectedNetwork?.id
-        ===
-        network.id
-    ) {
-
-        selectedNetwork =
-            networks[0];
-
-    }
+    selectedNetwork =
+        networks[0];
 
 
     localStorage.setItem(
-        networkStorageKey(),
+        selectedNetworkStorageKey(),
         selectedNetwork.id
     );
 
 
-    renderNetworkSelect();
+    renderNetworkSelector();
 
     renderNetworks();
 
@@ -5113,7 +5585,7 @@ async function deleteNetwork(
 
 
 /* ============================================================
-   NETWORK DATA
+   LOAD NETWORK DATA
 ============================================================ */
 
 async function loadNetworkData() {
@@ -5130,8 +5602,10 @@ async function loadNetworkData() {
 
 
     const [
-        agentResult,
-        deviceResult
+        agentsResult,
+        devicesResult,
+        alertsResult,
+        eventsResult
     ] =
         await Promise.all([
 
@@ -5171,52 +5645,140 @@ async function loadNetworkData() {
                         ascending:
                             false
                     }
+                ),
+
+            supabase
+                .from(
+                    "alerts"
+                )
+                .select(
+                    "*"
+                )
+                .eq(
+                    "network_id",
+                    selectedNetwork.id
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:
+                            false
+                    }
+                )
+                .limit(
+                    200
+                ),
+
+            supabase
+                .from(
+                    "device_events"
+                )
+                .select(
+                    "*"
+                )
+                .eq(
+                    "network_id",
+                    selectedNetwork.id
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:
+                            false
+                    }
+                )
+                .limit(
+                    300
                 )
 
         ]);
 
 
     if (
-        agentResult.error
+        agentsResult.error
     )
-        throw agentResult.error;
+        throw agentsResult.error;
 
 
     if (
-        deviceResult.error
+        devicesResult.error
     )
-        throw deviceResult.error;
+        throw devicesResult.error;
+
+
+    if (
+        alertsResult.error
+    )
+        throw alertsResult.error;
+
+
+    if (
+        eventsResult.error
+    )
+        throw eventsResult.error;
 
 
     agents =
-        agentResult.data
-        ??
+        agentsResult.data
+        ||
         [];
 
 
     devices =
-        deviceResult.data
-        ??
+        devicesResult.data
+        ||
         [];
 
 
-    renderAgents();
+    alerts =
+        alertsResult.data
+        ||
+        [];
 
-    renderDevices();
 
-    renderStats();
+    events =
+        eventsResult.data
+        ||
+        [];
 
-    renderSecurity();
+
+    renderEverything();
 
 }
 
 
 
 /* ============================================================
-   STATS
+   RENDER ALL
 ============================================================ */
 
-function renderStats() {
+function renderEverything() {
+
+    renderOverview();
+
+    renderAgents();
+
+    populateDeviceTypeFilter();
+
+    renderDevices();
+
+    renderSecurity();
+
+    renderAlerts();
+
+    renderActivity();
+
+    renderNetworks();
+
+}
+
+
+
+/* ============================================================
+   OVERVIEW
+============================================================ */
+
+function renderOverview() {
 
     const online =
         devices.filter(
@@ -5227,16 +5789,16 @@ function renderStats() {
         ).length;
 
 
-    const newCount =
+    const newDevices =
         devices.filter(
             device =>
                 device.new_device
                 &&
                 !device.acknowledged
-        ).length;
+        );
 
 
-    const securityReview =
+    const securityItems =
         devices.filter(
             device =>
                 [
@@ -5246,27 +5808,232 @@ function renderStats() {
                 .includes(
                     device.security_status
                 )
-        ).length;
+        );
 
 
-    $("totalDevices")
+    const unread =
+        alerts.filter(
+            alert =>
+                !alert.read_at
+        );
+
+
+    $("statDevices")
         .textContent =
             devices.length;
 
 
-    $("onlineDevices")
+    $("statOnline")
         .textContent =
             online;
 
 
-    $("newDevices")
+    $("statNew")
         .textContent =
-            newCount;
+            newDevices.length;
 
 
-    $("securityReview")
+    $("statSecurity")
         .textContent =
-            securityReview;
+            securityItems.length;
+
+
+    $("statAlerts")
+        .textContent =
+            unread.length;
+
+
+    if (
+        unread.length
+        >
+        0
+    ) {
+
+        $("alertNavCount")
+            .textContent =
+                unread.length > 99
+                ?
+                "99+"
+                :
+                unread.length;
+
+
+        $("alertNavCount")
+            .classList
+            .remove(
+                "hidden"
+            );
+
+    } else {
+
+        $("alertNavCount")
+            .classList
+            .add(
+                "hidden"
+            );
+
+    }
+
+
+    renderOverviewNewDevices(
+        newDevices.slice(
+            0,
+            5
+        )
+    );
+
+
+    renderOverviewAlerts();
+
+    renderOverviewActivity();
+
+}
+
+
+function renderOverviewNewDevices(
+    list
+) {
+
+    const container =
+        $("overviewNewDevices");
+
+
+    if (
+        list.length
+        ===
+        0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                <strong>
+                    No new devices waiting for review
+                </strong>
+
+                New devices will appear here automatically.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        buildDeviceTable(
+            list,
+            false
+        );
+
+
+    bindDeviceRows(
+        container
+    );
+
+}
+
+
+function renderOverviewAlerts() {
+
+    const list =
+        alerts.slice(
+            0,
+            5
+        );
+
+
+    const container =
+        $("overviewAlerts");
+
+
+    if (
+        list.length
+        ===
+        0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                <strong>
+                    No alerts
+                </strong>
+
+                WiFi Watch will show network alerts here.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        list.map(
+            alert =>
+                alertFeedHtml(
+                    alert,
+                    false
+                )
+        )
+        .join("");
+
+}
+
+
+function renderOverviewActivity() {
+
+    const list =
+        events.slice(
+            0,
+            5
+        );
+
+
+    const container =
+        $("overviewActivity");
+
+
+    if (
+        list.length
+        ===
+        0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                <strong>
+                    No activity yet
+                </strong>
+
+                Device changes will be recorded here.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        list.map(
+            event =>
+                eventFeedHtml(
+                    event
+                )
+        )
+        .join("");
 
 }
 
@@ -5276,26 +6043,58 @@ function renderStats() {
    AGENTS
 ============================================================ */
 
+function agentIsOnline(
+    agent
+) {
+
+    if (
+        agent.status
+        !==
+        "online"
+
+        ||
+        !agent.last_seen
+    )
+        return false;
+
+
+    return (
+        Date.now()
+        -
+        new Date(
+            agent.last_seen
+        ).getTime()
+        <
+        90000
+    );
+
+}
+
+
 function renderAgents() {
 
     const container =
-        $("agentsContainer");
+        $("overviewAgents");
 
 
     if (
-        agents.length === 0
+        agents.length
+        ===
+        0
     ) {
 
         container.innerHTML = `
+
             <div class="empty">
 
                 <strong>
-                    No Agent connected
+                    No WiFi Watch Agent connected
                 </strong>
 
-                Connect a WiFi Watch Agent to begin monitoring.
+                Connect an Agent to start scanning this network.
 
             </div>
+
         `;
 
         return;
@@ -5307,43 +6106,18 @@ function renderAgents() {
         agents.map(
             agent => {
 
-                const recentlySeen =
-                    agent.last_seen
-                    &&
-                    (
-                        Date.now()
-                        -
-                        new Date(
-                            agent.last_seen
-                        ).getTime()
-                    )
-                    <
-                    90000;
-
-
                 const online =
-                    agent.status
-                    ===
-                    "online"
-                    &&
-                    recentlySeen;
+                    agentIsOnline(
+                        agent
+                    );
 
 
                 return `
-                    <div class="agent">
+
+                    <div class="agent-row">
 
                         <div class="agent-icon">
-
-                            ${
-                                agent.platform
-                                ===
-                                "Darwin"
-                                ?
-                                "●"
-                                :
-                                "◉"
-                            }
-
+                            ◉
                         </div>
 
 
@@ -5352,14 +6126,32 @@ function renderAgents() {
                             <div class="agent-name">
 
                                 ${escapeHtml(
+                                    agent.hostname
+                                    ||
                                     agent.name
                                     ||
                                     "WiFi Watch Agent"
                                 )}
 
-                                ${onlineBadge(
+                                ${
                                     online
-                                )}
+
+                                    ?
+
+                                    `
+                                        <span class="badge badge-green">
+                                            ● Online
+                                        </span>
+                                    `
+
+                                    :
+
+                                    `
+                                        <span class="badge badge-gray">
+                                            Offline
+                                        </span>
+                                    `
+                                }
 
                             </div>
 
@@ -5367,29 +6159,89 @@ function renderAgents() {
                             <div class="agent-meta">
 
                                 ${escapeHtml(
-                                    agent.hostname
-                                    ||
-                                    "Unknown computer"
-                                )}
-
-                                &nbsp; · &nbsp;
-
-                                ${escapeHtml(
                                     agent.platform
                                     ||
                                     "Unknown platform"
                                 )}
 
-                                &nbsp; · &nbsp;
-
-                                Version
+                                · Agent
                                 ${escapeHtml(
                                     agent.version
                                     ||
                                     "—"
                                 )}
 
-                                &nbsp; · &nbsp;
+                                · Engine
+                                ${escapeHtml(
+                                    agent.engine_version
+                                    ??
+                                    "—"
+                                )}
+
+                                · Ruleset
+                                ${escapeHtml(
+                                    agent.ruleset_version
+                                    ||
+                                    "—"
+                                )}
+
+                                <br>
+
+                                Last scan:
+                                ${escapeHtml(
+                                    timeAgo(
+                                        agent.last_scan_at
+                                    )
+                                )}
+
+                                ·
+                                ${escapeHtml(
+                                    agent.last_scan_devices
+                                    ??
+                                    0
+                                )}
+                                devices
+
+                                ·
+                                ${
+                                    agent.last_scan_duration_ms
+                                    ?
+                                    `${escapeHtml(agent.last_scan_duration_ms)} ms`
+                                    :
+                                    "duration unavailable"
+                                }
+
+                            </div>
+
+
+                            ${
+                                agent.last_error
+
+                                ?
+
+                                `
+                                    <div
+                                        class="device-small"
+                                        style="color:#ff9ba1"
+                                    >
+                                        Last error:
+                                        ${escapeHtml(
+                                            agent.last_error
+                                        )}
+                                    </div>
+                                `
+
+                                :
+
+                                ""
+                            }
+
+                        </div>
+
+
+                        <div class="agent-health">
+
+                            <span class="device-small">
 
                                 Last seen
                                 ${escapeHtml(
@@ -5398,20 +6250,21 @@ function renderAgents() {
                                     )
                                 )}
 
-                            </div>
+                            </span>
+
+
+                            <button
+                                class="btn btn-danger remove-agent"
+                                data-agent-id="${escapeHtml(agent.id)}"
+                                type="button"
+                            >
+                                Remove
+                            </button>
 
                         </div>
 
-
-                        <button
-                            class="btn btn-danger remove-agent"
-                            data-agent-id="${escapeHtml(agent.id)}"
-                            type="button"
-                        >
-                            Remove
-                        </button>
-
                     </div>
+
                 `;
 
             }
@@ -5443,14 +6296,14 @@ function renderAgents() {
                             return;
 
 
-                        const accepted =
+                        const confirmed =
                             await askConfirm(
                                 "Remove Agent?",
-                                `Remove ${agent.hostname || "this Agent"} from WiFi Watch?`
+                                `Remove ${agent.hostname || "this Agent"} from this network?`
                             );
 
 
-                        if (!accepted)
+                        if (!confirmed)
                             return;
 
 
@@ -5501,34 +6354,206 @@ function renderAgents() {
    DEVICES
 ============================================================ */
 
-function renderDevices() {
+function populateDeviceTypeFilter() {
 
-    const container =
-        $("devicesContainer");
+    const current =
+        $("deviceTypeFilter")
+        .value;
+
+
+    const types = [
+        ...new Set(
+            devices
+            .map(
+                device =>
+                    device.device_type
+                    ||
+                    "unknown"
+            )
+        )
+    ]
+    .sort(
+        (
+            a,
+            b
+        ) =>
+            deviceTypeLabel(a)
+            .localeCompare(
+                deviceTypeLabel(b)
+            )
+    );
+
+
+    $("deviceTypeFilter")
+        .innerHTML = `
+
+            <option value="all">
+                All device types
+            </option>
+
+            ${
+                types.map(
+                    type => `
+
+                        <option
+                            value="${escapeHtml(type)}"
+                        >
+                            ${escapeHtml(
+                                deviceTypeLabel(
+                                    type
+                                )
+                            )}
+                        </option>
+
+                    `
+                )
+                .join("")
+            }
+
+        `;
 
 
     if (
-        devices.length === 0
+        types.includes(
+            current
+        )
     ) {
 
-        container.innerHTML = `
-            <div class="empty">
-
-                <strong>
-                    No devices discovered yet
-                </strong>
-
-                Keep WiFi Watch Agent running and perform a scan.
-
-            </div>
-        `;
-
-        return;
+        $("deviceTypeFilter")
+            .value =
+                current;
 
     }
 
+}
 
-    container.innerHTML = `
+
+function filteredDevices() {
+
+    const search =
+        $("deviceSearch")
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    const status =
+        $("deviceStatusFilter")
+        .value;
+
+
+    const security =
+        $("deviceSecurityFilter")
+        .value;
+
+
+    const type =
+        $("deviceTypeFilter")
+        .value;
+
+
+    return devices.filter(
+        device => {
+
+            if (
+                status
+                !==
+                "all"
+
+                &&
+
+                device.status
+                !==
+                status
+            )
+                return false;
+
+
+            const deviceSecurity =
+                device.security_status
+                ||
+                "unknown";
+
+
+            if (
+                security
+                !==
+                "all"
+
+                &&
+
+                deviceSecurity
+                !==
+                security
+            )
+                return false;
+
+
+            const deviceType =
+                device.device_type
+                ||
+                "unknown";
+
+
+            if (
+                type
+                !==
+                "all"
+
+                &&
+
+                deviceType
+                !==
+                type
+            )
+                return false;
+
+
+            if (!search)
+                return true;
+
+
+            const searchable =
+                [
+                    deviceDisplayName(
+                        device
+                    ),
+                    device.friendly_name,
+                    device.hostname,
+                    device.vendor,
+                    device.model,
+                    device.ip,
+                    device.mac,
+                    device.os_guess,
+                    deviceTypeLabel(
+                        device.device_type
+                    )
+                ]
+                .filter(
+                    Boolean
+                )
+                .join(
+                    " "
+                )
+                .toLowerCase();
+
+
+            return searchable.includes(
+                search
+            );
+
+        }
+    );
+
+}
+
+
+function buildDeviceTable(
+    list,
+    includeManufacturer = true
+) {
+
+    return `
 
         <table>
 
@@ -5543,6 +6568,18 @@ function renderDevices() {
                     <th>
                         IP
                     </th>
+
+                    ${
+                        includeManufacturer
+                        ?
+                        `
+                            <th>
+                                Manufacturer
+                            </th>
+                        `
+                        :
+                        ""
+                    }
 
                     <th>
                         Type
@@ -5572,170 +6609,187 @@ function renderDevices() {
             <tbody>
 
                 ${
+                    list.map(
+                        device => `
 
-                    devices.map(
-                        device => {
+                            <tr
+                                data-device-id="${escapeHtml(device.id)}"
+                            >
 
-                            const isNew =
-                                device.new_device
-                                &&
-                                !device.acknowledged;
+                                <td>
+
+                                    <div class="device-main">
+
+                                        <div class="device-icon">
+
+                                            ${deviceIcon(
+                                                device.device_type
+                                            )}
+
+                                        </div>
 
 
-                            return `
+                                        <div>
 
-                                <tr
-                                    data-device-id="${escapeHtml(device.id)}"
-                                >
+                                            <div class="device-name">
 
-                                    <td>
-
-                                        <div class="device-main">
-
-                                            <div class="device-icon">
-
-                                                ${deviceIcon(
-                                                    device.device_type
+                                                ${escapeHtml(
+                                                    deviceDisplayName(
+                                                        device
+                                                    )
                                                 )}
+
+                                                ${
+                                                    device.new_device
+                                                    &&
+                                                    !device.acknowledged
+
+                                                    ?
+
+                                                    `
+                                                        <span class="badge badge-blue">
+                                                            New
+                                                        </span>
+                                                    `
+
+                                                    :
+
+                                                    ""
+                                                }
+
+                                                ${
+                                                    device.trusted
+
+                                                    ?
+
+                                                    `
+                                                        <span class="badge badge-green">
+                                                            Trusted
+                                                        </span>
+                                                    `
+
+                                                    :
+
+                                                    ""
+                                                }
 
                                             </div>
 
 
-                                            <div>
+                                            <div class="device-small">
 
-                                                <div class="device-name">
-
-                                                    ${escapeHtml(
-                                                        deviceDisplayName(
-                                                            device
-                                                        )
-                                                    )}
-
-                                                    ${
-                                                        isNew
-                                                        ?
-                                                        `
-                                                            <span class="badge badge-blue">
-                                                                New
-                                                            </span>
-                                                        `
-                                                        :
-                                                        ""
-                                                    }
-
-                                                    ${
-                                                        device.trusted
-                                                        ?
-                                                        `
-                                                            <span class="badge badge-green">
-                                                                Trusted
-                                                            </span>
-                                                        `
-                                                        :
-                                                        ""
-                                                    }
-
-                                                </div>
-
-
-                                                <div class="device-small">
-
-                                                    ${
-                                                        device.vendor
+                                                ${
+                                                    device.model
+                                                    ?
+                                                    escapeHtml(
+                                                        device.model
+                                                    )
+                                                    :
+                                                    (
+                                                        device.hostname
                                                         ?
                                                         escapeHtml(
-                                                            device.vendor
+                                                            device.hostname
                                                         )
                                                         :
-                                                        "Manufacturer unknown"
-                                                    }
-
-                                                    ${
-                                                        device.model
-                                                        ?
-                                                        ` · ${escapeHtml(device.model)}`
-                                                        :
-                                                        ""
-                                                    }
-
-                                                </div>
+                                                        "No model information"
+                                                    )
+                                                }
 
                                             </div>
 
                                         </div>
 
-                                    </td>
+                                    </div>
+
+                                </td>
 
 
-                                    <td>
-
-                                        ${escapeHtml(
-                                            device.ip
-                                            ||
-                                            "—"
-                                        )}
-
-                                    </td>
+                                <td>
+                                    ${escapeHtml(
+                                        device.ip
+                                        ||
+                                        "—"
+                                    )}
+                                </td>
 
 
-                                    <td>
+                                ${
+                                    includeManufacturer
 
-                                        ${escapeHtml(
+                                    ?
+
+                                    `
+                                        <td>
+
+                                            ${escapeHtml(
+                                                device.vendor
+                                                ||
+                                                "Unknown"
+                                            )}
+
+                                        </td>
+                                    `
+
+                                    :
+
+                                    ""
+                                }
+
+
+                                <td>
+
+                                    ${escapeHtml(
+                                        deviceTypeLabel(
                                             device.device_type
-                                            ||
-                                            "unknown"
-                                        )}
+                                        )
+                                    )}
 
-                                    </td>
-
-
-                                    <td class="identity-cell">
-
-                                        ${confidenceBadge(
-                                            device.identity_confidence
-                                        )}
-
-                                    </td>
+                                </td>
 
 
-                                    <td>
+                                <td>
 
-                                        ${onlineBadge(
-                                            device.status
-                                            ===
-                                            "online"
-                                        )}
+                                    ${confidenceHtml(
+                                        device.identity_confidence
+                                    )}
 
-                                    </td>
+                                </td>
 
 
-                                    <td>
+                                <td>
 
-                                        ${securityBadge(
-                                            device.security_status
-                                        )}
+                                    ${onlineBadge(
+                                        device
+                                    )}
 
-                                    </td>
+                                </td>
 
 
-                                    <td>
+                                <td>
 
-                                        ${escapeHtml(
-                                            timeAgo(
-                                                device.last_seen
-                                            )
-                                        )}
+                                    ${securityBadge(
+                                        device.security_status
+                                    )}
 
-                                    </td>
+                                </td>
 
-                                </tr>
 
-                            `;
+                                <td>
 
-                        }
+                                    ${escapeHtml(
+                                        timeAgo(
+                                            device.last_seen
+                                        )
+                                    )}
+
+                                </td>
+
+                            </tr>
+
+                        `
                     )
                     .join("")
-
                 }
 
             </tbody>
@@ -5744,10 +6798,65 @@ function renderDevices() {
 
     `;
 
+}
+
+
+function renderDevices() {
+
+    const container =
+        $("devicesTable");
+
+
+    const list =
+        filteredDevices();
+
+
+    if (
+        list.length
+        ===
+        0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                <strong>
+                    No matching devices
+                </strong>
+
+                Adjust the filters or wait for the Agent to scan.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        buildDeviceTable(
+            list,
+            true
+        );
+
+
+    bindDeviceRows(
+        container
+    );
+
+}
+
+
+function bindDeviceRows(
+    container
+) {
 
     container
         .querySelectorAll(
-            "tbody tr"
+            "[data-device-id]"
         )
         .forEach(
             row => {
@@ -5769,12 +6878,38 @@ function renderDevices() {
 }
 
 
+for (
+    const id
+    of [
+        "deviceSearch",
+        "deviceStatusFilter",
+        "deviceSecurityFilter",
+        "deviceTypeFilter"
+    ]
+) {
+
+    $(id)
+        .addEventListener(
+            id
+            ===
+            "deviceSearch"
+            ?
+            "input"
+            :
+            "change",
+
+            renderDevices
+        );
+
+}
+
+
 
 /* ============================================================
-   DEVICE DETAILS
+   DEVICE MODAL
 ============================================================ */
 
-function createChips(
+function chipsHtml(
     values
 ) {
 
@@ -5783,7 +6918,9 @@ function createChips(
             values
         )
         ||
-        values.length === 0
+        values.length
+        ===
+        0
     ) {
 
         return `
@@ -5796,21 +6933,44 @@ function createChips(
 
 
     return `
+
         <div class="chips">
 
             ${
                 values.map(
                     value => `
+
                         <span class="chip">
                             ${escapeHtml(value)}
                         </span>
+
                     `
                 )
                 .join("")
             }
 
         </div>
+
     `;
+
+}
+
+
+function deviceEventsFor(
+    deviceId
+) {
+
+    return events
+        .filter(
+            event =>
+                event.device_id
+                ===
+                deviceId
+        )
+        .slice(
+            0,
+            12
+        );
 
 }
 
@@ -5865,12 +7025,12 @@ function openDevice(
         [];
 
 
-    const methods =
+    const services =
         Array.isArray(
-            device.discovery_methods
+            device.services
         )
         ?
-        device.discovery_methods
+        device.services
         :
         [];
 
@@ -5881,6 +7041,16 @@ function openDevice(
         )
         ?
         device.identity_sources
+        :
+        [];
+
+
+    const discoveryMethods =
+        Array.isArray(
+            device.discovery_methods
+        )
+        ?
+        device.discovery_methods
         :
         [];
 
@@ -5905,6 +7075,19 @@ function openDevice(
         [];
 
 
+    const history =
+        deviceEventsFor(
+            device.id
+        );
+
+
+    const ruleset =
+        device.fingerprint_data
+        ?.ruleset_version
+        ||
+        "Unknown";
+
+
     $("deviceDetailContent")
         .innerHTML = `
 
@@ -5913,7 +7096,7 @@ function openDevice(
                 <div class="detail-item">
 
                     <div class="detail-label">
-                        Friendly name
+                        Friendly Name
                     </div>
 
                     <div class="detail-value">
@@ -5981,14 +7164,14 @@ function openDevice(
                 <div class="detail-item">
 
                     <div class="detail-label">
-                        Device type
+                        Device Type
                     </div>
 
                     <div class="detail-value">
                         ${escapeHtml(
-                            device.device_type
-                            ||
-                            "Unknown"
+                            deviceTypeLabel(
+                                device.device_type
+                            )
                         )}
                     </div>
 
@@ -5998,7 +7181,7 @@ function openDevice(
                 <div class="detail-item">
 
                     <div class="detail-label">
-                        OS guess
+                        OS
                     </div>
 
                     <div class="detail-value">
@@ -6015,7 +7198,7 @@ function openDevice(
                 <div class="detail-item">
 
                     <div class="detail-label">
-                        IP address
+                        IP Address
                     </div>
 
                     <div class="detail-value">
@@ -6032,7 +7215,7 @@ function openDevice(
                 <div class="detail-item">
 
                     <div class="detail-label">
-                        MAC address
+                        MAC Address
                     </div>
 
                     <div class="detail-value">
@@ -6049,7 +7232,7 @@ function openDevice(
                 <div class="detail-item">
 
                     <div class="detail-label">
-                        Identity confidence
+                        Identity Confidence
                     </div>
 
                     <div class="detail-value">
@@ -6066,21 +7249,13 @@ function openDevice(
                 <div class="detail-item">
 
                     <div class="detail-label">
-                        Status
+                        Security
                     </div>
 
                     <div class="detail-value">
-
-                        ${
-                            device.status
-                            ===
-                            "online"
-                            ?
-                            "Online"
-                            :
-                            "Offline"
-                        }
-
+                        ${securityBadge(
+                            device.security_status
+                        )}
                     </div>
 
                 </div>
@@ -6089,7 +7264,7 @@ function openDevice(
                 <div class="detail-item">
 
                     <div class="detail-label">
-                        First seen
+                        First Seen
                     </div>
 
                     <div class="detail-value">
@@ -6106,7 +7281,7 @@ function openDevice(
                 <div class="detail-item">
 
                     <div class="detail-label">
-                        Last seen
+                        Last Seen
                     </div>
 
                     <div class="detail-value">
@@ -6119,14 +7294,46 @@ function openDevice(
 
                 </div>
 
+
+                <div class="detail-item">
+
+                    <div class="detail-label">
+                        Fingerprint Rule
+                    </div>
+
+                    <div class="detail-value">
+                        ${escapeHtml(
+                            device.fingerprint_rule
+                            ||
+                            "Built-in intelligence"
+                        )}
+                    </div>
+
+                </div>
+
+
+                <div class="detail-item">
+
+                    <div class="detail-label">
+                        Ruleset
+                    </div>
+
+                    <div class="detail-value">
+                        ${escapeHtml(
+                            ruleset
+                        )}
+                    </div>
+
+                </div>
+
             </div>
 
 
             <div class="section-heading">
-                Identity Sources
+                Identity Evidence
             </div>
 
-            ${createChips(
+            ${chipsHtml(
                 identitySources
             )}
 
@@ -6135,8 +7342,8 @@ function openDevice(
                 Discovery Methods
             </div>
 
-            ${createChips(
-                methods
+            ${chipsHtml(
+                discoveryMethods
             )}
 
 
@@ -6144,7 +7351,7 @@ function openDevice(
                 Open TCP Ports
             </div>
 
-            ${createChips(
+            ${chipsHtml(
                 ports.map(
                     port =>
                         String(
@@ -6155,22 +7362,36 @@ function openDevice(
 
 
             <div class="section-heading">
+                Services
+            </div>
+
+            ${chipsHtml(
+                services.map(
+                    service =>
+                        `${
+                            service.name
+                            ||
+                            "TCP"
+                        } : ${
+                            service.port
+                            ??
+                            "?"
+                        }`
+                )
+            )}
+
+
+            <div class="section-heading">
                 Previous IP Addresses
             </div>
 
-            ${createChips(
+            ${chipsHtml(
                 previousIps
             )}
 
 
             <div class="section-heading">
-
-                Security
-
-                ${securityBadge(
-                    device.security_status
-                )}
-
+                Security Findings
             </div>
 
 
@@ -6185,19 +7406,23 @@ function openDevice(
                         <div class="finding">
 
                             <div class="finding-title">
+
                                 ${escapeHtml(
                                     finding.title
                                     ||
                                     "Finding"
                                 )}
+
                             </div>
 
                             <div class="finding-detail">
+
                                 ${escapeHtml(
                                     finding.detail
                                     ||
                                     ""
                                 )}
+
                             </div>
 
                         </div>
@@ -6210,7 +7435,65 @@ function openDevice(
 
                 `
                     <div class="device-small">
-                        No security findings available.
+                        No findings available.
+                    </div>
+                `
+            }
+
+
+            <div class="section-heading">
+                Device History
+            </div>
+
+
+            ${
+                history.length
+
+                ?
+
+                history.map(
+                    event => `
+
+                        <div class="finding">
+
+                            <div class="finding-title">
+
+                                ${escapeHtml(
+                                    event.title
+                                    ||
+                                    event.event_type
+                                )}
+
+                            </div>
+
+                            <div class="finding-detail">
+
+                                ${escapeHtml(
+                                    event.description
+                                    ||
+                                    ""
+                                )}
+
+                                ·
+                                ${escapeHtml(
+                                    timeAgo(
+                                        event.created_at
+                                    )
+                                )}
+
+                            </div>
+
+                        </div>
+
+                    `
+                )
+                .join("")
+
+                :
+
+                `
+                    <div class="device-small">
+                        No recorded history for this device yet.
                     </div>
                 `
             }
@@ -6231,9 +7514,11 @@ function openDevice(
         .classList
         .toggle(
             "hidden",
-            !device.new_device
-            ||
-            device.acknowledged
+            !(
+                device.new_device
+                &&
+                !device.acknowledged
+            )
         );
 
 
@@ -6262,7 +7547,7 @@ $("saveDeviceNameButton")
                 return;
 
 
-            const name =
+            const value =
                 $("deviceCustomName")
                 .value
                 .trim();
@@ -6277,7 +7562,7 @@ $("saveDeviceNameButton")
                 )
                 .update({
                     custom_name:
-                        name
+                        value
                         ||
                         null
                 })
@@ -6399,11 +7684,13 @@ $("acknowledgeDeviceButton")
                     "devices"
                 )
                 .update({
-                    new_device:
-                        false,
 
                     acknowledged:
-                        true
+                        true,
+
+                    new_device:
+                        false
+
                 })
                 .eq(
                     "id",
@@ -6441,86 +7728,102 @@ $("acknowledgeDeviceButton")
 
 
 /* ============================================================
-   SECURITY PAGE
+   SECURITY
 ============================================================ */
 
 function renderSecurity() {
 
     const warnings =
         devices.filter(
-            item =>
-                item.security_status
+            device =>
+                device.security_status
                 ===
                 "warning"
-        ).length;
+        );
 
 
     const reviews =
         devices.filter(
-            item =>
-                item.security_status
+            device =>
+                device.security_status
                 ===
                 "review"
-        ).length;
+        );
 
 
     const good =
         devices.filter(
-            item =>
-                item.security_status
+            device =>
+                device.security_status
                 ===
                 "no_obvious_issues"
-        ).length;
+        );
 
 
     const unknown =
-        devices.length
-        -
-        warnings
-        -
-        reviews
-        -
-        good;
+        devices.filter(
+            device =>
+                ![
+                    "warning",
+                    "review",
+                    "no_obvious_issues"
+                ]
+                .includes(
+                    device.security_status
+                )
+        );
 
 
-    $("warningCount")
+    $("securityWarningCount")
         .textContent =
-            warnings;
+            warnings.length;
 
 
-    $("reviewCount")
+    $("securityReviewCount")
         .textContent =
-            reviews;
+            reviews.length;
 
 
-    $("goodCount")
+    $("securityGoodCount")
         .textContent =
-            good;
+            good.length;
 
 
-    $("unknownCount")
+    $("securityUnknownCount")
         .textContent =
-            unknown;
+            unknown.length;
+
+
+    const ordered = [
+        ...warnings,
+        ...reviews,
+        ...unknown,
+        ...good
+    ];
 
 
     const container =
-        $("securityDevicesContainer");
+        $("securityTable");
 
 
     if (
-        devices.length === 0
+        ordered.length
+        ===
+        0
     ) {
 
         container.innerHTML = `
+
             <div class="empty">
 
                 <strong>
                     No security data yet
                 </strong>
 
-                Run WiFi Watch Agent to discover devices.
+                Run the WiFi Watch Agent to scan devices.
 
             </div>
+
         `;
 
         return;
@@ -6549,11 +7852,7 @@ function renderSecurity() {
                     </th>
 
                     <th>
-                        Ports
-                    </th>
-
-                    <th>
-                        Identity
+                        Open Ports
                     </th>
 
                     <th>
@@ -6568,12 +7867,11 @@ function renderSecurity() {
             <tbody>
 
                 ${
-
-                    devices.map(
+                    ordered.map(
                         device => `
 
                             <tr
-                                data-security-device-id="${escapeHtml(device.id)}"
+                                data-device-id="${escapeHtml(device.id)}"
                             >
 
                                 <td>
@@ -6594,6 +7892,14 @@ function renderSecurity() {
                                             device.vendor
                                             ||
                                             "Unknown manufacturer"
+                                        )}
+
+                                        ·
+
+                                        ${escapeHtml(
+                                            deviceTypeLabel(
+                                                device.device_type
+                                            )
                                         )}
 
                                     </div>
@@ -6626,23 +7932,14 @@ function renderSecurity() {
                                     ${escapeHtml(
                                         (
                                             device.open_ports
-                                            ??
+                                            ||
                                             []
                                         )
                                         .join(
                                             ", "
                                         )
                                         ||
-                                        "None"
-                                    )}
-
-                                </td>
-
-
-                                <td>
-
-                                    ${confidenceBadge(
-                                        device.identity_confidence
+                                        "None observed"
                                     )}
 
                                 </td>
@@ -6663,7 +7960,6 @@ function renderSecurity() {
                         `
                     )
                     .join("")
-
                 }
 
             </tbody>
@@ -6673,19 +7969,218 @@ function renderSecurity() {
     `;
 
 
+    bindDeviceRows(
+        container
+    );
+
+}
+
+
+
+/* ============================================================
+   ALERTS
+============================================================ */
+
+function alertFeedHtml(
+    alert,
+    actions = true
+) {
+
+    return `
+
+        <div
+            class="
+                feed-item
+                ${
+                    !alert.read_at
+                    ?
+                    "unread-item"
+                    :
+                    ""
+                }
+            "
+        >
+
+            <div class="feed-icon">
+
+                ${
+                    alert.severity
+                    ===
+                    "warning"
+                    ?
+                    "!"
+                    :
+                    (
+                        alert.severity
+                        ===
+                        "review"
+                        ?
+                        "⚠"
+                        :
+                        "◇"
+                    )
+                }
+
+            </div>
+
+
+            <div>
+
+                <div class="feed-title">
+
+                    ${escapeHtml(
+                        alert.title
+                        ||
+                        alert.alert_type
+                    )}
+
+                    ${alertSeverityBadge(
+                        alert.severity
+                    )}
+
+                </div>
+
+
+                <div class="feed-message">
+
+                    ${escapeHtml(
+                        alert.message
+                        ||
+                        ""
+                    )}
+
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <div class="feed-time">
+
+                    ${escapeHtml(
+                        timeAgo(
+                            alert.created_at
+                        )
+                    )}
+
+                </div>
+
+
+                ${
+                    actions
+
+                    ?
+
+                    `
+                        <div
+                            style="
+                                display:flex;
+                                gap:5px;
+                                margin-top:8px;
+                            "
+                        >
+
+                            ${
+                                !alert.read_at
+
+                                ?
+
+                                `
+                                    <button
+                                        class="btn btn-ghost mark-alert-read"
+                                        data-alert-id="${escapeHtml(alert.id)}"
+                                        type="button"
+                                    >
+                                        Read
+                                    </button>
+                                `
+
+                                :
+
+                                ""
+                            }
+
+                            <button
+                                class="btn btn-danger delete-alert"
+                                data-alert-id="${escapeHtml(alert.id)}"
+                                type="button"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+                    `
+
+                    :
+
+                    ""
+                }
+
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+function renderAlerts() {
+
+    const container =
+        $("alertsContainer");
+
+
+    if (
+        alerts.length
+        ===
+        0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                <strong>
+                    No alerts
+                </strong>
+
+                WiFi Watch alerts will appear here automatically.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        alerts.map(
+            alert =>
+                alertFeedHtml(
+                    alert,
+                    true
+                )
+        )
+        .join("");
+
+
     container
         .querySelectorAll(
-            "tbody tr"
+            ".mark-alert-read"
         )
         .forEach(
-            row => {
+            button => {
 
-                row.addEventListener(
+                button.addEventListener(
                     "click",
-                    () => {
+                    async () => {
 
-                        openDevice(
-                            row.dataset.securityDeviceId
+                        await markAlertRead(
+                            button.dataset.alertId
                         );
 
                     }
@@ -6693,6 +8188,309 @@ function renderSecurity() {
 
             }
         );
+
+
+    container
+        .querySelectorAll(
+            ".delete-alert"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    async () => {
+
+                        await deleteAlert(
+                            button.dataset.alertId
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+async function markAlertRead(
+    id
+) {
+
+    const {
+        error
+    } =
+        await supabase
+        .from(
+            "alerts"
+        )
+        .update({
+            read_at:
+                new Date()
+                .toISOString()
+        })
+        .eq(
+            "id",
+            id
+        );
+
+
+    if (error) {
+
+        showToast(
+            error.message,
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    await loadNetworkData();
+
+}
+
+
+async function deleteAlert(
+    id
+) {
+
+    const {
+        error
+    } =
+        await supabase
+        .from(
+            "alerts"
+        )
+        .delete()
+        .eq(
+            "id",
+            id
+        );
+
+
+    if (error) {
+
+        showToast(
+            error.message,
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    await loadNetworkData();
+
+}
+
+
+$("markAllAlertsReadButton")
+    .addEventListener(
+        "click",
+        async () => {
+
+            if (
+                !selectedNetwork
+            )
+                return;
+
+
+            const {
+                error
+            } =
+                await supabase
+                .from(
+                    "alerts"
+                )
+                .update({
+                    read_at:
+                        new Date()
+                        .toISOString()
+                })
+                .eq(
+                    "network_id",
+                    selectedNetwork.id
+                )
+                .is(
+                    "read_at",
+                    null
+                );
+
+
+            if (error) {
+
+                showToast(
+                    error.message,
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            await loadNetworkData();
+
+
+            showToast(
+                "Alerts marked as read."
+            );
+
+        }
+    );
+
+
+
+/* ============================================================
+   ACTIVITY
+============================================================ */
+
+function eventIcon(
+    type
+) {
+
+    switch (
+        type
+    ) {
+
+        case "new_device":
+            return "+";
+
+        case "online":
+            return "●";
+
+        case "offline":
+            return "○";
+
+        case "security_changed":
+            return "⚠";
+
+        case "identity_updated":
+            return "◈";
+
+        case "ip_changed":
+            return "↔";
+
+        case "trusted":
+            return "✓";
+
+        case "untrusted":
+            return "!";
+
+        case "renamed":
+            return "✎";
+
+        default:
+            return "•";
+
+    }
+
+}
+
+
+function eventFeedHtml(
+    event
+) {
+
+    return `
+
+        <div class="feed-item">
+
+            <div class="feed-icon">
+
+                ${eventIcon(
+                    event.event_type
+                )}
+
+            </div>
+
+
+            <div>
+
+                <div class="feed-title">
+
+                    ${escapeHtml(
+                        event.title
+                        ||
+                        event.event_type
+                    )}
+
+                </div>
+
+
+                <div class="feed-message">
+
+                    ${escapeHtml(
+                        event.description
+                        ||
+                        ""
+                    )}
+
+                </div>
+
+            </div>
+
+
+            <div class="feed-time">
+
+                ${escapeHtml(
+                    timeAgo(
+                        event.created_at
+                    )
+                )}
+
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+function renderActivity() {
+
+    const container =
+        $("activityContainer");
+
+
+    if (
+        events.length
+        ===
+        0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                <strong>
+                    No activity recorded
+                </strong>
+
+                Device events will appear here.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        events.map(
+            event =>
+                eventFeedHtml(
+                    event
+                )
+        )
+        .join("");
 
 }
 
@@ -6750,23 +8548,25 @@ function renderNetworks() {
 
                         <button
                             class="btn btn-primary open-network"
-                            data-network="${escapeHtml(network.id)}"
+                            data-network-id="${escapeHtml(network.id)}"
                             type="button"
                         >
                             Open
                         </button>
 
+
                         <button
                             class="btn btn-secondary pair-network"
-                            data-network="${escapeHtml(network.id)}"
+                            data-network-id="${escapeHtml(network.id)}"
                             type="button"
                         >
                             Connect Agent
                         </button>
 
+
                         <button
                             class="btn btn-danger delete-network"
-                            data-network="${escapeHtml(network.id)}"
+                            data-network-id="${escapeHtml(network.id)}"
                             type="button"
                         >
                             Delete
@@ -6793,7 +8593,7 @@ function renderNetworks() {
                     async () => {
 
                         await selectNetwork(
-                            button.dataset.network
+                            button.dataset.networkId
                         );
 
 
@@ -6820,7 +8620,7 @@ function renderNetworks() {
                     async () => {
 
                         await selectNetwork(
-                            button.dataset.network
+                            button.dataset.networkId
                         );
 
 
@@ -6849,7 +8649,7 @@ function renderNetworks() {
                                 item =>
                                     item.id
                                     ===
-                                    button.dataset.network
+                                    button.dataset.networkId
                             );
 
 
@@ -6874,7 +8674,7 @@ function renderNetworks() {
 
 
 /* ============================================================
-   PAIR AGENT
+   PAIRING
 ============================================================ */
 
 async function openPairing() {
@@ -6916,14 +8716,14 @@ async function openPairing() {
             data.code;
 
 
-    $("downloadMac")
-        .href =
-            DOWNLOAD_MAC;
-
-
     $("downloadWindows")
         .href =
             DOWNLOAD_WINDOWS;
+
+
+    $("downloadMac")
+        .href =
+            DOWNLOAD_MAC;
 
 
     $("downloadLinux")
@@ -6936,7 +8736,7 @@ async function openPairing() {
     );
 
 
-    function updateCountdown() {
+    function updateExpiry() {
 
         const remaining =
             Math.max(
@@ -6961,7 +8761,7 @@ async function openPairing() {
             );
 
 
-        const remainder =
+        const rest =
             seconds % 60;
 
 
@@ -6970,9 +8770,11 @@ async function openPairing() {
                 seconds > 0
 
                 ?
-                `Expires in ${minutes}:${String(remainder).padStart(2,"0")}`
+
+                `Expires in ${minutes}:${String(rest).padStart(2,"0")}`
 
                 :
+
                 "Pairing code expired";
 
 
@@ -6989,12 +8791,12 @@ async function openPairing() {
     }
 
 
-    updateCountdown();
+    updateExpiry();
 
 
     pairingCountdown =
         setInterval(
-            updateCountdown,
+            updateExpiry,
             1000
         );
 
@@ -7004,6 +8806,13 @@ async function openPairing() {
     );
 
 }
+
+
+$("connectAgentButton")
+    .addEventListener(
+        "click",
+        openPairing
+    );
 
 
 $("copyPairingCode")
@@ -7021,6 +8830,156 @@ $("copyPairingCode")
 
             showToast(
                 "Pairing code copied."
+            );
+
+        }
+    );
+
+
+
+/* ============================================================
+   NOTIFICATION PREFERENCES
+============================================================ */
+
+async function loadNotificationPreferences() {
+
+    const {
+        data,
+        error
+    } =
+        await supabase
+        .from(
+            "notification_preferences"
+        )
+        .select(
+            "*"
+        )
+        .eq(
+            "user_id",
+            currentUser.id
+        )
+        .maybeSingle();
+
+
+    if (error)
+        throw error;
+
+
+    notificationPreferences =
+        data;
+
+
+    if (
+        !notificationPreferences
+    ) {
+
+        const {
+            data: created,
+            error: insertError
+        } =
+            await supabase
+            .from(
+                "notification_preferences"
+            )
+            .insert({
+                user_id:
+                    currentUser.id
+            })
+            .select()
+            .single();
+
+
+        if (insertError)
+            throw insertError;
+
+
+        notificationPreferences =
+            created;
+
+    }
+
+
+    $("prefNewDevices")
+        .checked =
+            notificationPreferences
+            .new_device_alerts;
+
+
+    $("prefSecurity")
+        .checked =
+            notificationPreferences
+            .security_alerts;
+
+
+    $("prefIdentity")
+        .checked =
+            notificationPreferences
+            .identity_change_alerts;
+
+
+    $("prefAgentOffline")
+        .checked =
+            notificationPreferences
+            .agent_offline_alerts;
+
+}
+
+
+$("savePreferencesButton")
+    .addEventListener(
+        "click",
+        async () => {
+
+            const {
+                error
+            } =
+                await supabase
+                .from(
+                    "notification_preferences"
+                )
+                .update({
+
+                    new_device_alerts:
+                        $("prefNewDevices")
+                        .checked,
+
+                    security_alerts:
+                        $("prefSecurity")
+                        .checked,
+
+                    identity_change_alerts:
+                        $("prefIdentity")
+                        .checked,
+
+                    agent_offline_alerts:
+                        $("prefAgentOffline")
+                        .checked,
+
+                    updated_at:
+                        new Date()
+                        .toISOString()
+
+                })
+                .eq(
+                    "user_id",
+                    currentUser.id
+                );
+
+
+            if (error) {
+
+                showToast(
+                    error.message,
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            showToast(
+                "Alert preferences saved."
             );
 
         }
@@ -7049,7 +9008,9 @@ async function loadMfaSettings() {
 
 
     if (
-        factors.length === 0
+        factors.length
+        ===
+        0
     ) {
 
         container.innerHTML = `
@@ -7100,14 +9061,16 @@ async function loadMfaSettings() {
 
 
                         ${
-                            factors.length > 1
+                            factors.length
+                            >
+                            1
 
                             ?
 
                             `
                                 <button
                                     class="btn btn-danger remove-factor"
-                                    data-factor="${escapeHtml(factor.id)}"
+                                    data-factor-id="${escapeHtml(factor.id)}"
                                     type="button"
                                 >
                                     Remove
@@ -7142,7 +9105,7 @@ async function loadMfaSettings() {
                         async () => {
 
                             await removeMfaFactor(
-                                button.dataset.factor
+                                button.dataset.factorId
                             );
 
                         }
@@ -7167,8 +9130,8 @@ async function loadMfaSettings() {
         .textContent =
             (
                 aal?.currentLevel
-                ??
-                "Unknown"
+                ||
+                "unknown"
             )
             .toUpperCase();
 
@@ -7176,7 +9139,7 @@ async function loadMfaSettings() {
 
 
 async function removeMfaFactor(
-    factorId
+    id
 ) {
 
     const factors =
@@ -7184,11 +9147,13 @@ async function removeMfaFactor(
 
 
     if (
-        factors.length <= 1
+        factors.length
+        <=
+        1
     ) {
 
         showToast(
-            "WiFi Watch requires at least one authenticator. Add another before removing this one.",
+            "WiFi Watch requires at least one authenticator.",
             "error"
         );
 
@@ -7197,14 +9162,14 @@ async function removeMfaFactor(
     }
 
 
-    const accepted =
+    const confirmed =
         await askConfirm(
             "Remove authenticator?",
-            "This authenticator will no longer work for WiFi Watch."
+            "This authenticator will stop working for WiFi Watch."
         );
 
 
-    if (!accepted)
+    if (!confirmed)
         return;
 
 
@@ -7215,7 +9180,8 @@ async function removeMfaFactor(
         .auth
         .mfa
         .unenroll({
-            factorId
+            factorId:
+                id
         });
 
 
@@ -7259,14 +9225,14 @@ $("logoutOthersButton")
         "click",
         async () => {
 
-            const accepted =
+            const confirmed =
                 await askConfirm(
                     "Sign out other sessions?",
-                    "WiFi Watch will sign your account out on your other browsers and computers."
+                    "Your WiFi Watch account will be signed out on other browsers and computers."
                 );
 
 
-            if (!accepted)
+            if (!confirmed)
                 return;
 
 
@@ -7315,11 +9281,13 @@ function navigate(
             ".view"
         )
         .forEach(
-            item =>
-                item.classList
-                .add(
+            section => {
+
+                section.classList.add(
                     "hidden"
-                )
+                );
+
+            }
         );
 
 
@@ -7328,15 +9296,17 @@ function navigate(
             ".nav-btn"
         )
         .forEach(
-            button =>
-                button.classList
-                .remove(
+            button => {
+
+                button.classList.remove(
                     "active"
-                )
+                );
+
+            }
         );
 
 
-    const target =
+    const page =
         $(
             "view"
             +
@@ -7347,7 +9317,7 @@ function navigate(
         );
 
 
-    target
+    page
         ?.classList
         .remove(
             "hidden"
@@ -7365,10 +9335,18 @@ function navigate(
 
 
     if (
-        view === "settings"
+        view
+        ===
+        "settings"
     ) {
 
         loadMfaSettings()
+            .catch(
+                console.error
+            );
+
+
+        loadNotificationPreferences()
             .catch(
                 console.error
             );
@@ -7387,10 +9365,35 @@ document
 
             button.addEventListener(
                 "click",
-                () =>
+                () => {
+
                     navigate(
                         button.dataset.view
-                    )
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+document
+    .querySelectorAll(
+        "[data-go-view]"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    navigate(
+                        button.dataset.goView
+                    );
+
+                }
             );
 
         }
@@ -7399,62 +9402,7 @@ document
 
 
 /* ============================================================
-   ADD NETWORK
-============================================================ */
-
-function showAddNetwork() {
-
-    $("newNetworkName")
-        .value =
-            "";
-
-
-    showModal(
-        "networkModal"
-    );
-
-
-    setTimeout(
-        () =>
-            $("newNetworkName")
-            .focus(),
-        100
-    );
-
-}
-
-
-$("addNetworkButton")
-    .addEventListener(
-        "click",
-        showAddNetwork
-    );
-
-
-$("addNetworkButtonTop")
-    .addEventListener(
-        "click",
-        showAddNetwork
-    );
-
-
-$("createNetworkButton")
-    .addEventListener(
-        "click",
-        createNetwork
-    );
-
-
-$("connectAgentButton")
-    .addEventListener(
-        "click",
-        openPairing
-    );
-
-
-
-/* ============================================================
-   CONFIRM DIALOG
+   CONFIRM MODAL
 ============================================================ */
 
 function askConfirm(
@@ -7535,7 +9483,7 @@ $("confirmAccept")
 
 
 /* ============================================================
-   GENERIC MODAL CLOSE
+   MODAL CLOSE BUTTONS
 ============================================================ */
 
 document
@@ -7673,6 +9621,7 @@ supabase
                         event
                         ===
                         "SIGNED_OUT"
+
                         ||
                         !session
                     ) {
@@ -7688,6 +9637,7 @@ supabase
                         event
                         ===
                         "SIGNED_IN"
+
                         &&
                         $("appScreen")
                             .classList
@@ -7710,19 +9660,19 @@ supabase
 
 
 /* ============================================================
-   INITIALIZE
+   INITIALIZATION
 ============================================================ */
 
 async function init() {
 
-    $("downloadMac")
-        .href =
-            DOWNLOAD_MAC;
-
-
     $("downloadWindows")
         .href =
             DOWNLOAD_WINDOWS;
+
+
+    $("downloadMac")
+        .href =
+            DOWNLOAD_MAC;
 
 
     $("downloadLinux")
@@ -7734,7 +9684,9 @@ async function init() {
         SUPABASE_URL.includes(
             "PASTE_"
         )
+
         ||
+
         SUPABASE_KEY.includes(
             "PASTE_"
         )
@@ -7793,5 +9745,4 @@ init();
 </script>
 
 </body>
-
 </html>
