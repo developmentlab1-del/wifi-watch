@@ -16,21 +16,24 @@ from tkinter import messagebox
 import psutil
 import requests
 
+from zeroconf import (
+    Zeroconf,
+    ServiceBrowser,
+    ServiceListener,
+    IPVersion,
+)
+
 
 # ============================================================
 # WIFI WATCH AGENT
 # ============================================================
 
-APP_VERSION = "0.1.2"
+APP_VERSION = "0.1.3"
 
-# ------------------------------------------------------------
-# IMPORTANT:
-# Put the SAME Supabase Project URL + PUBLISHABLE KEY
-# used by your index.html here.
-#
-# Publishable key is OK inside the application.
-# NEVER use service_role / sb_secret_ here.
-# ------------------------------------------------------------
+# ============================================================
+# USE THE SAME VALUES AS YOUR WEBSITE
+# ONLY USE THE PUBLISHABLE KEY
+# ============================================================
 
 SUPABASE_URL = "https://ephdcwogebxfsidytmrj.supabase.co"
 
@@ -40,9 +43,82 @@ SUPABASE_KEY = "sb_publishable_L9TUAFyJ_S0l81UDNi8imw_FVTYm4cI"
 SCAN_INTERVAL = 30
 REQUEST_TIMEOUT = 20
 
+MAX_WORKERS = 80
+
+
+COMMON_TCP_PORTS = [
+
+    22,       # SSH
+
+    53,       # DNS
+
+    80,       # HTTP
+
+    139,      # NetBIOS
+
+    443,      # HTTPS
+
+    445,      # SMB
+
+    554,      # RTSP / cameras
+
+    631,      # printers
+
+    1883,     # MQTT
+
+    5000,
+
+    5001,
+
+    7000,     # AirPlay
+
+    8000,
+
+    8080,
+
+    8443,
+
+    9100,     # printers
+
+    32400,    # Plex
+
+    62078,    # Apple devices
+]
+
+
+MDNS_SERVICES = [
+
+    "_http._tcp.local.",
+
+    "_https._tcp.local.",
+
+    "_workstation._tcp.local.",
+
+    "_airplay._tcp.local.",
+
+    "_raop._tcp.local.",
+
+    "_googlecast._tcp.local.",
+
+    "_ipp._tcp.local.",
+
+    "_ipps._tcp.local.",
+
+    "_printer._tcp.local.",
+
+    "_hap._tcp.local.",
+
+    "_smb._tcp.local.",
+
+    "_ssh._tcp.local.",
+
+    "_device-info._tcp.local.",
+
+]
+
 
 # ============================================================
-# APPLICATION DATA
+# APPLICATION FOLDER
 # ============================================================
 
 def get_app_folder():
@@ -58,29 +134,43 @@ def get_app_folder():
             )
         )
 
-        folder = base / "WiFiWatch"
+        folder = (
+            base /
+            "WiFiWatch"
+        )
 
     elif system == "Darwin":
 
         folder = (
+
             Path.home()
-            / "Library"
-            / "Application Support"
-            / "WiFiWatch"
+            /
+            "Library"
+            /
+            "Application Support"
+            /
+            "WiFiWatch"
+
         )
 
     else:
 
         folder = (
+
             Path.home()
-            / ".config"
-            / "WiFiWatch"
+            /
+            ".config"
+            /
+            "WiFiWatch"
+
         )
+
 
     folder.mkdir(
         parents=True,
         exist_ok=True
     )
+
 
     return folder
 
@@ -88,13 +178,13 @@ def get_app_folder():
 APP_FOLDER = get_app_folder()
 
 CONFIG_FILE = (
-    APP_FOLDER
-    / "agent.json"
+    APP_FOLDER /
+    "agent.json"
 )
 
 LOG_FILE = (
-    APP_FOLDER
-    / "agent.log"
+    APP_FOLDER /
+    "agent.log"
 )
 
 
@@ -108,12 +198,15 @@ def log(message):
         "%Y-%m-%d %H:%M:%S"
     )
 
+
     line = (
         f"[{timestamp}] "
         f"{message}"
     )
 
+
     print(line)
+
 
     try:
 
@@ -138,7 +231,9 @@ def log(message):
 def load_config():
 
     if not CONFIG_FILE.exists():
+
         return {}
+
 
     try:
 
@@ -148,7 +243,10 @@ def load_config():
             encoding="utf-8"
         ) as file:
 
-            return json.load(file)
+            return json.load(
+                file
+            )
+
 
     except Exception as exc:
 
@@ -173,6 +271,7 @@ def save_config(data):
             indent=2
         )
 
+
     if os.name != "nt":
 
         try:
@@ -194,6 +293,7 @@ def delete_config():
 
             CONFIG_FILE.unlink()
 
+
     except Exception as exc:
 
         log(
@@ -211,26 +311,27 @@ def rpc(
 ):
 
     url = (
+
         f"{SUPABASE_URL}"
         f"/rest/v1/rpc/"
         f"{function_name}"
+
     )
 
-    headers = {
-
-        "apikey":
-            SUPABASE_KEY,
-
-        "Content-Type":
-            "application/json",
-
-    }
 
     response = requests.post(
 
         url,
 
-        headers=headers,
+        headers={
+
+            "apikey":
+                SUPABASE_KEY,
+
+            "Content-Type":
+                "application/json",
+
+        },
 
         json=payload,
 
@@ -238,28 +339,34 @@ def rpc(
 
     )
 
+
     if not response.ok:
 
         try:
 
-            error_message = (
+            details = (
                 response.json()
             )
 
         except Exception:
 
-            error_message = (
+            details = (
                 response.text
             )
 
+
         raise RuntimeError(
+
             f"{response.status_code}: "
-            f"{error_message}"
+            f"{details}"
+
         )
+
 
     if not response.content:
 
         return None
+
 
     return response.json()
 
@@ -295,23 +402,30 @@ def claim_pairing_code(code):
 
     )
 
+
     if not result:
 
         raise RuntimeError(
             "Pairing failed."
         )
 
-    for key in (
+
+    for required in (
+
         "agent_id",
+
         "agent_secret",
+
         "network_id"
+
     ):
 
-        if key not in result:
+        if required not in result:
 
             raise RuntimeError(
                 "Invalid pairing response."
             )
+
 
     config = {
 
@@ -322,15 +436,20 @@ def claim_pairing_code(code):
             result["agent_secret"],
 
         "network_id":
-            result["network_id"],
+            result["network_id"]
 
     }
 
-    save_config(config)
+
+    save_config(
+        config
+    )
+
 
     log(
-        "Agent paired successfully."
+        "Pairing successful."
     )
+
 
     return config
 
@@ -354,7 +473,7 @@ def heartbeat(config):
                 config["agent_secret"],
 
             "p_version":
-                APP_VERSION,
+                APP_VERSION
 
         }
 
@@ -362,7 +481,7 @@ def heartbeat(config):
 
 
 # ============================================================
-# COMMAND PATH HELPER
+# COMMAND PATH
 # ============================================================
 
 def get_command(
@@ -370,11 +489,15 @@ def get_command(
     candidates
 ):
 
-    found = shutil.which(name)
+    found = shutil.which(
+        name
+    )
+
 
     if found:
 
         return found
+
 
     for candidate in candidates:
 
@@ -384,76 +507,103 @@ def get_command(
 
             return candidate
 
+
     return name
 
 
 # ============================================================
-# MAC ADDRESS HELPERS
+# MAC HELPERS
 # ============================================================
 
 def normalize_mac(mac):
 
     if not mac:
+
         return None
 
-    mac = (
+
+    value = (
+
         str(mac)
         .strip()
         .lower()
-        .replace("-", ":")
+        .replace(
+            "-",
+            ":"
+        )
+
     )
 
-    parts = mac.split(":")
+
+    parts = value.split(
+        ":"
+    )
+
 
     if len(parts) != 6:
 
         return None
 
-    normalized = []
+
+    result = []
+
 
     try:
 
         for part in parts:
 
             if (
-                len(part) < 1
+                not part
                 or
                 len(part) > 2
             ):
 
                 return None
 
+
             number = int(
                 part,
                 16
             )
 
-            normalized.append(
+
+            result.append(
                 f"{number:02x}"
             )
+
 
     except Exception:
 
         return None
 
+
     return ":".join(
-        normalized
+        result
     )
 
 
 def valid_mac(mac):
 
-    mac = normalize_mac(mac)
+    mac = normalize_mac(
+        mac
+    )
+
 
     if not mac:
+
         return False
 
+
     if mac in (
+
         "00:00:00:00:00:00",
+
         "ff:ff:ff:ff:ff:ff"
+
     ):
 
         return False
+
 
     try:
 
@@ -462,42 +612,51 @@ def valid_mac(mac):
             16
         )
 
-        # Multicast MAC
+
+        # multicast/broadcast-style
+        # addresses are not client devices
         if first_byte & 1:
 
             return False
+
 
     except Exception:
 
         return False
 
+
     return True
 
 
 # ============================================================
-# PRIMARY NETWORK
+# LOCAL NETWORK
 # ============================================================
 
 def get_primary_local_ip():
 
     sock = socket.socket(
+
         socket.AF_INET,
+
         socket.SOCK_DGRAM
+
     )
+
 
     try:
 
-        # UDP connect does not actually
-        # need to send data.
         sock.connect(
-            ("8.8.8.8", 80)
+            (
+                "8.8.8.8",
+                80
+            )
         )
 
-        ip = (
+
+        return (
             sock.getsockname()[0]
         )
 
-        return ip
 
     finally:
 
@@ -510,49 +669,63 @@ def get_network_details():
         get_primary_local_ip()
     )
 
+
     interface_name = None
+
     netmask = None
+
     own_mac = None
 
-    interfaces = (
-        psutil.net_if_addrs()
-    )
 
-    for name, addresses in (
-        interfaces.items()
+    for (
+        interface,
+        addresses
+    ) in (
+        psutil
+        .net_if_addrs()
+        .items()
     ):
 
-        found_interface = False
+        found = False
+
 
         for address in addresses:
 
             if (
-                address.family
-                == socket.AF_INET
+
+                address.family ==
+                socket.AF_INET
+
                 and
-                address.address
-                == local_ip
+
+                address.address ==
+                local_ip
+
             ):
 
-                interface_name = name
+                interface_name = (
+                    interface
+                )
 
                 netmask = (
                     address.netmask
                 )
 
-                found_interface = True
+                found = True
 
                 break
 
-        if not found_interface:
+
+        if not found:
 
             continue
+
 
         for address in addresses:
 
             if (
-                address.family
-                == psutil.AF_LINK
+                address.family ==
+                psutil.AF_LINK
             ):
 
                 own_mac = (
@@ -563,7 +736,9 @@ def get_network_details():
 
                 break
 
+
         break
+
 
     if not netmask:
 
@@ -571,69 +746,87 @@ def get_network_details():
             "255.255.255.0"
         )
 
+
     network = (
         ipaddress.ip_network(
+
             f"{local_ip}/{netmask}",
+
             strict=False
+
         )
     )
 
-    # Safety/performance:
-    # Do not scan more than /24
-    # in this version.
-    if network.num_addresses > 256:
+
+    # Keep this version safe and fast.
+    # If network is larger than /24,
+    # scan current /24 segment.
+
+    if (
+        network.num_addresses > 256
+    ):
 
         network = (
             ipaddress.ip_network(
+
                 f"{local_ip}/24",
+
                 strict=False
+
             )
         )
 
+
     log(
-        "Network detected: "
+
+        "Network: "
         f"interface={interface_name}, "
-        f"ip={local_ip}, "
-        f"network={network}, "
-        f"mac={own_mac}"
+        f"IP={local_ip}, "
+        f"subnet={network}, "
+        f"MAC={own_mac}"
+
     )
+
 
     return {
 
         "local_ip":
             local_ip,
 
-        "interface":
-            interface_name,
-
         "network":
             network,
 
+        "interface":
+            interface_name,
+
         "own_mac":
-            own_mac,
+            own_mac
 
     }
 
 
 # ============================================================
-# SEED ARP / NEIGHBOR CACHE
+# ARP SEED
 # ============================================================
 
 def seed_neighbor(ip):
 
     sock = socket.socket(
+
         socket.AF_INET,
+
         socket.SOCK_DGRAM
+
     )
+
 
     sock.settimeout(
         0.15
     )
 
+
     try:
 
-        # Any local IP packet causes the OS
-        # to attempt ARP resolution.
         sock.sendto(
 
             b"\x00",
@@ -648,13 +841,14 @@ def seed_neighbor(ip):
     except Exception:
         pass
 
+
     finally:
 
         sock.close()
 
 
 # ============================================================
-# PING
+# ICMP DISCOVERY
 # ============================================================
 
 def ping_host(ip):
@@ -663,9 +857,10 @@ def ping_host(ip):
 
     creation_flags = 0
 
+
     if system == "Darwin":
 
-        ping_binary = get_command(
+        binary = get_command(
 
             "ping",
 
@@ -676,9 +871,10 @@ def ping_host(ip):
 
         )
 
+
         command = [
 
-            ping_binary,
+            binary,
 
             "-c",
             "1",
@@ -690,16 +886,18 @@ def ping_host(ip):
 
         ]
 
+
     elif system == "Windows":
 
-        ping_binary = get_command(
+        binary = get_command(
             "ping",
             []
         )
 
+
         command = [
 
-            ping_binary,
+            binary,
 
             "-n",
             "1",
@@ -711,6 +909,7 @@ def ping_host(ip):
 
         ]
 
+
         if hasattr(
             subprocess,
             "CREATE_NO_WINDOW"
@@ -720,9 +919,10 @@ def ping_host(ip):
                 subprocess.CREATE_NO_WINDOW
             )
 
+
     else:
 
-        ping_binary = get_command(
+        binary = get_command(
 
             "ping",
 
@@ -733,9 +933,10 @@ def ping_host(ip):
 
         )
 
+
         command = [
 
-            ping_binary,
+            binary,
 
             "-c",
             "1",
@@ -746,6 +947,7 @@ def ping_host(ip):
             str(ip)
 
         ]
+
 
     try:
 
@@ -764,86 +966,92 @@ def ping_host(ip):
 
         )
 
+
         if result.returncode == 0:
 
             return str(ip)
 
+
     except Exception:
         pass
+
 
     return None
 
 
 # ============================================================
-# WINDOWS ARP
+# TCP DISCOVERY
 # ============================================================
 
-def get_windows_arp_table():
+def tcp_probe(ip):
 
-    arp_binary = get_command(
-        "arp",
-        []
-    )
+    ip = str(ip)
 
-    creation_flags = 0
 
-    if hasattr(
-        subprocess,
-        "CREATE_NO_WINDOW"
-    ):
+    for port in COMMON_TCP_PORTS:
 
-        creation_flags = (
-            subprocess.CREATE_NO_WINDOW
+        sock = socket.socket(
+
+            socket.AF_INET,
+
+            socket.SOCK_STREAM
+
         )
 
-    output = subprocess.check_output(
 
-        [
-            arp_binary,
-            "-a"
-        ],
-
-        text=True,
-
-        stderr=subprocess.DEVNULL,
-
-        creationflags=
-            creation_flags
-
-    )
-
-    devices = {}
-
-    pattern = re.compile(
-
-        r"(\d+\.\d+\.\d+\.\d+)"
-        r"\s+"
-        r"([0-9A-Fa-f-]{11,17})"
-
-    )
-
-    for ip, raw_mac in (
-        pattern.findall(output)
-    ):
-
-        mac = normalize_mac(
-            raw_mac
+        sock.settimeout(
+            0.15
         )
 
-        if valid_mac(mac):
 
-            devices[ip] = mac
+        try:
 
-    return devices
+            result = sock.connect_ex(
+
+                (
+                    ip,
+                    port
+                )
+
+            )
+
+
+            # 0 = connection accepted.
+            #
+            # Other immediate responses can
+            # still cause ARP resolution;
+            # we'll collect those later from
+            # the neighbor table.
+
+            if result == 0:
+
+                return ip
+
+
+        except Exception:
+            pass
+
+
+        finally:
+
+            try:
+
+                sock.close()
+
+            except Exception:
+                pass
+
+
+    return None
 
 
 # ============================================================
 # MACOS ARP
 # ============================================================
 
-def get_macos_arp_table():
+def get_macos_neighbors():
 
-    arp_binary = get_command(
+    binary = get_command(
 
         "arp",
 
@@ -854,10 +1062,11 @@ def get_macos_arp_table():
 
     )
 
+
     output = subprocess.check_output(
 
         [
-            arp_binary,
+            binary,
             "-an"
         ],
 
@@ -867,18 +1076,19 @@ def get_macos_arp_table():
 
     )
 
-    devices = {}
 
-    # Important:
-    # macOS can print MAC octets
-    # without leading zeroes:
-    #
-    # 8:3a:12:4:b:10
-    #
-    # so DO NOT require exactly
-    # 17 characters.
+    result = {}
 
-    pattern = re.compile(
+
+    # macOS may print:
+    #
+    # aa:b:c:12:3:f
+    #
+    # not necessarily:
+    #
+    # aa:0b:0c:12:03:0f
+
+    regex = re.compile(
 
         r"\((\d+\.\d+\.\d+\.\d+)\)"
         r"\s+at\s+"
@@ -886,31 +1096,107 @@ def get_macos_arp_table():
 
     )
 
-    for ip, raw_mac in (
-        pattern.findall(output)
+
+    for (
+        ip,
+        raw_mac
+    ) in regex.findall(
+        output
     ):
 
         mac = normalize_mac(
             raw_mac
         )
 
+
         if valid_mac(mac):
 
-            devices[ip] = mac
+            result[ip] = mac
 
-    return devices
+
+    return result
 
 
 # ============================================================
-# LINUX NEIGHBOR TABLE
+# WINDOWS ARP
 # ============================================================
 
-def get_linux_neighbor_table():
+def get_windows_neighbors():
 
-    devices = {}
+    binary = get_command(
+        "arp",
+        []
+    )
 
-    # Prefer "ip neigh"
-    ip_binary = get_command(
+
+    flags = 0
+
+
+    if hasattr(
+        subprocess,
+        "CREATE_NO_WINDOW"
+    ):
+
+        flags = (
+            subprocess.CREATE_NO_WINDOW
+        )
+
+
+    output = subprocess.check_output(
+
+        [
+            binary,
+            "-a"
+        ],
+
+        text=True,
+
+        stderr=subprocess.DEVNULL,
+
+        creationflags=flags
+
+    )
+
+
+    result = {}
+
+
+    regex = re.compile(
+
+        r"(\d+\.\d+\.\d+\.\d+)"
+        r"\s+"
+        r"([0-9A-Fa-f-]{11,17})"
+
+    )
+
+
+    for (
+        ip,
+        raw_mac
+    ) in regex.findall(
+        output
+    ):
+
+        mac = normalize_mac(
+            raw_mac
+        )
+
+
+        if valid_mac(mac):
+
+            result[ip] = mac
+
+
+    return result
+
+
+# ============================================================
+# LINUX NEIGHBOR
+# ============================================================
+
+def get_linux_neighbors():
+
+    binary = get_command(
 
         "ip",
 
@@ -922,12 +1208,16 @@ def get_linux_neighbor_table():
 
     )
 
+
+    result = {}
+
+
     try:
 
         output = subprocess.check_output(
 
             [
-                ip_binary,
+                binary,
                 "neigh",
                 "show"
             ],
@@ -938,7 +1228,8 @@ def get_linux_neighbor_table():
 
         )
 
-        pattern = re.compile(
+
+        regex = re.compile(
 
             r"(\d+\.\d+\.\d+\.\d+)"
             r".*?\slladdr\s"
@@ -946,143 +1237,401 @@ def get_linux_neighbor_table():
 
         )
 
-        for ip, raw_mac in (
-            pattern.findall(output)
+
+        for (
+            ip,
+            raw_mac
+        ) in regex.findall(
+            output
         ):
 
             mac = normalize_mac(
                 raw_mac
             )
 
-            if valid_mac(mac):
-
-                devices[ip] = mac
-
-        if devices:
-
-            return devices
-
-    except Exception:
-        pass
-
-    # Fallback to arp
-    arp_binary = get_command(
-
-        "arp",
-
-        [
-            "/usr/sbin/arp",
-            "/usr/bin/arp"
-        ]
-
-    )
-
-    try:
-
-        output = subprocess.check_output(
-
-            [
-                arp_binary,
-                "-an"
-            ],
-
-            text=True,
-
-            stderr=subprocess.DEVNULL
-
-        )
-
-        pattern = re.compile(
-
-            r"\((\d+\.\d+\.\d+\.\d+)\)"
-            r"\s+at\s+"
-            r"([0-9A-Fa-f:]+)"
-
-        )
-
-        for ip, raw_mac in (
-            pattern.findall(output)
-        ):
-
-            mac = normalize_mac(
-                raw_mac
-            )
 
             if valid_mac(mac):
 
-                devices[ip] = mac
+                result[ip] = mac
+
 
     except Exception:
+
         pass
 
-    return devices
+
+    return result
 
 
-# ============================================================
-# ARP / NEIGHBOR TABLE
-# ============================================================
-
-def get_arp_table():
+def get_neighbor_table():
 
     system = platform.system()
 
+
     try:
 
-        if system == "Windows":
+        if system == "Darwin":
 
             devices = (
-                get_windows_arp_table()
+                get_macos_neighbors()
             )
 
-        elif system == "Darwin":
+
+        elif system == "Windows":
 
             devices = (
-                get_macos_arp_table()
+                get_windows_neighbors()
             )
+
 
         else:
 
             devices = (
-                get_linux_neighbor_table()
+                get_linux_neighbors()
             )
 
+
         log(
-            "Neighbor table contains "
-            f"{len(devices)} valid devices."
+
+            f"ARP/neighbor discovery: "
+            f"{len(devices)} device(s)"
+
         )
 
+
         return devices
+
 
     except Exception as exc:
 
         log(
-            f"Neighbor table error: {exc}"
+            f"Neighbor error: {exc}"
         )
+
 
         return {}
 
 
 # ============================================================
-# HOSTNAME
+# SSDP / UPNP
 # ============================================================
 
-def resolve_hostname(ip):
+def discover_ssdp():
+
+    found = set()
+
+
+    message = (
+
+        "M-SEARCH * HTTP/1.1\r\n"
+
+        "HOST: 239.255.255.250:1900\r\n"
+
+        'MAN: "ssdp:discover"\r\n'
+
+        "MX: 2\r\n"
+
+        "ST: ssdp:all\r\n"
+
+        "\r\n"
+
+    ).encode()
+
+
+    sock = socket.socket(
+
+        socket.AF_INET,
+
+        socket.SOCK_DGRAM,
+
+        socket.IPPROTO_UDP
+
+    )
+
 
     try:
 
-        hostname = (
-            socket.gethostbyaddr(ip)[0]
+        sock.settimeout(
+            0.35
         )
 
-        return hostname
 
-    except Exception:
+        sock.setsockopt(
 
-        return None
+            socket.IPPROTO_IP,
+
+            socket.IP_MULTICAST_TTL,
+
+            2
+
+        )
+
+
+        for _ in range(2):
+
+            try:
+
+                sock.sendto(
+
+                    message,
+
+                    (
+                        "239.255.255.250",
+                        1900
+                    )
+
+                )
+
+            except Exception:
+                pass
+
+
+        deadline = (
+            time.time() + 3
+        )
+
+
+        while (
+            time.time() < deadline
+        ):
+
+            try:
+
+                _data, address = (
+                    sock.recvfrom(
+                        65535
+                    )
+                )
+
+
+                found.add(
+                    address[0]
+                )
+
+
+            except socket.timeout:
+
+                continue
+
+
+            except Exception:
+
+                break
+
+
+    finally:
+
+        sock.close()
+
+
+    log(
+
+        "SSDP discovery: "
+        f"{len(found)} device(s)"
+
+    )
+
+
+    return found
 
 
 # ============================================================
-# LOCAL NETWORK SCAN
+# MDNS / BONJOUR
+# ============================================================
+
+class MDNSListener(
+    ServiceListener
+):
+
+    def __init__(
+        self,
+        results
+    ):
+
+        self.results = results
+
+
+    def add_service(
+        self,
+        zeroconf,
+        service_type,
+        name
+    ):
+
+        self._read(
+
+            zeroconf,
+
+            service_type,
+
+            name
+
+        )
+
+
+    def update_service(
+        self,
+        zeroconf,
+        service_type,
+        name
+    ):
+
+        self._read(
+
+            zeroconf,
+
+            service_type,
+
+            name
+
+        )
+
+
+    def remove_service(
+        self,
+        zeroconf,
+        service_type,
+        name
+    ):
+
+        pass
+
+
+    def _read(
+        self,
+        zeroconf,
+        service_type,
+        name
+    ):
+
+        try:
+
+            info = (
+                zeroconf
+                .get_service_info(
+
+                    service_type,
+
+                    name,
+
+                    timeout=800
+
+                )
+            )
+
+
+            if not info:
+
+                return
+
+
+            hostname = (
+
+                info.server
+                or
+                name
+
+            ).rstrip(".")
+
+
+            for ip in (
+                info.parsed_addresses(
+                    IPVersion.V4Only
+                )
+            ):
+
+                self.results[ip] = (
+                    hostname
+                )
+
+
+        except Exception:
+            pass
+
+
+def discover_mdns():
+
+    results = {}
+
+
+    try:
+
+        zeroconf = Zeroconf(
+
+            ip_version=
+                IPVersion.V4Only
+
+        )
+
+
+        listener = MDNSListener(
+            results
+        )
+
+
+        browsers = []
+
+
+        for service in MDNS_SERVICES:
+
+            try:
+
+                browsers.append(
+
+                    ServiceBrowser(
+
+                        zeroconf,
+
+                        service,
+
+                        listener
+
+                    )
+
+                )
+
+            except Exception:
+                pass
+
+
+        time.sleep(
+            4
+        )
+
+
+        for browser in browsers:
+
+            try:
+
+                browser.cancel()
+
+            except Exception:
+                pass
+
+
+        zeroconf.close()
+
+
+    except Exception as exc:
+
+        log(
+            f"mDNS error: {exc}"
+        )
+
+
+    log(
+
+        "mDNS discovery: "
+        f"{len(results)} device(s)"
+
+    )
+
+
+    return results
+
+
+# ============================================================
+# SCAN NETWORK
 # ============================================================
 
 def scan_network():
@@ -1091,36 +1640,56 @@ def scan_network():
         get_network_details()
     )
 
+
     network = (
         details["network"]
     )
+
 
     local_ip = (
         details["local_ip"]
     )
 
+
     own_mac = (
         details["own_mac"]
     )
+
 
     hosts = list(
         network.hosts()
     )
 
+
+    discovered_ips = {
+        local_ip
+    }
+
+
+    names = {
+
+        local_ip:
+            socket.gethostname()
+
+    }
+
+
     log(
-        f"Starting scan of "
-        f"{len(hosts)} addresses."
+
+        f"Starting multi-method scan "
+        f"of {network}"
+
     )
 
 
-    # --------------------------------------------------------
-    # 1. Seed ARP cache
-    # --------------------------------------------------------
+    # ========================================================
+    # PASS 1 - FORCE NEIGHBOR RESOLUTION
+    # ========================================================
 
     with (
         concurrent.futures
         .ThreadPoolExecutor(
-            max_workers=64
+            max_workers=MAX_WORKERS
         )
     ) as executor:
 
@@ -1132,16 +1701,17 @@ def scan_network():
         )
 
 
-    # --------------------------------------------------------
-    # 2. Ping in parallel
-    # --------------------------------------------------------
+    # ========================================================
+    # PASS 2 - PING
+    # ========================================================
 
-    active_ips = set()
+    ping_hits = set()
+
 
     with (
         concurrent.futures
         .ThreadPoolExecutor(
-            max_workers=64
+            max_workers=MAX_WORKERS
         )
     ) as executor:
 
@@ -1149,12 +1719,13 @@ def scan_network():
 
             executor.submit(
                 ping_host,
-                host
+                ip
             )
 
-            for host in hosts
+            for ip in hosts
 
         ]
+
 
         for future in (
             concurrent.futures
@@ -1169,74 +1740,199 @@ def scan_network():
                     future.result()
                 )
 
+
                 if result:
 
-                    active_ips.add(
+                    ping_hits.add(
                         result
                     )
+
 
             except Exception:
                 pass
 
 
+    discovered_ips.update(
+        ping_hits
+    )
+
+
     log(
-        "Ping detected "
-        f"{len(active_ips)} "
-        "responsive IP addresses."
+
+        "Ping discovery: "
+        f"{len(ping_hits)} device(s)"
+
     )
 
 
-    # Give macOS / OS ARP cache
-    # time to populate.
-    time.sleep(
-        1.0
+    # ========================================================
+    # PASS 3 - TCP SERVICES
+    # ========================================================
+
+    tcp_hits = set()
+
+
+    with (
+        concurrent.futures
+        .ThreadPoolExecutor(
+            max_workers=MAX_WORKERS
+        )
+    ) as executor:
+
+        futures = [
+
+            executor.submit(
+                tcp_probe,
+                ip
+            )
+
+            for ip in hosts
+
+        ]
+
+
+        for future in (
+            concurrent.futures
+            .as_completed(
+                futures
+            )
+        ):
+
+            try:
+
+                result = (
+                    future.result()
+                )
+
+
+                if result:
+
+                    tcp_hits.add(
+                        result
+                    )
+
+
+            except Exception:
+                pass
+
+
+    discovered_ips.update(
+        tcp_hits
     )
 
 
-    # --------------------------------------------------------
-    # 3. Read neighbor table
-    # --------------------------------------------------------
+    log(
 
-    arp_table = (
-        get_arp_table()
+        "TCP discovery: "
+        f"{len(tcp_hits)} device(s)"
+
     )
 
 
-    # Devices do NOT need to answer ping.
-    # If ARP resolved them, include them.
+    # ========================================================
+    # PASS 4 - SSDP
+    # ========================================================
 
-    for ip in arp_table:
+    ssdp_hits = (
+        discover_ssdp()
+    )
+
+
+    for ip in ssdp_hits:
 
         try:
 
-            address = (
+            if (
                 ipaddress.ip_address(ip)
-            )
+                in network
+            ):
 
-            if address in network:
-
-                active_ips.add(ip)
+                discovered_ips.add(
+                    ip
+                )
 
         except Exception:
             pass
 
 
-    # Always include this computer.
-    active_ips.add(
-        local_ip
+    # ========================================================
+    # PASS 5 - MDNS
+    # ========================================================
+
+    mdns_hits = (
+        discover_mdns()
     )
 
 
-    # --------------------------------------------------------
-    # 4. Build device list
-    # --------------------------------------------------------
+    for (
+        ip,
+        hostname
+    ) in mdns_hits.items():
+
+        try:
+
+            if (
+                ipaddress.ip_address(ip)
+                in network
+            ):
+
+                discovered_ips.add(
+                    ip
+                )
+
+                names[ip] = (
+                    hostname
+                )
+
+        except Exception:
+            pass
+
+
+    # ========================================================
+    # ALLOW ARP CACHE TO SETTLE
+    # ========================================================
+
+    time.sleep(
+        1.5
+    )
+
+
+    # ========================================================
+    # PASS 6 - READ ACTUAL ARP TABLE
+    # ========================================================
+
+    neighbors = (
+        get_neighbor_table()
+    )
+
+
+    for ip in neighbors:
+
+        try:
+
+            if (
+                ipaddress.ip_address(ip)
+                in network
+            ):
+
+                discovered_ips.add(
+                    ip
+                )
+
+        except Exception:
+            pass
+
+
+    # ========================================================
+    # BUILD RESULT
+    # ========================================================
 
     devices = []
 
 
     for ip in sorted(
 
-        active_ips,
+        discovered_ips,
 
         key=lambda value:
             ipaddress.ip_address(
@@ -1246,13 +1942,14 @@ def scan_network():
     ):
 
         mac = (
-            arp_table.get(ip)
+            neighbors.get(ip)
         )
 
 
         if (
             ip == local_ip
-            and own_mac
+            and
+            own_mac
         ):
 
             mac = own_mac
@@ -1263,49 +1960,26 @@ def scan_network():
         )
 
 
+        # Supabase currently identifies
+        # devices by MAC, therefore only
+        # upload devices whose MAC was
+        # resolved.
+
         if not valid_mac(mac):
 
             log(
-                f"Skipping {ip}: "
-                "no valid MAC address."
+
+                f"Discovered IP {ip}, "
+                "but no valid MAC yet."
+
             )
 
             continue
 
 
-        hostname = None
-
-
-        if ip == local_ip:
-
-            hostname = (
-                socket.gethostname()
-            )
-
-        else:
-
-            # Reverse DNS can sometimes
-            # provide useful device names.
-            try:
-
-                old_timeout = (
-                    socket.getdefaulttimeout()
-                )
-
-                socket.setdefaulttimeout(
-                    0.35
-                )
-
-                hostname = (
-                    resolve_hostname(ip)
-                )
-
-                socket.setdefaulttimeout(
-                    old_timeout
-                )
-
-            except Exception:
-                pass
+        hostname = (
+            names.get(ip)
+        )
 
 
         devices.append({
@@ -1320,26 +1994,37 @@ def scan_network():
                 hostname,
 
             "vendor":
-                None,
+                None
 
         })
 
 
     log(
-        "Scan finished with "
-        f"{len(devices)} devices."
+        "================================"
+    )
+
+
+    log(
+        f"FINAL DEVICE COUNT: "
+        f"{len(devices)}"
     )
 
 
     for device in devices:
 
         log(
-            "DEVICE "
-            f"ip={device['ip']} "
-            f"mac={device['mac']} "
-            f"hostname="
+
+            "DEVICE | "
+            f"{device['ip']} | "
+            f"{device['mac']} | "
             f"{device['hostname']}"
+
         )
+
+
+    log(
+        "================================"
+    )
 
 
     return (
@@ -1350,7 +2035,7 @@ def scan_network():
 
 
 # ============================================================
-# SEND DEVICE SCAN
+# SYNC
 # ============================================================
 
 def sync_devices(
@@ -1373,7 +2058,7 @@ def sync_devices(
                 ],
 
             "p_devices":
-                devices,
+                devices
 
         }
 
@@ -1381,7 +2066,7 @@ def sync_devices(
 
 
 # ============================================================
-# GUI APPLICATION
+# GUI
 # ============================================================
 
 class WiFiWatchApp:
@@ -1390,18 +2075,22 @@ class WiFiWatchApp:
 
         self.root = tk.Tk()
 
+
         self.root.title(
             "WiFi Watch Agent"
         )
 
+
         self.root.geometry(
-            "540x520"
+            "550x550"
         )
 
+
         self.root.minsize(
-            480,
-            450
+            490,
+            470
         )
+
 
         self.root.configure(
             bg="#071017"
@@ -1417,7 +2106,13 @@ class WiFiWatchApp:
             threading.Event()
         )
 
+
         self.monitor_thread = None
+
+
+        self.scan_lock = (
+            threading.Lock()
+        )
 
 
         self.status_value = (
@@ -1426,17 +2121,20 @@ class WiFiWatchApp:
             )
         )
 
+
         self.network_value = (
             tk.StringVar(
                 value="—"
             )
         )
 
+
         self.device_value = (
             tk.StringVar(
                 value="0"
             )
         )
+
 
         self.scan_value = (
             tk.StringVar(
@@ -1468,10 +2166,6 @@ class WiFiWatchApp:
         )
 
 
-    # --------------------------------------------------------
-    # COMMON LABEL
-    # --------------------------------------------------------
-
     def label(
         self,
         parent,
@@ -1480,18 +2174,6 @@ class WiFiWatchApp:
         bold=False,
         color="#ffffff"
     ):
-
-        font = (
-
-            "Arial",
-
-            size,
-
-            "bold"
-            if bold
-            else "normal"
-
-        )
 
         return tk.Label(
 
@@ -1503,14 +2185,22 @@ class WiFiWatchApp:
 
             fg=color,
 
-            font=font
+            font=(
+
+                "Arial",
+
+                size,
+
+                (
+                    "bold"
+                    if bold
+                    else "normal"
+                )
+
+            )
 
         )
 
-
-    # --------------------------------------------------------
-    # PAIRED?
-    # --------------------------------------------------------
 
     def is_paired(self):
 
@@ -1529,10 +2219,6 @@ class WiFiWatchApp:
         )
 
 
-    # --------------------------------------------------------
-    # UI SHELL
-    # --------------------------------------------------------
-
     def build_ui(self):
 
         header = tk.Frame(
@@ -1542,6 +2228,7 @@ class WiFiWatchApp:
             bg="#071017"
 
         )
+
 
         header.pack(
 
@@ -1576,12 +2263,13 @@ class WiFiWatchApp:
 
         )
 
+
         logo.pack(
             side="left"
         )
 
 
-        title_wrap = tk.Frame(
+        wrap = tk.Frame(
 
             header,
 
@@ -1589,7 +2277,8 @@ class WiFiWatchApp:
 
         )
 
-        title_wrap.pack(
+
+        wrap.pack(
 
             side="left",
 
@@ -1600,7 +2289,7 @@ class WiFiWatchApp:
 
         self.label(
 
-            title_wrap,
+            wrap,
 
             "WiFi Watch Agent",
 
@@ -1615,7 +2304,7 @@ class WiFiWatchApp:
 
         self.label(
 
-            title_wrap,
+            wrap,
 
             f"Version {APP_VERSION}",
 
@@ -1637,6 +2326,7 @@ class WiFiWatchApp:
             bg="#071017"
 
         )
+
 
         self.body.pack(
 
@@ -1661,9 +2351,9 @@ class WiFiWatchApp:
             widget.destroy()
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # PAIRING SCREEN
-    # --------------------------------------------------------
+    # ========================================================
 
     def show_pairing(self):
 
@@ -1696,7 +2386,7 @@ class WiFiWatchApp:
             (
                 "Generate a pairing code "
                 "from your WiFi Watch "
-                "dashboard and enter it below."
+                "website and enter it below."
             ),
 
             11,
@@ -1737,19 +2427,24 @@ class WiFiWatchApp:
 
             bg="#101f29",
 
-            fg="#ffffff",
+            fg="white",
 
-            insertbackground="#ffffff",
+            insertbackground="white",
 
             relief="flat",
 
             font=(
+
                 "Courier",
+
                 15,
+
                 "bold"
+
             )
 
         )
+
 
         self.code_entry.pack(
 
@@ -1762,7 +2457,7 @@ class WiFiWatchApp:
         )
 
 
-        connect = tk.Button(
+        button = tk.Button(
 
             self.body,
 
@@ -1772,22 +2467,24 @@ class WiFiWatchApp:
 
             fg="#042116",
 
-            activebackground=
-                "#35e79a",
-
             relief="flat",
 
             font=(
+
                 "Arial",
+
                 12,
+
                 "bold"
+
             ),
 
             command=self.pair
 
         )
 
-        connect.pack(
+
+        button.pack(
 
             fill="x",
 
@@ -1812,39 +2509,11 @@ class WiFiWatchApp:
             )
         )
 
+
         self.pair_status.pack(
             pady=15
         )
 
-
-        self.label(
-
-            self.body,
-
-            (
-                "Only use WiFi Watch on "
-                "networks you own or are "
-                "authorized to administer."
-            ),
-
-            9,
-
-            False,
-
-            "#66808e"
-
-        ).pack(
-
-            side="bottom",
-
-            pady=10
-
-        )
-
-
-    # --------------------------------------------------------
-    # PAIR
-    # --------------------------------------------------------
 
     def pair(self):
 
@@ -1879,7 +2548,8 @@ class WiFiWatchApp:
 
         threading.Thread(
 
-            target=self._pair_worker,
+            target=
+                self._pair_worker,
 
             args=(code,),
 
@@ -1895,14 +2565,11 @@ class WiFiWatchApp:
 
         try:
 
-            config = (
+            self.config = (
                 claim_pairing_code(
                     code
                 )
             )
-
-
-            self.config = config
 
 
             self.root.after(
@@ -1917,7 +2584,7 @@ class WiFiWatchApp:
         except Exception as exc:
 
             log(
-                f"Pairing error: {exc}"
+                f"Pair error: {exc}"
             )
 
 
@@ -1970,9 +2637,9 @@ class WiFiWatchApp:
         )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # CONNECTED SCREEN
-    # --------------------------------------------------------
+    # ========================================================
 
     def show_connected(self):
 
@@ -2008,6 +2675,7 @@ class WiFiWatchApp:
 
         )
 
+
         card.pack(
             fill="x"
         )
@@ -2033,13 +2701,13 @@ class WiFiWatchApp:
             (
                 "Last scan",
                 self.scan_value
-            ),
+            )
 
         ]
 
 
         for (
-            label_text,
+            title,
             variable
         ) in rows:
 
@@ -2050,6 +2718,7 @@ class WiFiWatchApp:
                 bg="#101f29"
 
             )
+
 
             row.pack(
 
@@ -2066,7 +2735,7 @@ class WiFiWatchApp:
 
                 row,
 
-                text=label_text,
+                text=title,
 
                 bg="#101f29",
 
@@ -2086,16 +2755,21 @@ class WiFiWatchApp:
 
                 row,
 
-                textvariable=variable,
+                textvariable=
+                    variable,
 
                 bg="#101f29",
 
-                fg="#ffffff",
+                fg="white",
 
                 font=(
+
                     "Arial",
+
                     10,
+
                     "bold"
+
                 )
 
             ).pack(
@@ -2107,32 +2781,36 @@ class WiFiWatchApp:
 
             self.body,
 
-            text="Scan Now",
+            text=
+                "Scan Entire Network Now",
 
             bg="#35e79a",
 
             fg="#042116",
 
-            activebackground=
-                "#35e79a",
-
             relief="flat",
 
             font=(
+
                 "Arial",
+
                 11,
+
                 "bold"
+
             ),
 
-            command=self.manual_scan
+            command=
+                self.manual_scan
 
         )
+
 
         scan_button.pack(
 
             fill="x",
 
-            ipady=8,
+            ipady=9,
 
             pady=(20, 10)
 
@@ -2144,9 +2822,9 @@ class WiFiWatchApp:
             self.body,
 
             (
-                "Automatic monitoring is ON. "
-                f"WiFi Watch scans approximately "
-                f"every {SCAN_INTERVAL} seconds."
+                "WiFi Watch automatically "
+                f"rescans every "
+                f"{SCAN_INTERVAL} seconds."
             ),
 
             9,
@@ -2156,7 +2834,7 @@ class WiFiWatchApp:
             "#8da2af"
 
         ).pack(
-            pady=(3, 8)
+            pady=(4, 9)
         )
 
 
@@ -2165,7 +2843,7 @@ class WiFiWatchApp:
             self.body,
 
             (
-                "Diagnostic log: "
+                "Diagnostic log:\n"
                 f"{LOG_FILE}"
             ),
 
@@ -2184,20 +2862,20 @@ class WiFiWatchApp:
 
             self.body,
 
-            text="Disconnect this Agent",
+            text=
+                "Disconnect this Agent",
 
             bg="#13232d",
 
             fg="#ff8a8a",
 
-            activebackground=
-                "#13232d",
-
             relief="flat",
 
-            command=self.disconnect
+            command=
+                self.disconnect
 
         )
+
 
         disconnect.pack(
 
@@ -2208,17 +2886,21 @@ class WiFiWatchApp:
         )
 
 
-    # --------------------------------------------------------
-    # MONITORING
-    # --------------------------------------------------------
+    # ========================================================
+    # SCANNING
+    # ========================================================
 
     def start_monitoring(self):
 
         if (
+
             self.monitor_thread
+
             and
+
             self.monitor_thread
             .is_alive()
+
         ):
 
             return
@@ -2276,19 +2958,27 @@ class WiFiWatchApp:
             return
 
 
-        self.root.after(
+        if not self.scan_lock.acquire(
+            blocking=False
+        ):
 
-            0,
-
-            lambda:
-                self.status_value.set(
-                    "Scanning..."
-                )
-
-        )
+            return
 
 
         try:
+
+            self.root.after(
+
+                0,
+
+                lambda:
+                    self.status_value
+                    .set(
+                        "Scanning..."
+                    )
+
+            )
+
 
             heartbeat(
                 self.config
@@ -2316,17 +3006,21 @@ class WiFiWatchApp:
                 dict
             ):
 
-                count = result.get(
+                count = (
+                    result.get(
 
-                    "devices_seen",
+                        "devices_seen",
 
-                    len(devices)
+                        len(devices)
 
+                    )
                 )
 
             else:
 
-                count = len(devices)
+                count = len(
+                    devices
+                )
 
 
             self.root.after(
@@ -2334,7 +3028,7 @@ class WiFiWatchApp:
                 0,
 
                 lambda:
-                    self.update_scan_success(
+                    self.scan_success(
 
                         count,
 
@@ -2350,7 +3044,7 @@ class WiFiWatchApp:
         except Exception as exc:
 
             log(
-                f"Scan error: {exc}"
+                f"SCAN ERROR: {exc}"
             )
 
 
@@ -2359,14 +3053,19 @@ class WiFiWatchApp:
                 0,
 
                 lambda:
-                    self.update_scan_error(
+                    self.scan_error(
                         str(exc)
                     )
 
             )
 
 
-    def update_scan_success(
+        finally:
+
+            self.scan_lock.release()
+
+
+    def scan_success(
         self,
         count,
         network,
@@ -2400,7 +3099,7 @@ class WiFiWatchApp:
         )
 
 
-    def update_scan_error(
+    def scan_error(
         self,
         error
     ):
@@ -2411,13 +3110,13 @@ class WiFiWatchApp:
 
 
         log(
-            f"UI scan error: {error}"
+            f"UI error: {error}"
         )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # DISCONNECT
-    # --------------------------------------------------------
+    # ========================================================
 
     def disconnect(self):
 
@@ -2427,8 +3126,9 @@ class WiFiWatchApp:
                 "Disconnect Agent",
 
                 (
-                    "Disconnect this computer "
-                    "from WiFi Watch?"
+                    "Disconnect this "
+                    "computer from "
+                    "WiFi Watch?"
                 )
 
             )
@@ -2452,21 +3152,16 @@ class WiFiWatchApp:
         self.show_pairing()
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # CLOSE
-    # --------------------------------------------------------
+    # ========================================================
 
     def close(self):
 
         self.stop_event.set()
 
-
         self.root.destroy()
 
-
-    # --------------------------------------------------------
-    # RUN
-    # --------------------------------------------------------
 
     def run(self):
 
@@ -2474,17 +3169,21 @@ class WiFiWatchApp:
 
 
 # ============================================================
-# START APPLICATION
+# START
 # ============================================================
 
 if __name__ == "__main__":
 
     if (
-        "YOUR_SUPABASE"
-        in SUPABASE_URL
+
+        "YOUR_REAL_" in
+        SUPABASE_URL
+
         or
-        "YOUR_SUPABASE"
-        in SUPABASE_KEY
+
+        "YOUR_REAL_" in
+        SUPABASE_KEY
+
     ):
 
         root = tk.Tk()
@@ -2497,8 +3196,8 @@ if __name__ == "__main__":
             "WiFi Watch",
 
             (
-                "Supabase URL and publishable "
-                "key have not been configured."
+                "Configure the Supabase "
+                "URL and publishable key."
             )
 
         )
@@ -2511,9 +3210,11 @@ if __name__ == "__main__":
 
 
     log(
-        f"Starting WiFi Watch Agent "
+
+        "Starting WiFi Watch Agent "
         f"{APP_VERSION} on "
-        f"{platform.system()}."
+        f"{platform.system()}"
+
     )
 
 
