@@ -12,6 +12,7 @@ import subprocess
 import threading
 import time
 import urllib.parse
+import webbrowser
 import xml.etree.ElementTree as ET
 
 from pathlib import Path
@@ -31,7 +32,7 @@ from zeroconf import (
 
 
 # ============================================================
-# OPTIONAL OFFLINE MAC MANUFACTURER DATABASE
+# OPTIONAL LOCAL MAC VENDOR DATABASE
 # ============================================================
 
 try:
@@ -47,33 +48,20 @@ except Exception:
     MAC_VENDOR_PARSER = None
 
 
-# ============================================================
-# WIFI WATCH
-# ============================================================
-
-APP_VERSION = "0.3.0"
-
 
 # ============================================================
-# IMPORTANT
-#
-# KEEP YOUR REAL VALUES HERE.
-#
-# ONLY:
-#   sb_publishable_...
-#
-# NEVER:
-#   sb_secret_
-#   service_role
-#   database password
+# WIFI WATCH v1
 # ============================================================
 
-SUPABASE_URL = "https://ephdcwogebxfsidytmrj.supabase.co"
+APP_VERSION = "1.0.0"
 
-SUPABASE_KEY = "sb_publishable_L9TUAFyJ_S0l81UDNi8imw_FVTYm4cI"
-
+ENGINE_VERSION = 1
 
 SCAN_INTERVAL = 30
+
+RULE_REFRESH_SECONDS = (
+    6 * 60 * 60
+)
 
 REQUEST_TIMEOUT = 20
 
@@ -83,60 +71,166 @@ MAX_NETWORK_ADDRESSES = 1024
 
 
 # ============================================================
-# TCP SERVICES
+# IMPORTANT
+#
+# USE ONLY:
+# sb_publishable_...
+#
+# NEVER:
+# sb_secret_
+# service_role
+# database password
+# ============================================================
+
+SUPABASE_URL = (
+    "https://ephdcwogebxfsidytmrj.supabase.co"
+)
+
+SUPABASE_KEY = (
+    "sb_publishable_L9TUAFyJ_S0l81UDNi8imw_FVTYm4cI"
+)
+
+
+GITHUB_LATEST_API = (
+    "https://api.github.com/repos/"
+    "developmentlab1-del/"
+    "wifi-watch/releases/latest"
+)
+
+GITHUB_RELEASES_URL = (
+    "https://github.com/"
+    "developmentlab1-del/"
+    "wifi-watch/releases/latest"
+)
+
+
+
+# ============================================================
+# CAPABILITIES
+# ============================================================
+
+CAPABILITIES = {
+
+    "arp":
+        True,
+
+    "icmp":
+        True,
+
+    "tcp_services":
+        True,
+
+    "mdns":
+        True,
+
+    "ssdp_upnp":
+        True,
+
+    "reverse_dns":
+        True,
+
+    "netbios":
+        True,
+
+    "mac_vendor":
+        True,
+
+    "cloud_rules":
+        True,
+
+    "security_observation":
+        True,
+
+    "update_check":
+        True,
+
+}
+
+
+
+# ============================================================
+# TCP SERVICE MAP
 # ============================================================
 
 TCP_SERVICES = {
 
-    21: "FTP",
+    21:
+        "FTP",
 
-    22: "SSH",
+    22:
+        "SSH",
 
-    23: "Telnet",
+    23:
+        "Telnet",
 
-    53: "DNS",
+    53:
+        "DNS",
 
-    80: "HTTP",
+    80:
+        "HTTP",
 
-    139: "NetBIOS",
+    139:
+        "NetBIOS",
 
-    443: "HTTPS",
+    443:
+        "HTTPS",
 
-    445: "SMB",
+    445:
+        "SMB",
 
-    554: "RTSP",
+    554:
+        "RTSP",
 
-    631: "IPP",
+    631:
+        "IPP",
 
-    1883: "MQTT",
+    1883:
+        "MQTT",
 
-    3389: "RDP",
+    3389:
+        "RDP",
 
-    5000: "HTTP-alt",
+    5000:
+        "HTTP-alt",
 
-    5001: "HTTPS-alt",
+    5001:
+        "HTTPS-alt",
 
-    7000: "AirPlay",
+    5900:
+        "VNC",
 
-    8000: "HTTP-alt",
+    7000:
+        "AirPlay",
 
-    8001: "HTTP-alt",
+    8000:
+        "HTTP-alt",
 
-    8008: "Google Cast",
+    8001:
+        "HTTP-alt",
 
-    8009: "Google Cast",
+    8008:
+        "Google Cast",
 
-    8080: "HTTP-alt",
+    8009:
+        "Google Cast",
 
-    8443: "HTTPS-alt",
+    8080:
+        "HTTP-alt",
 
-    8883: "MQTT-TLS",
+    8443:
+        "HTTPS-alt",
 
-    9100: "RAW Printer",
+    8883:
+        "MQTT-TLS",
 
-    32400: "Plex",
+    9100:
+        "RAW Printer",
 
-    62078: "Apple Sync",
+    32400:
+        "Plex",
+
+    62078:
+        "Apple Sync",
 
 }
 
@@ -154,8 +248,9 @@ REFUSED_CODES = {
 }
 
 
+
 # ============================================================
-# MDNS SERVICES
+# MDNS TYPES
 # ============================================================
 
 DEFAULT_MDNS_TYPES = {
@@ -195,13 +290,16 @@ DEFAULT_MDNS_TYPES = {
 }
 
 
+
 # ============================================================
-# APP STORAGE
+# STORAGE
 # ============================================================
 
 def get_app_folder():
 
-    system = platform.system()
+    system = (
+        platform.system()
+    )
 
 
     if system == "Windows":
@@ -263,7 +361,9 @@ def get_app_folder():
     return folder
 
 
-APP_FOLDER = get_app_folder()
+APP_FOLDER = (
+    get_app_folder()
+)
 
 CONFIG_FILE = (
     APP_FOLDER
@@ -277,25 +377,34 @@ LOG_FILE = (
     "agent.log"
 )
 
+RULES_FILE = (
+    APP_FOLDER
+    /
+    "fingerprint_rules.json"
+)
+
+
 
 # ============================================================
-# LOGGING
+# LOG
 # ============================================================
 
 def log(message):
 
-    timestamp = time.strftime(
+    stamp = time.strftime(
         "%Y-%m-%d %H:%M:%S"
     )
 
 
     line = (
-        f"[{timestamp}] "
+        f"[{stamp}] "
         f"{message}"
     )
 
 
-    print(line)
+    print(
+        line
+    )
 
 
     try:
@@ -319,22 +428,31 @@ def log(message):
         pass
 
 
+
 # ============================================================
-# CONFIG
+# JSON FILE HELPERS
 # ============================================================
 
-def load_config():
+def load_json_file(
+    path,
+    fallback=None
+):
 
-    if not CONFIG_FILE.exists():
+    if fallback is None:
 
-        return {}
+        fallback = {}
+
+
+    if not path.exists():
+
+        return fallback
 
 
     try:
 
         with open(
 
-            CONFIG_FILE,
+            path,
 
             "r",
 
@@ -347,21 +465,19 @@ def load_config():
             )
 
 
-    except Exception as exc:
+    except Exception:
 
-        log(
-            f"Config load error: {exc}"
-        )
+        return fallback
 
 
-        return {}
-
-
-def save_config(data):
+def save_json_file(
+    path,
+    data
+):
 
     with open(
 
-        CONFIG_FILE,
+        path,
 
         "w",
 
@@ -375,7 +491,9 @@ def save_config(data):
 
             file,
 
-            indent=2
+            indent=2,
+
+            ensure_ascii=False
 
         )
 
@@ -385,16 +503,34 @@ def save_config(data):
         try:
 
             os.chmod(
-
-                CONFIG_FILE,
-
+                path,
                 0o600
-
             )
 
         except Exception:
 
             pass
+
+
+
+# ============================================================
+# CONFIG
+# ============================================================
+
+def load_config():
+
+    return load_json_file(
+        CONFIG_FILE,
+        {}
+    )
+
+
+def save_config(data):
+
+    save_json_file(
+        CONFIG_FILE,
+        data
+    )
 
 
 def delete_config():
@@ -405,7 +541,6 @@ def delete_config():
 
             CONFIG_FILE.unlink()
 
-
     except Exception as exc:
 
         log(
@@ -413,8 +548,9 @@ def delete_config():
         )
 
 
+
 # ============================================================
-# SUPABASE
+# RPC
 # ============================================================
 
 def rpc(
@@ -456,11 +592,15 @@ def rpc(
 
         try:
 
-            details = response.json()
+            details = (
+                response.json()
+            )
 
         except Exception:
 
-            details = response.text
+            details = (
+                response.text
+            )
 
 
         raise RuntimeError(
@@ -477,6 +617,7 @@ def rpc(
 
 
     return response.json()
+
 
 
 # ============================================================
@@ -518,7 +659,7 @@ def claim_pairing_code(code):
         )
 
 
-    for required in (
+    for key in (
 
         "agent_id",
 
@@ -528,7 +669,7 @@ def claim_pairing_code(code):
 
     ):
 
-        if required not in result:
+        if key not in result:
 
             raise RuntimeError(
                 "Invalid pairing response."
@@ -538,13 +679,19 @@ def claim_pairing_code(code):
     config = {
 
         "agent_id":
-            result["agent_id"],
+            result[
+                "agent_id"
+            ],
 
         "agent_secret":
-            result["agent_secret"],
+            result[
+                "agent_secret"
+            ],
 
         "network_id":
-            result["network_id"],
+            result[
+                "network_id"
+            ],
 
     }
 
@@ -554,8 +701,18 @@ def claim_pairing_code(code):
     )
 
 
+    log(
+        "Agent paired successfully."
+    )
+
+
     return config
 
+
+
+# ============================================================
+# HEARTBEAT
+# ============================================================
 
 def heartbeat(config):
 
@@ -566,10 +723,14 @@ def heartbeat(config):
         {
 
             "p_agent_id":
-                config["agent_id"],
+                config[
+                    "agent_id"
+                ],
 
             "p_agent_secret":
-                config["agent_secret"],
+                config[
+                    "agent_secret"
+                ],
 
             "p_version":
                 APP_VERSION,
@@ -579,11 +740,251 @@ def heartbeat(config):
     )
 
 
+
 # ============================================================
-# COMMAND HELPER
+# SCAN HEALTH REPORT
 # ============================================================
 
-def get_command(
+def report_scan(
+
+    config,
+
+    ruleset_version,
+
+    duration_ms,
+
+    device_count,
+
+    agent_ip,
+
+    error=None
+
+):
+
+    try:
+
+        rpc(
+
+            "agent_report_scan",
+
+            {
+
+                "p_agent_id":
+                    config[
+                        "agent_id"
+                    ],
+
+                "p_agent_secret":
+                    config[
+                        "agent_secret"
+                    ],
+
+                "p_engine_version":
+                    ENGINE_VERSION,
+
+                "p_ruleset_version":
+                    ruleset_version,
+
+                "p_capabilities":
+                    CAPABILITIES,
+
+                "p_duration_ms":
+                    int(
+                        duration_ms
+                    ),
+
+                "p_device_count":
+                    int(
+                        device_count
+                    ),
+
+                "p_agent_ip":
+                    agent_ip,
+
+                "p_last_error":
+                    (
+                        str(error)
+                        if error
+                        else None
+                    ),
+
+            }
+
+        )
+
+
+    except Exception as exc:
+
+        log(
+            f"Scan report error: {exc}"
+        )
+
+
+
+# ============================================================
+# CLOUD RULES
+# ============================================================
+
+_rules_memory = None
+
+_rules_fetched_at = 0
+
+
+def fetch_cloud_rules(
+    force=False
+):
+
+    global _rules_memory
+    global _rules_fetched_at
+
+
+    now = time.time()
+
+
+    if (
+
+        not force
+
+        and
+
+        _rules_memory is not None
+
+        and
+
+        now
+        -
+        _rules_fetched_at
+
+        <
+        RULE_REFRESH_SECONDS
+
+    ):
+
+        return _rules_memory
+
+
+    try:
+
+        result = rpc(
+
+            "get_fingerprint_rules",
+
+            {
+
+                "p_engine_version":
+                    ENGINE_VERSION
+
+            }
+
+        )
+
+
+        if not isinstance(
+            result,
+            dict
+        ):
+
+            raise RuntimeError(
+                "Invalid rules response."
+            )
+
+
+        cached = {
+
+            "fetched_at":
+                now,
+
+            "ruleset_version":
+                result.get(
+                    "ruleset_version",
+                    "unknown"
+                ),
+
+            "rules":
+                result.get(
+                    "rules",
+                    []
+                ),
+
+        }
+
+
+        save_json_file(
+
+            RULES_FILE,
+
+            cached
+
+        )
+
+
+        _rules_memory = (
+            cached
+        )
+
+
+        _rules_fetched_at = (
+            now
+        )
+
+
+        log(
+
+            "Fingerprint rules loaded: "
+            f"{len(cached['rules'])} "
+            "rule(s), "
+            f"ruleset "
+            f"{cached['ruleset_version']}"
+
+        )
+
+
+        return cached
+
+
+    except Exception as exc:
+
+        log(
+            f"Cloud rule fetch failed: {exc}"
+        )
+
+
+        cached = load_json_file(
+
+            RULES_FILE,
+
+            {
+
+                "ruleset_version":
+                    "built-in",
+
+                "rules":
+                    [],
+
+            }
+
+        )
+
+
+        _rules_memory = (
+            cached
+        )
+
+
+        _rules_fetched_at = (
+            now
+        )
+
+
+        return cached
+
+
+
+# ============================================================
+# COMMAND PATHS
+# ============================================================
+
+def command_path(
     name,
     candidates
 ):
@@ -610,6 +1011,7 @@ def get_command(
     return name
 
 
+
 # ============================================================
 # MAC HELPERS
 # ============================================================
@@ -621,7 +1023,7 @@ def normalize_mac(mac):
         return None
 
 
-    value = (
+    text = (
 
         str(mac)
 
@@ -637,7 +1039,7 @@ def normalize_mac(mac):
     )
 
 
-    parts = value.split(
+    parts = text.split(
         ":"
     )
 
@@ -647,7 +1049,7 @@ def normalize_mac(mac):
         return None
 
 
-    result = []
+    output = []
 
 
     try:
@@ -663,7 +1065,7 @@ def normalize_mac(mac):
                 return None
 
 
-            result.append(
+            output.append(
 
                 f"{int(part, 16):02x}"
 
@@ -676,7 +1078,7 @@ def normalize_mac(mac):
 
 
     return ":".join(
-        result
+        output
     )
 
 
@@ -705,7 +1107,7 @@ def valid_mac(mac):
 
     try:
 
-        first = int(
+        first_byte = int(
 
             mac.split(":")[0],
 
@@ -714,7 +1116,7 @@ def valid_mac(mac):
         )
 
 
-        if first & 1:
+        if first_byte & 1:
 
             return False
 
@@ -727,7 +1129,7 @@ def valid_mac(mac):
     return True
 
 
-def is_private_mac(mac):
+def private_mac(mac):
 
     mac = normalize_mac(
         mac
@@ -741,7 +1143,7 @@ def is_private_mac(mac):
 
     try:
 
-        first = int(
+        first_byte = int(
 
             mac.split(":")[0],
 
@@ -751,7 +1153,7 @@ def is_private_mac(mac):
 
 
         return bool(
-            first & 2
+            first_byte & 2
         )
 
 
@@ -760,19 +1162,18 @@ def is_private_mac(mac):
         return False
 
 
-def lookup_mac_vendor(mac):
+def mac_vendor(mac):
 
     mac = normalize_mac(
         mac
     )
 
 
-    if not valid_mac(mac):
-
-        return None
-
-
-    if is_private_mac(mac):
+    if (
+        not valid_mac(mac)
+        or
+        private_mac(mac)
+    ):
 
         return None
 
@@ -786,22 +1187,30 @@ def lookup_mac_vendor(mac):
 
         comment = (
             MAC_VENDOR_PARSER
-            .get_comment(mac)
+            .get_comment(
+                mac
+            )
         )
 
 
         manufacturer = (
             MAC_VENDOR_PARSER
-            .get_manuf(mac)
+            .get_manuf(
+                mac
+            )
         )
 
 
-        return (
+        value = (
             comment
             or
             manufacturer
-            or
-            None
+        )
+
+
+        return clean_identity_text(
+            value,
+            require_letters=True
         )
 
 
@@ -810,13 +1219,53 @@ def lookup_mac_vendor(mac):
         return None
 
 
+
 # ============================================================
-# NAME HELPERS
+# IDENTITY TEXT FILTERING
 # ============================================================
 
-def decode_dns_name(value):
+BAD_VALUES = {
 
-    if not value:
+    "",
+
+    "unknown",
+
+    "none",
+
+    "null",
+
+    "nil",
+
+    "device",
+
+    "localhost",
+
+    "local",
+
+    "n/a",
+
+    "na",
+
+    "0,1,2",
+
+    "0, 1, 2",
+
+    "0.1.2",
+
+}
+
+
+def clean_identity_text(
+
+    value,
+
+    require_letters=False,
+
+    allow_short=False
+
+):
+
+    if value is None:
 
         return None
 
@@ -826,7 +1275,9 @@ def decode_dns_name(value):
     )
 
 
-    def replace_oct(match):
+    def replace_oct(
+        match
+    ):
 
         try:
 
@@ -855,25 +1306,19 @@ def decode_dns_name(value):
     )
 
 
-    return value
-
-
-def clean_device_name(value):
-
-    if not value:
-
-        return None
-
-
-    value = decode_dns_name(
-        value
-    )
-
-
     value = (
-        str(value)
+
+        value
+
+        .replace(
+            "\x00",
+            ""
+        )
+
         .strip()
+
         .strip(".")
+
     )
 
 
@@ -900,7 +1345,15 @@ def clean_device_name(value):
         return None
 
 
-    if len(value) > 120:
+    lower = value.lower()
+
+
+    if lower in BAD_VALUES:
+
+        return None
+
+
+    if len(value) > 160:
 
         return None
 
@@ -918,14 +1371,85 @@ def clean_device_name(value):
         pass
 
 
+    if re.fullmatch(
+        r"[\d\s,._\-]+",
+        value
+    ):
+
+        return None
+
+
+    if (
+
+        not allow_short
+
+        and
+
+        len(value) < 2
+
+    ):
+
+        return None
+
+
+    if (
+
+        require_letters
+
+        and
+
+        not any(
+            char.isalpha()
+            for char in value
+        )
+
+    ):
+
+        return None
+
+
     return value
 
 
+def valid_model(
+    value
+):
+
+    value = clean_identity_text(
+
+        value,
+
+        require_letters=True
+
+    )
+
+
+    if not value:
+
+        return None
+
+
+    if re.fullmatch(
+
+        r"[vV]?\d+"
+        r"([.,]\d+)+",
+
+        value
+
+    ):
+
+        return None
+
+
+    return value
+
+
+
 # ============================================================
-# DEVICE RECORD
+# RECORDS
 # ============================================================
 
-def create_record(ip):
+def new_record(ip):
 
     return {
 
@@ -934,6 +1458,12 @@ def create_record(ip):
 
         "mac":
             None,
+
+        "gateway":
+            False,
+
+        "local_agent":
+            False,
 
         "methods":
             set(),
@@ -962,29 +1492,39 @@ def create_record(ip):
         "ssdp":
             [],
 
-        "nbns":
+        "netbios":
             [],
 
         "reverse_dns":
             None,
 
-        "gateway":
-            False,
+        "cloud_rule":
+            None,
+
+        "cloud_result":
+            {},
 
     }
 
 
 def ensure_record(
+
     records,
+
     network,
+
     ip
+
 ):
 
     try:
 
-        address = ipaddress.ip_address(
-            str(ip)
+        address = (
+            ipaddress.ip_address(
+                str(ip)
+            )
         )
+
 
     except Exception:
 
@@ -992,9 +1532,13 @@ def ensure_record(
 
 
     if (
+
         address.version != 4
+
         or
+
         address not in network
+
     ):
 
         return None
@@ -1008,7 +1552,7 @@ def ensure_record(
     if key not in records:
 
         records[key] = (
-            create_record(
+            new_record(
                 key
             )
         )
@@ -1018,16 +1562,37 @@ def ensure_record(
 
 
 def add_candidate(
+
     record,
+
     field,
+
     value,
+
     source,
-    score
+
+    score,
+
+    model=False
+
 ):
 
-    value = clean_device_name(
-        value
-    )
+    if model:
+
+        value = valid_model(
+            value
+        )
+
+
+    else:
+
+        value = clean_identity_text(
+
+            value,
+
+            require_letters=True
+
+        )
 
 
     if not value:
@@ -1035,7 +1600,7 @@ def add_candidate(
         return
 
 
-    record[field].append({
+    candidate = {
 
         "value":
             value,
@@ -1044,53 +1609,42 @@ def add_candidate(
             source,
 
         "score":
-            score,
+            int(
+                score
+            ),
 
-    })
-
-
-    record[
-        "identity_sources"
-    ].add(
-        source
-    )
+    }
 
 
-def add_raw_candidate(
-    record,
-    field,
-    value,
-    source,
-    score
-):
+    existing = [
 
-    if not value:
+        item
 
-        return
+        for item in record[field]
 
+        if (
+            item["value"].lower()
+            ==
+            value.lower()
+        )
 
-    value = str(
-        value
-    ).strip()
+    ]
 
 
-    if not value:
+    if existing:
 
-        return
+        if score > existing[0]["score"]:
+
+            existing[0][
+                "score"
+            ] = score
 
 
-    record[field].append({
+    else:
 
-        "value":
-            value,
-
-        "source":
-            source,
-
-        "score":
-            score,
-
-    })
+        record[field].append(
+            candidate
+        )
 
 
     record[
@@ -1105,20 +1659,20 @@ def best_candidate(
     field
 ):
 
-    candidates = record.get(
+    values = record.get(
         field,
         []
     )
 
 
-    if not candidates:
+    if not values:
 
         return None
 
 
-    candidates = sorted(
+    values = sorted(
 
-        candidates,
+        values,
 
         key=lambda item:
             item.get(
@@ -1131,16 +1685,17 @@ def best_candidate(
     )
 
 
-    return candidates[0][
+    return values[0][
         "value"
     ]
 
 
+
 # ============================================================
-# LOCAL NETWORK
+# NETWORK DETAILS
 # ============================================================
 
-def get_primary_local_ip():
+def local_ip_address():
 
     sock = socket.socket(
 
@@ -1161,7 +1716,9 @@ def get_primary_local_ip():
         )
 
 
-        ip = sock.getsockname()[0]
+        ip = (
+            sock.getsockname()[0]
+        )
 
 
         if ip:
@@ -1197,18 +1754,26 @@ def get_primary_local_ip():
 
                 try:
 
-                    ip = ipaddress.ip_address(
-                        address.address
+                    ip = (
+                        ipaddress.ip_address(
+                            address.address
+                        )
                     )
 
 
                     if (
+
                         ip.is_private
+
                         and
+
                         not ip.is_loopback
+
                     ):
 
-                        return str(ip)
+                        return str(
+                            ip
+                        )
 
 
                 except Exception:
@@ -1221,14 +1786,14 @@ def get_primary_local_ip():
     )
 
 
-def get_network_details():
+def network_details():
 
     local_ip = (
-        get_primary_local_ip()
+        local_ip_address()
     )
 
 
-    interface_name = None
+    interface = None
 
     netmask = None
 
@@ -1265,9 +1830,11 @@ def get_network_details():
 
             ):
 
-                interface_name = name
+                interface = name
 
-                netmask = address.netmask
+                netmask = (
+                    address.netmask
+                )
 
                 matched = True
 
@@ -1287,8 +1854,10 @@ def get_network_details():
                 psutil.AF_LINK
             ):
 
-                own_mac = normalize_mac(
-                    address.address
+                own_mac = (
+                    normalize_mac(
+                        address.address
+                    )
                 )
 
                 break
@@ -1304,12 +1873,14 @@ def get_network_details():
         )
 
 
-    network = ipaddress.ip_network(
+    network = (
+        ipaddress.ip_network(
 
-        f"{local_ip}/{netmask}",
+            f"{local_ip}/{netmask}",
 
-        strict=False
+            strict=False
 
+        )
     )
 
 
@@ -1319,12 +1890,14 @@ def get_network_details():
         MAX_NETWORK_ADDRESSES
     ):
 
-        network = ipaddress.ip_network(
+        network = (
+            ipaddress.ip_network(
 
-            f"{local_ip}/24",
+                f"{local_ip}/24",
 
-            strict=False
+                strict=False
 
+            )
         )
 
 
@@ -1334,7 +1907,7 @@ def get_network_details():
             local_ip,
 
         "interface":
-            interface_name,
+            interface,
 
         "network":
             network,
@@ -1345,20 +1918,23 @@ def get_network_details():
     }
 
 
+
 # ============================================================
 # DEFAULT GATEWAY
 # ============================================================
 
-def get_default_gateway():
+def default_gateway():
 
-    system = platform.system()
+    system = (
+        platform.system()
+    )
 
 
     try:
 
         if system == "Darwin":
 
-            route = get_command(
+            route = command_path(
 
                 "route",
 
@@ -1403,16 +1979,18 @@ def get_default_gateway():
 
         elif system == "Linux":
 
-            ip_command = get_command(
+            ip_command = (
+                command_path(
 
-                "ip",
+                    "ip",
 
-                [
-                    "/usr/sbin/ip",
-                    "/usr/bin/ip",
-                    "/sbin/ip"
-                ]
+                    [
+                        "/usr/sbin/ip",
+                        "/usr/bin/ip",
+                        "/sbin/ip"
+                    ]
 
+                )
             )
 
 
@@ -1449,6 +2027,19 @@ def get_default_gateway():
 
         elif system == "Windows":
 
+            flags = 0
+
+
+            if hasattr(
+                subprocess,
+                "CREATE_NO_WINDOW"
+            ):
+
+                flags = (
+                    subprocess.CREATE_NO_WINDOW
+                )
+
+
             output = subprocess.check_output(
 
                 [
@@ -1461,7 +2052,9 @@ def get_default_gateway():
 
                 errors="ignore",
 
-                stderr=subprocess.DEVNULL
+                stderr=subprocess.DEVNULL,
+
+                creationflags=flags
 
             )
 
@@ -1492,6 +2085,7 @@ def get_default_gateway():
     return None
 
 
+
 # ============================================================
 # NEIGHBOR SEED
 # ============================================================
@@ -1508,7 +2102,7 @@ def seed_neighbor(ip):
 
 
     sock.settimeout(
-        0.15
+        0.12
     )
 
 
@@ -1525,6 +2119,7 @@ def seed_neighbor(ip):
 
         )
 
+
     except Exception:
 
         pass
@@ -1535,15 +2130,22 @@ def seed_neighbor(ip):
         sock.close()
 
 
+
 # ============================================================
 # PING
 # ============================================================
 
 def ping_host(ip):
 
-    ip = str(ip)
+    ip = str(
+        ip
+    )
 
-    system = platform.system()
+
+    system = (
+        platform.system()
+    )
+
 
     flags = 0
 
@@ -1552,12 +2154,15 @@ def ping_host(ip):
 
         command = [
 
-            get_command(
+            command_path(
+
                 "ping",
+
                 [
                     "/sbin/ping",
                     "/usr/bin/ping"
                 ]
+
             ),
 
             "-c",
@@ -1602,12 +2207,15 @@ def ping_host(ip):
 
         command = [
 
-            get_command(
+            command_path(
+
                 "ping",
+
                 [
                     "/usr/bin/ping",
                     "/bin/ping"
                 ]
+
             ),
 
             "-c",
@@ -1651,8 +2259,9 @@ def ping_host(ip):
     return None
 
 
+
 # ============================================================
-# TCP SERVICES
+# TCP CHECK
 # ============================================================
 
 def tcp_probe(ip):
@@ -1664,7 +2273,7 @@ def tcp_probe(ip):
 
     alive = False
 
-    open_ports = []
+    ports = []
 
 
     for port in TCP_SERVICES:
@@ -1679,7 +2288,7 @@ def tcp_probe(ip):
 
 
         sock.settimeout(
-            0.18
+            0.16
         )
 
 
@@ -1699,7 +2308,7 @@ def tcp_probe(ip):
 
                 alive = True
 
-                open_ports.append(
+                ports.append(
                     port
                 )
 
@@ -1728,17 +2337,18 @@ def tcp_probe(ip):
     return (
         ip,
         alive,
-        open_ports
+        ports
     )
 
 
+
 # ============================================================
-# ARP / NEIGHBOR TABLE
+# ARP / NEIGHBORS
 # ============================================================
 
-def get_macos_neighbors():
+def macos_neighbors():
 
-    command = get_command(
+    arp = command_path(
 
         "arp",
 
@@ -1753,7 +2363,7 @@ def get_macos_neighbors():
     output = subprocess.check_output(
 
         [
-            command,
+            arp,
             "-an"
         ],
 
@@ -1796,7 +2406,7 @@ def get_macos_neighbors():
     return result
 
 
-def get_windows_neighbors():
+def windows_neighbors():
 
     flags = 0
 
@@ -1861,12 +2471,12 @@ def get_windows_neighbors():
     return result
 
 
-def get_linux_neighbors():
+def linux_neighbors():
 
     result = {}
 
 
-    command = get_command(
+    ip_command = command_path(
 
         "ip",
 
@@ -1884,7 +2494,7 @@ def get_linux_neighbors():
         output = subprocess.check_output(
 
             [
-                command,
+                ip_command,
                 "neigh",
                 "show"
             ],
@@ -1930,21 +2540,26 @@ def get_linux_neighbors():
     return result
 
 
-def get_neighbor_table():
+def neighbor_table():
 
     try:
 
-        if platform.system() == "Darwin":
-
-            return get_macos_neighbors()
-
-
-        if platform.system() == "Windows":
-
-            return get_windows_neighbors()
+        system = (
+            platform.system()
+        )
 
 
-        return get_linux_neighbors()
+        if system == "Darwin":
+
+            return macos_neighbors()
+
+
+        if system == "Windows":
+
+            return windows_neighbors()
+
+
+        return linux_neighbors()
 
 
     except Exception as exc:
@@ -1957,6 +2572,7 @@ def get_neighbor_table():
         return {}
 
 
+
 # ============================================================
 # REVERSE DNS
 # ============================================================
@@ -1965,16 +2581,27 @@ def reverse_dns(ip):
 
     try:
 
-        name = (
+        hostname = (
             socket.gethostbyaddr(
                 ip
             )[0]
         )
 
 
+        hostname = (
+            clean_identity_text(
+
+                hostname,
+
+                require_letters=True
+
+            )
+        )
+
+
         return (
             ip,
-            name
+            hostname
         )
 
 
@@ -1986,11 +2613,12 @@ def reverse_dns(ip):
         )
 
 
+
 # ============================================================
-# NETBIOS NAME DISCOVERY
+# NETBIOS
 # ============================================================
 
-def netbios_encode_name():
+def netbios_encoded_name():
 
     raw = (
         b"*"
@@ -2002,83 +2630,99 @@ def netbios_encode_name():
     encoded = bytearray()
 
 
-    for byte in raw:
+    for value in raw:
 
         encoded.append(
 
             ord("A")
             +
-            ((byte >> 4) & 0x0F)
+            (
+                (
+                    value >> 4
+                )
+                &
+                0x0F
+            )
 
         )
 
+
         encoded.append(
 
             ord("A")
             +
-            (byte & 0x0F)
+            (
+                value
+                &
+                0x0F
+            )
 
         )
 
 
     return (
-
         b"\x20"
         +
-        bytes(encoded)
+        bytes(
+            encoded
+        )
         +
         b"\x00"
-
     )
 
 
 def netbios_names(ip):
 
     transaction_id = (
-        int(time.time() * 1000)
+
+        int(
+            time.time()
+            *
+            1000
+        )
+
         &
         0xFFFF
-    )
-
-
-    header = struct.pack(
-
-        "!HHHHHH",
-
-        transaction_id,
-
-        0x0000,
-
-        1,
-
-        0,
-
-        0,
-
-        0
-
-    )
-
-
-    question = (
-
-        netbios_encode_name()
-
-        +
-
-        struct.pack(
-            "!HH",
-            0x0021,
-            0x0001
-        )
 
     )
 
 
     packet = (
-        header
+
+        struct.pack(
+
+            "!HHHHHH",
+
+            transaction_id,
+
+            0x0000,
+
+            1,
+
+            0,
+
+            0,
+
+            0
+
+        )
+
         +
-        question
+
+        netbios_encoded_name()
+
+        +
+
+        struct.pack(
+
+            "!HH",
+
+            0x0021,
+
+            0x0001
+
+        )
+
     )
 
 
@@ -2092,7 +2736,7 @@ def netbios_names(ip):
 
 
     sock.settimeout(
-        0.6
+        0.45
     )
 
 
@@ -2110,7 +2754,7 @@ def netbios_names(ip):
         )
 
 
-        data, _address = (
+        data, _ = (
             sock.recvfrom(
                 4096
             )
@@ -2141,7 +2785,9 @@ def netbios_names(ip):
             offset < len(data)
         ):
 
-            length = data[offset]
+            length = (
+                data[offset]
+            )
 
             offset += 1
 
@@ -2170,7 +2816,9 @@ def netbios_names(ip):
 
             while True:
 
-                length = data[offset]
+                length = (
+                    data[offset]
+                )
 
                 offset += 1
 
@@ -2183,35 +2831,41 @@ def netbios_names(ip):
                 offset += length
 
 
-        _type, _class, _ttl, rdlength = (
-            struct.unpack(
+        (
+            _record_type,
+            _record_class,
+            _ttl,
+            rdlength
+        ) = struct.unpack(
 
-                "!HHIH",
+            "!HHIH",
 
-                data[
-                    offset:
-                    offset + 10
-                ]
+            data[
+                offset:
+                offset + 10
+            ]
 
-            )
         )
 
 
         offset += 10
 
 
-        rdata = data[
+        payload = data[
             offset:
             offset + rdlength
         ]
 
 
-        if not rdata:
+        if not payload:
 
             return []
 
 
-        count = rdata[0]
+        count = (
+            payload[0]
+        )
+
 
         position = 1
 
@@ -2222,7 +2876,7 @@ def netbios_names(ip):
             count
         ):
 
-            entry = rdata[
+            entry = payload[
                 position:
                 position + 18
             ]
@@ -2249,7 +2903,9 @@ def netbios_names(ip):
             )
 
 
-            suffix = entry[15]
+            suffix = (
+                entry[15]
+            )
 
 
             flags = struct.unpack(
@@ -2262,17 +2918,26 @@ def netbios_names(ip):
 
 
             group_name = bool(
-                flags & 0x8000
+                flags
+                &
+                0x8000
+            )
+
+
+            name = (
+                clean_identity_text(
+
+                    raw_name,
+
+                    require_letters=True
+
+                )
             )
 
 
             if (
 
-                raw_name
-
-                and
-
-                raw_name != "*"
+                name
 
                 and
 
@@ -2285,13 +2950,15 @@ def netbios_names(ip):
                     0x20
                 )
 
+                and
+
+                name not in names
+
             ):
 
-                if raw_name not in names:
-
-                    names.append(
-                        raw_name
-                    )
+                names.append(
+                    name
+                )
 
 
             position += 18
@@ -2305,6 +2972,7 @@ def netbios_names(ip):
         return []
 
 
+
 # ============================================================
 # SSDP / UPNP
 # ============================================================
@@ -2316,8 +2984,11 @@ def parse_ssdp_headers(
     try:
 
         text = data.decode(
+
             "utf-8",
+
             errors="ignore"
+
         )
 
 
@@ -2329,35 +3000,37 @@ def parse_ssdp_headers(
     headers = {}
 
 
-    for line in text.splitlines()[1:]:
+    for line in (
+        text.splitlines()[1:]
+    ):
 
         if ":" not in line:
 
             continue
 
 
-        key, value = line.split(
-            ":",
-            1
+        key, value = (
+            line.split(
+                ":",
+                1
+            )
         )
 
 
         headers[
             key.strip().lower()
-        ] = (
-            value.strip()
-        )
+        ] = value.strip()
 
 
     return headers
 
 
-def discover_ssdp():
+def ssdp_discovery():
 
     results = []
 
 
-    request = (
+    packet = (
 
         "M-SEARCH * HTTP/1.1\r\n"
 
@@ -2409,7 +3082,7 @@ def discover_ssdp():
 
                 sock.sendto(
 
-                    request,
+                    packet,
 
                     (
                         "239.255.255.250",
@@ -2417,6 +3090,7 @@ def discover_ssdp():
                     )
 
                 )
+
 
             except Exception:
 
@@ -2426,7 +3100,7 @@ def discover_ssdp():
         deadline = (
             time.time()
             +
-            3
+            3.0
         )
 
 
@@ -2476,57 +3150,73 @@ def discover_ssdp():
     return results
 
 
-def local_location_allowed(
-    location,
+def allowed_upnp_location(
+
+    url,
+
     network
+
 ):
 
     try:
 
-        parsed = urllib.parse.urlparse(
-            location
+        parsed = (
+            urllib.parse.urlparse(
+                url
+            )
         )
 
 
         if parsed.scheme not in (
+
             "http",
-            "https"
+            "https",
+
         ):
 
             return False
 
 
-        hostname = parsed.hostname
+        host = (
+            parsed.hostname
+        )
 
 
-        if not hostname:
+        if not host:
 
             return False
 
 
         try:
 
-            address = ipaddress.ip_address(
-                hostname
+            address = (
+                ipaddress.ip_address(
+                    host
+                )
             )
 
 
         except Exception:
 
-            resolved = socket.gethostbyname(
-                hostname
-            )
+            address = (
+                ipaddress.ip_address(
 
+                    socket.gethostbyname(
+                        host
+                    )
 
-            address = ipaddress.ip_address(
-                resolved
+                )
             )
 
 
         return (
+
             address.version == 4
+
             and
+
             address in network
+
         )
 
 
@@ -2535,12 +3225,14 @@ def local_location_allowed(
         return False
 
 
-def xml_text(
+def xml_value(
     root,
-    tag_name
+    name
 ):
 
-    tag_name = tag_name.lower()
+    name = (
+        name.lower()
+    )
 
 
     for element in root.iter():
@@ -2548,7 +3240,9 @@ def xml_text(
         local_name = (
 
             element.tag
+
             .split("}")[-1]
+
             .lower()
 
         )
@@ -2557,32 +3251,41 @@ def xml_text(
         if (
             local_name
             ==
-            tag_name
+            name
+
+            and
+
+            element.text
+
         ):
 
-            if element.text:
-
-                value = (
-                    element.text.strip()
-                )
+            value = (
+                element.text.strip()
+            )
 
 
-                if value:
+            if value:
 
-                    return value
+                return value
 
 
     return None
 
 
-def fetch_upnp_identity(
+def upnp_identity(
+
     location,
+
     network
+
 ):
 
-    if not local_location_allowed(
+    if not allowed_upnp_location(
+
         location,
+
         network
+
     ):
 
         return None
@@ -2596,7 +3299,7 @@ def fetch_upnp_identity(
 
             timeout=(
                 0.8,
-                1.5
+                1.7
             ),
 
             allow_redirects=False,
@@ -2604,8 +3307,14 @@ def fetch_upnp_identity(
             verify=False,
 
             headers={
+
                 "User-Agent":
-                    f"WiFiWatch/{APP_VERSION}"
+                    (
+                        "WiFiWatch/"
+                        +
+                        APP_VERSION
+                    )
+
             }
 
         )
@@ -2616,76 +3325,112 @@ def fetch_upnp_identity(
             return None
 
 
-        content = (
+        root = ET.fromstring(
+
             response.content[
                 :524288
             ]
+
         )
 
 
-        root = ET.fromstring(
-            content
+        friendly = (
+            clean_identity_text(
+
+                xml_value(
+                    root,
+                    "friendlyName"
+                ),
+
+                require_letters=True
+
+            )
         )
 
 
-        model_name = xml_text(
-            root,
-            "modelName"
+        manufacturer = (
+            clean_identity_text(
+
+                xml_value(
+                    root,
+                    "manufacturer"
+                ),
+
+                require_letters=True
+
+            )
         )
 
 
-        model_number = xml_text(
-            root,
-            "modelNumber"
+        model_name = (
+            valid_model(
+
+                xml_value(
+                    root,
+                    "modelName"
+                )
+
+            )
         )
 
 
-        model = None
+        model_number = (
+            valid_model(
+
+                xml_value(
+                    root,
+                    "modelNumber"
+                )
+
+            )
+        )
+
+
+        model = (
+            model_name
+            or
+            model_number
+        )
 
 
         if (
+
             model_name
             and
+
             model_number
             and
+
             model_number.lower()
-            not in model_name.lower()
+            not in
+            model_name.lower()
+
         ):
 
             model = (
-                f"{model_name} "
-                f"{model_number}"
-            )
 
-
-        else:
-
-            model = (
                 model_name
-                or
+                +
+                " "
+                +
                 model_number
+
             )
 
 
         return {
 
             "friendly_name":
-                xml_text(
-                    root,
-                    "friendlyName"
-                ),
+                friendly,
 
             "manufacturer":
-                xml_text(
-                    root,
-                    "manufacturer"
-                ),
+                manufacturer,
 
             "model":
                 model,
 
             "device_type":
-                xml_text(
+                xml_value(
                     root,
                     "deviceType"
                 ),
@@ -2698,15 +3443,16 @@ def fetch_upnp_identity(
         return None
 
 
+
 # ============================================================
 # MDNS
 # ============================================================
 
-def decode_txt_properties(
+def decode_txt(
     properties
 ):
 
-    decoded = {}
+    result = {}
 
 
     for (
@@ -2727,7 +3473,8 @@ def decode_txt_properties(
                     bytes
                 )
 
-                else str(
+                else
+                str(
                     raw_key
                 )
 
@@ -2745,16 +3492,19 @@ def decode_txt_properties(
                     bytes
                 )
 
-                else str(
+                else
+                str(
                     raw_value
                 )
 
             )
 
 
-            decoded[
+            result[
                 key.lower()
-            ] = value
+            ] = (
+                value.strip()
+            )
 
 
         except Exception:
@@ -2762,7 +3512,7 @@ def decode_txt_properties(
             pass
 
 
-    return decoded
+    return result
 
 
 class MDNSListener(
@@ -2774,7 +3524,9 @@ class MDNSListener(
         results
     ):
 
-        self.results = results
+        self.results = (
+            results
+        )
 
         self.lock = (
             threading.Lock()
@@ -2782,13 +3534,18 @@ class MDNSListener(
 
 
     def add_service(
+
         self,
+
         zeroconf,
+
         service_type,
+
         name
+
     ):
 
-        self.read_service(
+        self.read(
 
             zeroconf,
 
@@ -2800,13 +3557,18 @@ class MDNSListener(
 
 
     def update_service(
+
         self,
+
         zeroconf,
+
         service_type,
+
         name
+
     ):
 
-        self.read_service(
+        self.read(
 
             zeroconf,
 
@@ -2827,11 +3589,16 @@ class MDNSListener(
         pass
 
 
-    def read_service(
+    def read(
+
         self,
+
         zeroconf,
+
         service_type,
+
         name
+
     ):
 
         try:
@@ -2844,7 +3611,7 @@ class MDNSListener(
 
                     name,
 
-                    timeout=750
+                    timeout=700
 
                 )
             )
@@ -2855,23 +3622,31 @@ class MDNSListener(
                 return
 
 
-            properties = (
-                decode_txt_properties(
-                    info.properties
-                )
-            )
-
-
             instance = (
-                clean_device_name(
-                    name
+                clean_identity_text(
+
+                    name,
+
+                    require_letters=True
+
                 )
             )
 
 
             server = (
-                clean_device_name(
-                    info.server
+                clean_identity_text(
+
+                    info.server,
+
+                    require_letters=True
+
+                )
+            )
+
+
+            properties = (
+                decode_txt(
+                    info.properties
                 )
             )
 
@@ -2882,7 +3657,7 @@ class MDNSListener(
                 )
             ):
 
-                record = {
+                data = {
 
                     "service_type":
                         service_type,
@@ -2905,10 +3680,13 @@ class MDNSListener(
                 with self.lock:
 
                     self.results.setdefault(
+
                         ip,
+
                         []
+
                     ).append(
-                        record
+                        data
                     )
 
 
@@ -2917,13 +3695,13 @@ class MDNSListener(
             pass
 
 
-def discover_mdns():
+def mdns_discovery():
 
     results = {}
 
-    zeroconf = None
-
     browsers = []
+
+    zeroconf = None
 
 
     try:
@@ -2936,10 +3714,8 @@ def discover_mdns():
         )
 
 
-        listener = (
-            MDNSListener(
-                results
-            )
+        listener = MDNSListener(
+            results
         )
 
 
@@ -2949,19 +3725,18 @@ def discover_mdns():
 
             try:
 
-                browser = ServiceBrowser(
-
-                    zeroconf,
-
-                    service_type,
-
-                    listener
-
-                )
-
-
                 browsers.append(
-                    browser
+
+                    ServiceBrowser(
+
+                        zeroconf,
+
+                        service_type,
+
+                        listener
+
+                    )
+
                 )
 
 
@@ -2971,7 +3746,7 @@ def discover_mdns():
 
 
         time.sleep(
-            4
+            4.0
         )
 
 
@@ -3009,17 +3784,18 @@ def discover_mdns():
     return results
 
 
+
 # ============================================================
-# IDENTITY PROCESSING
+# APPLY RAW IDENTITY DATA
 # ============================================================
 
-def apply_mdns_identity(
+def apply_mdns(
     record,
     entries
 ):
 
     record["mdns"] = (
-        entries[:20]
+        entries[:30]
     )
 
 
@@ -3047,7 +3823,7 @@ def apply_mdns_identity(
         )
 
 
-        properties = (
+        props = (
             entry.get(
                 "properties",
                 {}
@@ -3057,24 +3833,30 @@ def apply_mdns_identity(
 
         if instance:
 
-            score = 76
+            score = 72
 
 
             if any(
 
-                token in service
+                value in service
 
-                for token in (
+                for value in (
+
                     "_googlecast",
+
                     "_airplay",
-                    "_raop",
+
                     "_ipp",
-                    "_printer"
+
+                    "_printer",
+
+                    "_workstation",
+
                 )
 
             ):
 
-                score = 84
+                score = 82
 
 
             add_candidate(
@@ -3109,7 +3891,7 @@ def apply_mdns_identity(
             )
 
 
-        friendly_keys = (
+        for key in (
 
             "fn",
 
@@ -3121,12 +3903,9 @@ def apply_mdns_identity(
 
             "n",
 
-        )
+        ):
 
-
-        for key in friendly_keys:
-
-            if properties.get(
+            if props.get(
                 key
             ):
 
@@ -3136,51 +3915,45 @@ def apply_mdns_identity(
 
                     "friendly_candidates",
 
-                    properties[key],
+                    props[key],
 
                     "mdns_txt",
 
-                    91
+                    90
 
                 )
 
 
-        model_keys = (
+        for key in (
 
             "md",
 
             "model",
 
-            "am",
+        ):
 
-        )
-
-
-        for key in model_keys:
-
-            value = properties.get(
+            if props.get(
                 key
-            )
+            ):
 
-
-            if value:
-
-                add_raw_candidate(
+                add_candidate(
 
                     record,
 
                     "model_candidates",
 
-                    value,
+                    props[key],
 
                     "mdns_txt",
 
-                    86
+                    86,
+
+                    model=True
 
                 )
 
 
-        vendor_keys = (
+        for key in (
 
             "manufacturer",
 
@@ -3188,29 +3961,23 @@ def apply_mdns_identity(
 
             "mf",
 
-        )
+        ):
 
-
-        for key in vendor_keys:
-
-            value = properties.get(
+            if props.get(
                 key
-            )
+            ):
 
-
-            if value:
-
-                add_raw_candidate(
+                add_candidate(
 
                     record,
 
                     "vendor_candidates",
 
-                    value,
+                    props[key],
 
                     "mdns_txt",
 
-                    85
+                    86
 
                 )
 
@@ -3222,32 +3989,37 @@ def apply_mdns_identity(
         )
 
 
-def apply_ssdp_identity(
+def apply_ssdp(
+
     record,
-    ssdp_records,
+
+    entries,
+
     network
+
 ):
 
     saved = []
 
+    used_locations = set()
 
-    processed_locations = set()
 
+    for entry in entries:
 
-    for item in ssdp_records:
-
-        headers = item.get(
+        headers = entry.get(
             "headers",
             {}
         )
 
 
-        location = headers.get(
-            "location"
+        location = (
+            headers.get(
+                "location"
+            )
         )
 
 
-        saved.append({
+        data = {
 
             "server":
                 headers.get(
@@ -3267,205 +4039,588 @@ def apply_ssdp_identity(
             "location":
                 location,
 
-        })
+        }
 
 
         if (
-            not location
-            or
-            location in processed_locations
+
+            location
+
+            and
+
+            location not in
+            used_locations
+
         ):
 
-            continue
-
-
-        processed_locations.add(
-            location
-        )
-
-
-        identity = (
-            fetch_upnp_identity(
-                location,
-                network
-            )
-        )
-
-
-        if not identity:
-
-            continue
-
-
-        friendly = identity.get(
-            "friendly_name"
-        )
-
-
-        manufacturer = identity.get(
-            "manufacturer"
-        )
-
-
-        model = identity.get(
-            "model"
-        )
-
-
-        if friendly:
-
-            add_candidate(
-
-                record,
-
-                "friendly_candidates",
-
-                friendly,
-
-                "ssdp_upnp",
-
-                95
-
+            used_locations.add(
+                location
             )
 
 
-        if manufacturer:
+            identity = (
+                upnp_identity(
 
-            add_raw_candidate(
+                    location,
 
-                record,
+                    network
 
-                "vendor_candidates",
-
-                manufacturer,
-
-                "ssdp_upnp",
-
-                96
-
+                )
             )
 
 
-        if model:
+            if identity:
 
-            add_raw_candidate(
-
-                record,
-
-                "model_candidates",
-
-                model,
-
-                "ssdp_upnp",
-
-                96
-
-            )
+                data[
+                    "upnp_identity"
+                ] = identity
 
 
-        saved[-1][
-            "upnp_identity"
-        ] = identity
+                if identity.get(
+                    "friendly_name"
+                ):
+
+                    add_candidate(
+
+                        record,
+
+                        "friendly_candidates",
+
+                        identity[
+                            "friendly_name"
+                        ],
+
+                        "ssdp_upnp",
+
+                        96
+
+                    )
 
 
-        record[
-            "identity_sources"
-        ].add(
-            "ssdp_upnp"
+                if identity.get(
+                    "manufacturer"
+                ):
+
+                    add_candidate(
+
+                        record,
+
+                        "vendor_candidates",
+
+                        identity[
+                            "manufacturer"
+                        ],
+
+                        "ssdp_upnp",
+
+                        97
+
+                    )
+
+
+                if identity.get(
+                    "model"
+                ):
+
+                    add_candidate(
+
+                        record,
+
+                        "model_candidates",
+
+                        identity[
+                            "model"
+                        ],
+
+                        "ssdp_upnp",
+
+                        97,
+
+                        model=True
+
+                    )
+
+
+                record[
+                    "identity_sources"
+                ].add(
+                    "ssdp_upnp"
+                )
+
+
+        saved.append(
+            data
         )
 
 
     record["ssdp"] = (
-        saved[:15]
+        saved[:25]
     )
 
 
-def apply_reverse_dns(
-    record,
-    hostname
+
+# ============================================================
+# CLOUD RULE ENGINE
+# ============================================================
+
+def record_text(
+    record
 ):
 
-    if not hostname:
-
-        return
+    values = []
 
 
-    record[
-        "reverse_dns"
-    ] = hostname
-
-
-    add_candidate(
-
-        record,
-
-        "hostname_candidates",
-
-        hostname,
-
-        "reverse_dns",
-
-        65
-
-    )
-
-
-def apply_nbns(
-    record,
-    names
-):
-
-    record["nbns"] = (
-        names[:10]
-    )
-
-
-    if not names:
-
-        return
-
-
-    add_candidate(
-
-        record,
+    for field in (
 
         "friendly_candidates",
 
-        names[0],
-
-        "netbios",
-
-        86
-
-    )
-
-
-    add_candidate(
-
-        record,
-
         "hostname_candidates",
 
-        names[0],
+        "vendor_candidates",
 
-        "netbios",
+        "model_candidates",
 
-        84
+    ):
+
+        for item in record.get(
+            field,
+            []
+        ):
+
+            values.append(
+                item.get(
+                    "value",
+                    ""
+                )
+            )
+
+
+    values.append(
+
+        json.dumps(
+            record.get(
+                "mdns",
+                []
+            ),
+            ensure_ascii=False
+        )
 
     )
+
+
+    values.append(
+
+        json.dumps(
+            record.get(
+                "ssdp",
+                []
+            ),
+            ensure_ascii=False
+        )
+
+    )
+
+
+    return (
+        " ".join(
+            values
+        )
+        .lower()
+    )
+
+
+def text_has_any(
+    text,
+    values
+):
+
+    return any(
+
+        str(value).lower()
+        in text
+
+        for value in values
+
+    )
+
+
+def text_has_all(
+    text,
+    values
+):
+
+    return all(
+
+        str(value).lower()
+        in text
+
+        for value in values
+
+    )
+
+
+def cloud_rule_matches(
+
+    record,
+
+    rule
+
+):
+
+    match = rule.get(
+        "match",
+        {}
+    )
+
+
+    if not match:
+
+        return False
+
+
+    text = (
+        record_text(
+            record
+        )
+    )
+
+
+    friendly = (
+        best_candidate(
+
+            record,
+
+            "friendly_candidates"
+
+        )
+        or
+        ""
+    ).lower()
+
+
+    hostname = (
+        best_candidate(
+
+            record,
+
+            "hostname_candidates"
+
+        )
+        or
+        ""
+    ).lower()
+
+
+    vendor = (
+        best_candidate(
+
+            record,
+
+            "vendor_candidates"
+
+        )
+        or
+        ""
+    ).lower()
+
+
+    model = (
+        best_candidate(
+
+            record,
+
+            "model_candidates"
+
+        )
+        or
+        ""
+    ).lower()
+
+
+    mdns_text = (
+        json.dumps(
+
+            record.get(
+                "mdns",
+                []
+            )
+
+        )
+        .lower()
+    )
+
+
+    ssdp_text = (
+        json.dumps(
+
+            record.get(
+                "ssdp",
+                []
+            )
+
+        )
+        .lower()
+    )
+
+
+    ports = set(
+        record.get(
+            "open_ports",
+            set()
+        )
+    )
+
+
+    for (
+        key,
+        value
+    ) in match.items():
+
+        if not isinstance(
+            value,
+            list
+        ):
+
+            value = [
+                value
+            ]
+
+
+        if key == "contains_any":
+
+            if not text_has_any(
+                text,
+                value
+            ):
+
+                return False
+
+
+        elif key == "contains_all":
+
+            if not text_has_all(
+                text,
+                value
+            ):
+
+                return False
+
+
+        elif key in (
+            "name_contains",
+            "name_contains_any"
+        ):
+
+            name_text = (
+                friendly
+                +
+                " "
+                +
+                hostname
+            )
+
+
+            if not text_has_any(
+                name_text,
+                value
+            ):
+
+                return False
+
+
+        elif key == "hostname_contains_any":
+
+            if not text_has_any(
+                hostname,
+                value
+            ):
+
+                return False
+
+
+        elif key == "manufacturer_contains":
+
+            if not text_has_any(
+                vendor,
+                value
+            ):
+
+                return False
+
+
+        elif key == "model_contains":
+
+            if not text_has_any(
+                model,
+                value
+            ):
+
+                return False
+
+
+        elif key == "mdns_contains":
+
+            if not text_has_any(
+                mdns_text,
+                value
+            ):
+
+                return False
+
+
+        elif key == "ssdp_contains":
+
+            if not text_has_any(
+                ssdp_text,
+                value
+            ):
+
+                return False
+
+
+        elif key == "ports_any":
+
+            wanted = {
+
+                int(item)
+
+                for item in value
+
+            }
+
+
+            if not (
+                ports
+                &
+                wanted
+            ):
+
+                return False
+
+
+        elif key == "ports_all":
+
+            wanted = {
+
+                int(item)
+
+                for item in value
+
+            }
+
+
+            if not wanted.issubset(
+                ports
+            ):
+
+                return False
+
+
+    return True
+
+
+def apply_cloud_rules(
+
+    record,
+
+    rules
+
+):
+
+    ordered = sorted(
+
+        rules,
+
+        key=lambda rule:
+            int(
+                rule.get(
+                    "priority",
+                    0
+                )
+            ),
+
+        reverse=True
+
+    )
+
+
+    for rule in ordered:
+
+        try:
+
+            if not cloud_rule_matches(
+
+                record,
+
+                rule
+
+            ):
+
+                continue
+
+
+            result = rule.get(
+                "result",
+                {}
+            )
+
+
+            record[
+                "cloud_rule"
+            ] = (
+                rule.get(
+                    "name"
+                )
+            )
+
+
+            record[
+                "cloud_result"
+            ] = (
+                result
+            )
+
+
+            record[
+                "identity_sources"
+            ].add(
+                "cloud_rule"
+            )
+
+
+            return
+
+
+        except Exception:
+
+            continue
+
 
 
 # ============================================================
-# DEVICE TYPE
+# BUILT-IN DEVICE TYPE ENGINE
 # ============================================================
 
 def infer_device_type(
+
     record,
+
     friendly,
+
     hostname,
+
     vendor,
+
     model
+
 ):
+
+    if record.get(
+        "local_agent"
+    ):
+
+        return "computer"
+
 
     if record.get(
         "gateway"
@@ -3474,87 +4629,105 @@ def infer_device_type(
         return "router_gateway"
 
 
-    combined = " ".join(
+    combined = (
+        " ".join(
 
-        value
+            value
 
-        for value in (
+            for value in (
 
-            friendly,
-            hostname,
-            vendor,
-            model
+                friendly,
+                hostname,
+                vendor,
+                model,
+
+            )
+
+            if value
 
         )
 
-        if value
-
-    ).lower()
-
-
-    mdns_services = " ".join(
-
-        item.get(
-            "service_type",
-            ""
-        )
-
-        for item in record.get(
-            "mdns",
-            []
-        )
-
-    ).lower()
-
-
-    ssdp_text = json.dumps(
-
-        record.get(
-            "ssdp",
-            []
-        )
-
-    ).lower()
-
-
-    ports = record.get(
-        "open_ports",
-        set()
+        .lower()
     )
 
 
-    if (
-        "_ipp." in mdns_services
+    mdns_text = (
+        json.dumps(
 
-        or
+            record.get(
+                "mdns",
+                []
+            )
 
-        "_printer." in mdns_services
+        )
+        .lower()
+    )
 
-        or
 
-        631 in ports
+    ssdp_text = (
+        json.dumps(
 
-        or
+            record.get(
+                "ssdp",
+                []
+            )
 
-        9100 in ports
+        )
+        .lower()
+    )
 
-        or
 
-        "printer" in combined
+    ports = (
+        record.get(
+            "open_ports",
+            set()
+        )
+    )
 
-        or
 
-        "laserjet" in combined
+    # Computer names are stronger evidence
+    # than generic AirPlay advertisement.
+
+    if any(
+
+        value in combined
+
+        for value in (
+
+            "macbook",
+
+            "imac",
+
+            "mac mini",
+
+            "mac-mini",
+
+            "mac studio",
+
+            "mac-studio",
+
+            "desktop",
+
+            "laptop",
+
+            "thinkpad",
+
+            "latitude",
+
+            "elitebook",
+
+        )
+
     ):
 
-        return "printer"
+        return "computer"
 
 
     if any(
 
-        word in combined
+        value in combined
 
-        for word in (
+        for value in (
 
             "iphone",
 
@@ -3577,9 +4750,9 @@ def infer_device_type(
 
     if any(
 
-        word in combined
+        value in combined
 
-        for word in (
+        for value in (
 
             "playstation",
 
@@ -3591,8 +4764,6 @@ def infer_device_type(
 
             "nintendo",
 
-            "switch",
-
         )
 
     ):
@@ -3602,65 +4773,63 @@ def infer_device_type(
 
     if (
 
-        "_googlecast."
-        in mdns_services
+        "_ipp._tcp"
+        in mdns_text
 
         or
 
-        "_airplay."
-        in mdns_services
+        "_printer._tcp"
+        in mdns_text
 
         or
 
-        "mediarenderer"
-        in ssdp_text
+        631 in ports
 
         or
 
-        any(
+        9100 in ports
 
-            word in combined
+        or
 
-            for word in (
+        "printer"
+        in combined
 
-                "apple tv",
+        or
 
-                "appletv",
+        "laserjet"
+        in combined
 
-                "chromecast",
+    ):
 
-                "google tv",
+        return "printer"
 
-                "roku",
 
-                "smart tv",
+    if any(
 
-                "television",
+        value in combined
 
-                "bravia",
+        for value in (
 
-                "webos",
+            "synology",
 
-                "tizen",
+            "qnap",
 
-            )
+            "nas",
 
         )
 
     ):
 
-        return "smart_tv_media"
+        return "nas"
 
 
     if any(
 
-        word in combined
+        value in combined
 
-        for word in (
+        for value in (
 
             "camera",
-
-            "cam ",
 
             "ipcam",
 
@@ -3681,73 +4850,74 @@ def infer_device_type(
         return "camera"
 
 
-    if (
+    if any(
 
-        "_hap."
-        in mdns_services
+        value in combined
 
-        or
+        for value in (
 
-        any(
+            "mitv",
 
-            word in combined
+            "mi tv",
 
-            for word in (
+            "mi box",
 
-                "homepod",
+            "mi stick",
 
-                "homekit",
+            "chromecast",
 
-                "smart plug",
+            "google tv",
 
-                "smart bulb",
+            "apple tv",
 
-                "hue",
+            "appletv",
 
-                "thermostat",
+            "roku",
 
-                "nest",
+            "bravia",
 
-            )
+            "webos",
+
+            "tizen",
+
+            "television",
+
+            "smart tv",
 
         )
 
+    ):
+
+        return "smart_tv_media"
+
+
+    if (
+        "mediarenderer"
+        in ssdp_text
+    ):
+
+        return "smart_tv_media"
+
+
+    if (
+        "_googlecast._tcp"
+        in mdns_text
+    ):
+
+        return "smart_tv_media"
+
+
+    if (
+        "_hap._tcp"
+        in mdns_text
     ):
 
         return "smart_home"
 
 
-    if (
-
-        "mediaserver"
-        in ssdp_text
-
-        or
-
-        32400 in ports
-
-    ):
+    if 32400 in ports:
 
         return "media_server"
-
-
-    if any(
-
-        word in combined
-
-        for word in (
-
-            "synology",
-
-            "qnap",
-
-            "nas",
-
-        )
-
-    ):
-
-        return "nas"
 
 
     if (
@@ -3762,26 +4932,12 @@ def infer_device_type(
 
         3389 in ports
 
-        or
-
-        "_smb."
-        in mdns_services
-
     ):
 
         return "computer_or_nas"
 
 
-    if (
-
-        22 in ports
-
-        or
-
-        "_ssh."
-        in mdns_services
-
-    ):
+    if 22 in ports:
 
         return "computer_or_server"
 
@@ -3794,74 +4950,131 @@ def infer_device_type(
     return "unknown"
 
 
+
 # ============================================================
-# OS GUESS
+# OS INFERENCE
 # ============================================================
 
 def infer_os(
+
     record,
+
     friendly,
+
     hostname,
+
     model,
+
     device_type
+
 ):
 
-    combined = " ".join(
+    if record.get(
+        "local_agent"
+    ):
 
-        value
+        system = (
+            platform.system()
+        )
 
-        for value in (
 
-            friendly,
-            hostname,
-            model
+        if system == "Darwin":
+
+            return "macOS"
+
+
+        if system == "Windows":
+
+            return "Windows"
+
+
+        if system == "Linux":
+
+            return "Linux"
+
+
+    combined = (
+        " ".join(
+
+            value
+
+            for value in (
+
+                friendly,
+                hostname,
+                model,
+
+            )
+
+            if value
 
         )
 
-        if value
-
-    ).lower()
-
-
-    ports = record.get(
-        "open_ports",
-        set()
+        .lower()
     )
 
 
     if (
-        "iphone" in combined
+        "macbook"
+        in combined
+
         or
-        "ipad" in combined
+
+        "imac"
+        in combined
+
+        or
+
+        "mac mini"
+        in combined
+
     ):
 
-        return "Apple iOS/iPadOS"
+        return "macOS"
 
 
     if (
-        "android" in combined
-        or
-        "galaxy" in combined
-        or
-        "pixel" in combined
+        "iphone"
+        in combined
     ):
 
-        return "Android"
+        return "iOS"
 
 
     if (
-        "apple tv" in combined
-        or
-        "appletv" in combined
+        "ipad"
+        in combined
     ):
 
-        return "Apple tvOS"
+        return "iPadOS"
 
 
-    if (
-        "windows" in combined
-        or
-        3389 in ports
+    if any(
+
+        value in combined
+
+        for value in (
+
+            "android",
+
+            "galaxy",
+
+            "pixel",
+
+            "mitv",
+
+            "mi tv",
+
+        )
+
+    ):
+
+        return "Android / Android TV"
+
+
+    if 3389 in record.get(
+        "open_ports",
+        set()
     ):
 
         return "Windows-like"
@@ -3879,11 +5092,12 @@ def infer_os(
     return None
 
 
+
 # ============================================================
-# SECURITY
+# SECURITY ASSESSMENT
 # ============================================================
 
-def build_security_assessment(
+def security_assessment(
     ports
 ):
 
@@ -3895,87 +5109,111 @@ def build_security_assessment(
     findings = []
 
 
-    if 23 in ports:
+    warning_map = {
 
-        findings.append({
+        23: (
 
-            "severity":
-                "warning",
+            "Telnet service reachable",
 
-            "title":
-                "Telnet service reachable",
-
-            "detail":
-                (
-                    "Telnet is an unencrypted "
-                    "remote-access protocol."
-                ),
-
-            "port":
-                23,
-
-        })
-
-
-    if 21 in ports:
-
-        findings.append({
-
-            "severity":
-                "warning",
-
-            "title":
-                "FTP service reachable",
-
-            "detail":
-                (
-                    "FTP may transmit credentials "
-                    "and data without encryption."
-                ),
-
-            "port":
-                21,
-
-        })
-
-
-    review_ports = {
-
-        80:
             (
-                "HTTP service reachable",
-                "An unencrypted HTTP service is reachable."
+                "Telnet is an unencrypted "
+                "remote administration protocol."
             ),
 
-        445:
+        ),
+
+        21: (
+
+            "FTP service reachable",
+
             (
-                "SMB service reachable",
-                "File sharing is reachable from the local network."
+                "FTP can transfer credentials "
+                "and data without encryption."
             ),
 
-        3389:
+        ),
+
+    }
+
+
+    review_map = {
+
+        80: (
+
+            "HTTP service reachable",
+
             (
-                "Remote Desktop reachable",
-                "RDP is reachable from the local network."
+                "An unencrypted HTTP service "
+                "is reachable on the LAN."
             ),
 
-        1883:
+        ),
+
+        445: (
+
+            "SMB service reachable",
+
             (
-                "MQTT service reachable",
-                "MQTT is available on its common non-TLS port."
+                "File sharing is reachable "
+                "from the local network."
             ),
 
-        554:
+        ),
+
+        3389: (
+
+            "Remote Desktop reachable",
+
             (
-                "RTSP service reachable",
-                "A media streaming service is reachable."
+                "RDP is reachable from the "
+                "local network."
             ),
 
-        9100:
+        ),
+
+        1883: (
+
+            "MQTT service reachable",
+
             (
-                "Raw printer service reachable",
-                "Raw TCP printing is reachable."
+                "MQTT is available on its "
+                "common non-TLS port."
             ),
+
+        ),
+
+        554: (
+
+            "RTSP service reachable",
+
+            (
+                "A network media stream "
+                "endpoint is reachable."
+            ),
+
+        ),
+
+        5900: (
+
+            "VNC service reachable",
+
+            (
+                "A VNC remote desktop "
+                "service is reachable."
+            ),
+
+        ),
+
+        9100: (
+
+            "Raw printing reachable",
+
+            (
+                "Raw TCP printing is "
+                "available on port 9100."
+            ),
+
+        ),
 
     }
 
@@ -3983,7 +5221,31 @@ def build_security_assessment(
     for (
         port,
         information
-    ) in review_ports.items():
+    ) in warning_map.items():
+
+        if port in ports:
+
+            findings.append({
+
+                "severity":
+                    "warning",
+
+                "title":
+                    information[0],
+
+                "detail":
+                    information[1],
+
+                "port":
+                    port,
+
+            })
+
+
+    for (
+        port,
+        information
+    ) in review_map.items():
 
         if port in ports:
 
@@ -4004,7 +5266,7 @@ def build_security_assessment(
             })
 
 
-    severities = {
+    levels = {
 
         item["severity"]
 
@@ -4013,7 +5275,7 @@ def build_security_assessment(
     }
 
 
-    if "warning" in severities:
+    if "warning" in levels:
 
         return (
             "warning",
@@ -4021,7 +5283,7 @@ def build_security_assessment(
         )
 
 
-    if "review" in severities:
+    if "review" in levels:
 
         return (
             "review",
@@ -4041,15 +5303,19 @@ def build_security_assessment(
                     "info",
 
                 "title":
-                    "No obvious risky service detected",
+                    (
+                        "No obvious risky "
+                        "service detected"
+                    ),
 
                 "detail":
                     (
-                        "The limited local service scan "
-                        "did not identify one of the "
-                        "currently flagged services. "
-                        "This does not prove that the "
-                        "device is fully secure."
+                        "The limited local network "
+                        "service check did not find "
+                        "one of WiFi Watch's currently "
+                        "flagged services. This does "
+                        "not prove the device is "
+                        "fully secure."
                     ),
 
             }]
@@ -4067,13 +5333,17 @@ def build_security_assessment(
                 "info",
 
             "title":
-                "Security status not determined",
+                (
+                    "Security status "
+                    "not determined"
+                ),
 
             "detail":
                 (
-                    "The device was discovered but none "
-                    "of the limited TCP services checked "
-                    "by WiFi Watch responded."
+                    "The device was discovered, "
+                    "but none of the limited TCP "
+                    "services checked by WiFi Watch "
+                    "responded."
                 ),
 
         }]
@@ -4081,17 +5351,40 @@ def build_security_assessment(
     )
 
 
+
 # ============================================================
-# IDENTITY CONFIDENCE
+# CONFIDENCE
 # ============================================================
 
-def calculate_confidence(
+def identity_confidence(
+
     record,
+
     friendly,
+
     hostname,
+
     vendor,
-    model
+
+    model,
+
+    device_type
+
 ):
+
+    if record.get(
+        "local_agent"
+    ):
+
+        return 99
+
+
+    if record.get(
+        "gateway"
+    ):
+
+        return 90
+
 
     scores = []
 
@@ -4108,38 +5401,45 @@ def calculate_confidence(
 
     ):
 
-        for candidate in record.get(
+        for item in record.get(
             field,
             []
         ):
 
             scores.append(
 
-                candidate.get(
-                    "score",
-                    0
+                int(
+                    item.get(
+                        "score",
+                        0
+                    )
                 )
 
             )
 
 
-    if record.get(
-        "gateway"
-    ):
+    base = (
 
-        scores.append(
-            90
+        max(
+            scores
         )
 
+        if scores
 
-    if not scores:
+        else
 
-        base = 15
+        15
 
-    else:
+    )
+
+
+    if record.get(
+        "cloud_rule"
+    ):
 
         base = max(
-            scores
+            base,
+            86
         )
 
 
@@ -4149,7 +5449,7 @@ def calculate_confidence(
         model
     ):
 
-        base += 4
+        base += 3
 
 
     if (
@@ -4161,23 +5461,26 @@ def calculate_confidence(
         base += 2
 
 
-    if record.get(
-        "mac"
+    if (
+        device_type
+        !=
+        "unknown"
     ):
 
         base += 2
 
 
-    if (
-        len(
-            record.get(
-                "identity_sources",
-                set()
-            )
+    sources = len(
+
+        record.get(
+            "identity_sources",
+            set()
         )
-        >=
-        3
-    ):
+
+    )
+
+
+    if sources >= 3:
 
         base += 2
 
@@ -4194,11 +5497,12 @@ def calculate_confidence(
     )
 
 
+
 # ============================================================
-# BUILD SERVICES
+# SERVICE OUTPUT
 # ============================================================
 
-def build_services(
+def service_output(
     ports
 ):
 
@@ -4210,7 +5514,9 @@ def build_services(
                 "tcp",
 
             "port":
-                port,
+                int(
+                    port
+                ),
 
             "name":
                 TCP_SERVICES.get(
@@ -4230,29 +5536,39 @@ def build_services(
     ]
 
 
+
 # ============================================================
-# MAIN SCAN
+# FULL EXPERT SCAN
 # ============================================================
 
 def scan_network():
 
+    started = time.time()
+
+
     details = (
-        get_network_details()
+        network_details()
     )
 
 
     network = (
-        details["network"]
+        details[
+            "network"
+        ]
     )
 
 
     local_ip = (
-        details["local_ip"]
+        details[
+            "local_ip"
+        ]
     )
 
 
     own_mac = (
-        details["own_mac"]
+        details[
+            "own_mac"
+        ]
     )
 
 
@@ -4264,24 +5580,56 @@ def scan_network():
     records = {}
 
 
-    local_record = (
-        ensure_record(
-            records,
-            network,
-            local_ip
+    rules_package = (
+        fetch_cloud_rules()
+    )
+
+
+    ruleset_version = (
+        rules_package.get(
+            "ruleset_version",
+            "unknown"
         )
     )
+
+
+    cloud_rules = (
+        rules_package.get(
+            "rules",
+            []
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # LOCAL AGENT
+    # --------------------------------------------------------
+
+    local_record = ensure_record(
+
+        records,
+
+        network,
+
+        local_ip
+
+    )
+
+
+    local_record[
+        "local_agent"
+    ] = True
+
+
+    local_record[
+        "mac"
+    ] = own_mac
 
 
     local_record[
         "methods"
     ].add(
         "agent"
-    )
-
-
-    local_record["mac"] = (
-        own_mac
     )
 
 
@@ -4315,8 +5663,12 @@ def scan_network():
     )
 
 
+    # --------------------------------------------------------
+    # GATEWAY
+    # --------------------------------------------------------
+
     gateway = (
-        get_default_gateway()
+        default_gateway()
     )
 
 
@@ -4324,9 +5676,13 @@ def scan_network():
 
         gateway_record = (
             ensure_record(
+
                 records,
+
                 network,
+
                 gateway
+
             )
         )
 
@@ -4364,24 +5720,28 @@ def scan_network():
         "=============================================="
     )
 
-
     log(
-        f"WiFi Watch Expert Scan v{APP_VERSION}"
+        f"WiFi Watch Agent {APP_VERSION}"
     )
 
-
     log(
-        f"Network: {network}"
+        f"Engine {ENGINE_VERSION}"
     )
 
-
     log(
-        f"Agent IP: {local_ip}"
+        f"Ruleset {ruleset_version}"
     )
 
+    log(
+        f"Network {network}"
+    )
 
     log(
-        f"Gateway: {gateway}"
+        f"Local IP {local_ip}"
+    )
+
+    log(
+        f"Gateway {gateway}"
     )
 
 
@@ -4405,7 +5765,7 @@ def scan_network():
 
 
     # ========================================================
-    # PASS 2 - PING
+    # PASS 2 - ICMP
     # ========================================================
 
     with concurrent.futures.ThreadPoolExecutor(
@@ -4427,8 +5787,11 @@ def scan_network():
         ]
 
 
-        for future in concurrent.futures.as_completed(
-            futures
+        for future in (
+            concurrent.futures
+            .as_completed(
+                futures
+            )
         ):
 
             try:
@@ -4436,29 +5799,26 @@ def scan_network():
                 ip = future.result()
 
 
-                if not ip:
+                if ip:
 
-                    continue
+                    record = ensure_record(
 
+                        records,
 
-                record = ensure_record(
+                        network,
 
-                    records,
+                        ip
 
-                    network,
-
-                    ip
-
-                )
-
-
-                if record:
-
-                    record[
-                        "methods"
-                    ].add(
-                        "icmp"
                     )
+
+
+                    if record:
+
+                        record[
+                            "methods"
+                        ].add(
+                            "icmp"
+                        )
 
 
             except Exception:
@@ -4489,8 +5849,11 @@ def scan_network():
         ]
 
 
-        for future in concurrent.futures.as_completed(
-            futures
+        for future in (
+            concurrent.futures
+            .as_completed(
+                futures
+            )
         ):
 
             try:
@@ -4498,7 +5861,7 @@ def scan_network():
                 (
                     ip,
                     alive,
-                    open_ports
+                    ports
                 ) = future.result()
 
 
@@ -4533,7 +5896,7 @@ def scan_network():
                 record[
                     "open_ports"
                 ].update(
-                    open_ports
+                    ports
                 )
 
 
@@ -4543,15 +5906,17 @@ def scan_network():
 
 
     # ========================================================
-    # PASS 4 - SSDP
+    # PASS 4 - SSDP / UPNP
     # ========================================================
 
     ssdp_by_ip = {}
 
 
-    for item in discover_ssdp():
+    for entry in (
+        ssdp_discovery()
+    ):
 
-        ip = item.get(
+        ip = entry.get(
             "ip"
         )
 
@@ -4586,7 +5951,7 @@ def scan_network():
             []
 
         ).append(
-            item
+            entry
         )
 
 
@@ -4595,7 +5960,7 @@ def scan_network():
         entries
     ) in ssdp_by_ip.items():
 
-        apply_ssdp_identity(
+        apply_ssdp(
 
             records[ip],
 
@@ -4610,15 +5975,13 @@ def scan_network():
     # PASS 5 - MDNS
     # ========================================================
 
-    mdns_results = (
-        discover_mdns()
-    )
-
-
     for (
         ip,
         entries
-    ) in mdns_results.items():
+    ) in (
+        mdns_discovery()
+        .items()
+    ):
 
         record = ensure_record(
 
@@ -4643,7 +6006,7 @@ def scan_network():
         )
 
 
-        apply_mdns_identity(
+        apply_mdns(
 
             record,
 
@@ -4661,15 +6024,13 @@ def scan_network():
     )
 
 
-    neighbors = (
-        get_neighbor_table()
-    )
-
-
     for (
         ip,
         mac
-    ) in neighbors.items():
+    ) in (
+        neighbor_table()
+        .items()
+    ):
 
         record = ensure_record(
 
@@ -4694,19 +6055,21 @@ def scan_network():
         )
 
 
-        record["mac"] = (
-            mac
-        )
+        record[
+            "mac"
+        ] = mac
 
 
-        vendor = lookup_mac_vendor(
-            mac
+        vendor = (
+            mac_vendor(
+                mac
+            )
         )
 
 
         if vendor:
 
-            add_raw_candidate(
+            add_candidate(
 
                 record,
 
@@ -4725,7 +6088,7 @@ def scan_network():
     # PASS 7 - REVERSE DNS
     # ========================================================
 
-    current_ips = list(
+    discovered_ips = list(
         records.keys()
     )
 
@@ -4739,17 +6102,23 @@ def scan_network():
         futures = [
 
             executor.submit(
+
                 reverse_dns,
+
                 ip
+
             )
 
-            for ip in current_ips
+            for ip in discovered_ips
 
         ]
 
 
-        for future in concurrent.futures.as_completed(
-            futures
+        for future in (
+            concurrent.futures
+            .as_completed(
+                futures
+            )
         ):
 
             try:
@@ -4760,16 +6129,27 @@ def scan_network():
 
 
                 if (
-                    ip in records
-                    and
                     hostname
+                    and
+                    ip in records
                 ):
 
-                    apply_reverse_dns(
+                    records[ip][
+                        "reverse_dns"
+                    ] = hostname
+
+
+                    add_candidate(
 
                         records[ip],
 
-                        hostname
+                        "hostname_candidates",
+
+                        hostname,
+
+                        "reverse_dns",
+
+                        66
 
                     )
 
@@ -4792,37 +6172,75 @@ def scan_network():
         futures = {
 
             executor.submit(
+
                 netbios_names,
+
                 ip
+
             ):
             ip
 
-            for ip in records.keys()
+            for ip in (
+                records.keys()
+            )
 
         }
 
 
-        for future in concurrent.futures.as_completed(
-            futures
+        for future in (
+            concurrent.futures
+            .as_completed(
+                futures
+            )
         ):
 
-            ip = futures[
-                future
-            ]
+            ip = (
+                futures[
+                    future
+                ]
+            )
 
 
             try:
 
-                names = future.result()
+                names = (
+                    future.result()
+                )
+
+
+                records[ip][
+                    "netbios"
+                ] = names
 
 
                 if names:
 
-                    apply_nbns(
+                    add_candidate(
 
                         records[ip],
 
-                        names
+                        "friendly_candidates",
+
+                        names[0],
+
+                        "netbios",
+
+                        86
+
+                    )
+
+
+                    add_candidate(
+
+                        records[ip],
+
+                        "hostname_candidates",
+
+                        names[0],
+
+                        "netbios",
+
+                        84
 
                     )
 
@@ -4833,7 +6251,106 @@ def scan_network():
 
 
     # ========================================================
-    # FINAL DEVICE IDENTITIES
+    # SECOND TCP CHECK FOR LATE DISCOVERED DEVICES
+    # ========================================================
+
+    late_ips = [
+
+        ip
+
+        for ip in (
+            records.keys()
+        )
+
+        if not records[ip][
+            "open_ports"
+        ]
+
+    ]
+
+
+    with concurrent.futures.ThreadPoolExecutor(
+
+        max_workers=
+            MAX_WORKERS
+
+    ) as executor:
+
+        futures = [
+
+            executor.submit(
+
+                tcp_probe,
+
+                ip
+
+            )
+
+            for ip in late_ips
+
+        ]
+
+
+        for future in (
+            concurrent.futures
+            .as_completed(
+                futures
+            )
+        ):
+
+            try:
+
+                (
+                    ip,
+                    alive,
+                    ports
+                ) = future.result()
+
+
+                if (
+                    alive
+                    and
+                    ip in records
+                ):
+
+                    records[ip][
+                        "methods"
+                    ].add(
+                        "tcp"
+                    )
+
+
+                    records[ip][
+                        "open_ports"
+                    ].update(
+                        ports
+                    )
+
+
+            except Exception:
+
+                pass
+
+
+    # ========================================================
+    # CLOUD RULES
+    # ========================================================
+
+    for record in (
+        records.values()
+    ):
+
+        apply_cloud_rules(
+
+            record,
+
+            cloud_rules
+
+        )
+
+
+    # ========================================================
+    # FINAL IDENTITIES
     # ========================================================
 
     devices = []
@@ -4850,91 +6367,134 @@ def scan_network():
 
     ):
 
-        record = records[ip]
-
-
-        friendly = best_candidate(
-
-            record,
-
-            "friendly_candidates"
-
+        record = (
+            records[ip]
         )
 
 
-        hostname = best_candidate(
+        friendly = (
+            best_candidate(
 
-            record,
+                record,
 
-            "hostname_candidates"
+                "friendly_candidates"
 
+            )
         )
 
 
-        vendor = best_candidate(
+        hostname = (
+            best_candidate(
 
-            record,
+                record,
 
-            "vendor_candidates"
+                "hostname_candidates"
 
+            )
         )
 
 
-        model = best_candidate(
+        vendor = (
+            best_candidate(
 
-            record,
+                record,
 
-            "model_candidates"
+                "vendor_candidates"
 
+            )
         )
 
 
-        mac = normalize_mac(
+        model = (
+            best_candidate(
 
+                record,
+
+                "model_candidates"
+
+            )
+        )
+
+
+        cloud_result = (
             record.get(
-                "mac"
+                "cloud_result",
+                {}
+            )
+        )
+
+
+        if cloud_result.get(
+            "friendly_name"
+        ):
+
+            candidate = clean_identity_text(
+
+                cloud_result[
+                    "friendly_name"
+                ],
+
+                require_letters=True
+
             )
 
-        )
+
+            if candidate:
+
+                friendly = (
+                    candidate
+                )
 
 
-        if not valid_mac(mac):
+        if cloud_result.get(
+            "manufacturer"
+        ):
 
-            mac = None
+            candidate = clean_identity_text(
 
+                cloud_result[
+                    "manufacturer"
+                ],
 
-        device_type = infer_device_type(
+                require_letters=True
 
-            record,
-
-            friendly,
-
-            hostname,
-
-            vendor,
-
-            model
-
-        )
+            )
 
 
-        os_guess = infer_os(
+            if candidate:
 
-            record,
-
-            friendly,
-
-            hostname,
-
-            model,
-
-            device_type
-
-        )
+                vendor = (
+                    candidate
+                )
 
 
-        confidence = (
-            calculate_confidence(
+        if cloud_result.get(
+            "model"
+        ):
+
+            candidate = valid_model(
+
+                cloud_result[
+                    "model"
+                ]
+
+            )
+
+
+            if candidate:
+
+                model = (
+                    candidate
+                )
+
+
+        # ----------------------------------------------------
+        # Built-in classification first.
+        # Cloud rule can override it afterwards.
+        # ----------------------------------------------------
+
+        device_type = (
+            infer_device_type(
 
                 record,
 
@@ -4950,18 +6510,173 @@ def scan_network():
         )
 
 
-        security_status, security_findings = (
-            build_security_assessment(
+        os_guess = (
+            infer_os(
 
-                record[
-                    "open_ports"
-                ]
+                record,
+
+                friendly,
+
+                hostname,
+
+                model,
+
+                device_type
 
             )
         )
 
 
+        if cloud_result.get(
+            "device_type"
+        ):
+
+            device_type = (
+                str(
+                    cloud_result[
+                        "device_type"
+                    ]
+                )
+            )
+
+
+        if cloud_result.get(
+            "os_guess"
+        ):
+
+            os_guess = (
+                str(
+                    cloud_result[
+                        "os_guess"
+                    ]
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # Local machine identity is authoritative.
+        # This prevents AirPlay from turning a MacBook
+        # into a Smart TV.
+        # ----------------------------------------------------
+
+        if record.get(
+            "local_agent"
+        ):
+
+            device_type = (
+                "computer"
+            )
+
+
+            if (
+                platform.system()
+                ==
+                "Darwin"
+            ):
+
+                os_guess = (
+                    "macOS"
+                )
+
+
+                vendor = (
+                    vendor
+                    or
+                    "Apple"
+                )
+
+
+            elif (
+                platform.system()
+                ==
+                "Windows"
+            ):
+
+                os_guess = (
+                    "Windows"
+                )
+
+
+            elif (
+                platform.system()
+                ==
+                "Linux"
+            ):
+
+                os_guess = (
+                    "Linux"
+                )
+
+
+        # ----------------------------------------------------
+        # Gateway identity is authoritative.
+        # ----------------------------------------------------
+
+        if record.get(
+            "gateway"
+        ):
+
+            device_type = (
+                "router_gateway"
+            )
+
+
+        confidence = (
+            identity_confidence(
+
+                record,
+
+                friendly,
+
+                hostname,
+
+                vendor,
+
+                model,
+
+                device_type
+
+            )
+        )
+
+
+        (
+            security_status,
+            security_findings
+        ) = security_assessment(
+
+            record[
+                "open_ports"
+            ]
+
+        )
+
+
+        mac = normalize_mac(
+
+            record.get(
+                "mac"
+            )
+
+        )
+
+
+        if not valid_mac(
+            mac
+        ):
+
+            mac = None
+
+
         fingerprint_data = {
+
+            "ruleset_version":
+                ruleset_version,
+
+            "fingerprint_rule":
+                record.get(
+                    "cloud_rule"
+                ),
 
             "gateway":
                 bool(
@@ -4970,11 +6685,18 @@ def scan_network():
                     )
                 ),
 
+            "local_agent":
+                bool(
+                    record.get(
+                        "local_agent"
+                    )
+                ),
+
             "private_mac":
                 bool(
                     mac
                     and
-                    is_private_mac(
+                    private_mac(
                         mac
                     )
                 ),
@@ -4986,7 +6708,7 @@ def scan_network():
 
             "netbios_names":
                 record.get(
-                    "nbns",
+                    "netbios",
                     []
                 ),
 
@@ -5006,25 +6728,25 @@ def scan_network():
                 record.get(
                     "friendly_candidates",
                     []
-                )[:10],
+                )[:12],
 
             "hostname_candidates":
                 record.get(
                     "hostname_candidates",
                     []
-                )[:10],
+                )[:12],
 
             "manufacturer_candidates":
                 record.get(
                     "vendor_candidates",
                     []
-                )[:10],
+                )[:12],
 
             "model_candidates":
                 record.get(
                     "model_candidates",
                     []
-                )[:10],
+                )[:12],
 
         }
 
@@ -5068,6 +6790,11 @@ def scan_network():
             "fingerprint_data":
                 fingerprint_data,
 
+            "fingerprint_rule":
+                record.get(
+                    "cloud_rule"
+                ),
+
             "discovery_methods":
                 sorted(
                     record[
@@ -5083,7 +6810,7 @@ def scan_network():
                 ),
 
             "services":
-                build_services(
+                service_output(
                     record[
                         "open_ports"
                     ]
@@ -5098,25 +6825,18 @@ def scan_network():
         })
 
 
-    log(
-        f"FINAL DEVICES: {len(devices)}"
-    )
+    duration_ms = int(
 
-
-    for device in devices:
-
-        log(
-
-            "DEVICE | "
-            f"{device['friendly_name'] or device['hostname'] or device['ip']} | "
-            f"IP={device['ip']} | "
-            f"MAC={device['mac']} | "
-            f"VENDOR={device['vendor']} | "
-            f"MODEL={device['model']} | "
-            f"TYPE={device['device_type']} | "
-            f"CONFIDENCE={device['identity_confidence']}%"
-
+        (
+            time.time()
+            -
+            started
         )
+
+        *
+        1000
+
+    )
 
 
     log(
@@ -5124,15 +6844,93 @@ def scan_network():
     )
 
 
-    return (
-        devices,
-        network,
-        local_ip
+    log(
+        f"FINAL DEVICE COUNT: "
+        f"{len(devices)}"
     )
 
 
+    for device in devices:
+
+        label = (
+
+            device.get(
+                "friendly_name"
+            )
+
+            or
+
+            device.get(
+                "hostname"
+            )
+
+            or
+
+            device.get(
+                "model"
+            )
+
+            or
+
+            device.get(
+                "ip"
+            )
+
+        )
+
+
+        log(
+
+            "DEVICE | "
+            f"{label} | "
+            f"IP={device['ip']} | "
+            f"MAC={device['mac']} | "
+            f"VENDOR={device['vendor']} | "
+            f"MODEL={device['model']} | "
+            f"TYPE={device['device_type']} | "
+            f"OS={device['os_guess']} | "
+            f"CONF={device['identity_confidence']}% | "
+            f"RULE={device['fingerprint_rule']}"
+
+        )
+
+
+    log(
+
+        f"Scan duration: "
+        f"{duration_ms} ms"
+
+    )
+
+
+    log(
+        "=============================================="
+    )
+
+
+    return {
+
+        "devices":
+            devices,
+
+        "network":
+            network,
+
+        "local_ip":
+            local_ip,
+
+        "ruleset_version":
+            ruleset_version,
+
+        "duration_ms":
+            duration_ms,
+
+    }
+
+
+
 # ============================================================
-# SYNC
+# DEVICE SYNC
 # ============================================================
 
 def sync_devices(
@@ -5147,10 +6945,14 @@ def sync_devices(
         {
 
             "p_agent_id":
-                config["agent_id"],
+                config[
+                    "agent_id"
+                ],
 
             "p_agent_secret":
-                config["agent_secret"],
+                config[
+                    "agent_secret"
+                ],
 
             "p_devices":
                 devices,
@@ -5158,6 +6960,136 @@ def sync_devices(
         }
 
     )
+
+
+
+# ============================================================
+# UPDATE CHECK
+# ============================================================
+
+def version_tuple(
+    value
+):
+
+    value = (
+
+        str(value)
+
+        .strip()
+
+        .lower()
+
+        .lstrip("v")
+
+    )
+
+
+    match = re.match(
+
+        r"^(\d+)"
+        r"(?:\.(\d+))?"
+        r"(?:\.(\d+))?",
+
+        value
+
+    )
+
+
+    if not match:
+
+        return (
+            0,
+            0,
+            0
+        )
+
+
+    return tuple(
+
+        int(
+            part
+            or
+            0
+        )
+
+        for part in (
+            match.groups()
+        )
+
+    )
+
+
+def latest_release():
+
+    try:
+
+        response = requests.get(
+
+            GITHUB_LATEST_API,
+
+            timeout=4,
+
+            headers={
+
+                "Accept":
+                    (
+                        "application/"
+                        "vnd.github+json"
+                    ),
+
+                "User-Agent":
+                    (
+                        "WiFiWatch/"
+                        +
+                        APP_VERSION
+                    ),
+
+            }
+
+        )
+
+
+        if not response.ok:
+
+            return None
+
+
+        data = (
+            response.json()
+        )
+
+
+        tag = data.get(
+            "tag_name"
+        )
+
+
+        if not tag:
+
+            return None
+
+
+        return {
+
+            "version":
+                tag.lstrip(
+                    "v"
+                ),
+
+            "url":
+                data.get(
+                    "html_url"
+                )
+                or
+                GITHUB_RELEASES_URL,
+
+        }
+
+
+    except Exception:
+
+        return None
+
 
 
 # ============================================================
@@ -5177,13 +7109,13 @@ class WiFiWatchApp:
 
 
         self.root.geometry(
-            "590x610"
+            "610x690"
         )
 
 
         self.root.minsize(
-            510,
-            510
+            520,
+            560
         )
 
 
@@ -5202,12 +7134,15 @@ class WiFiWatchApp:
         )
 
 
-        self.monitor_thread = None
-
-
         self.scan_lock = (
             threading.Lock()
         )
+
+
+        self.monitor_thread = None
+
+
+        self.latest_update_url = None
 
 
         self.status_value = (
@@ -5224,7 +7159,7 @@ class WiFiWatchApp:
         )
 
 
-        self.device_value = (
+        self.devices_value = (
             tk.StringVar(
                 value="0"
             )
@@ -5234,6 +7169,13 @@ class WiFiWatchApp:
         self.identified_value = (
             tk.StringVar(
                 value="0"
+            )
+        )
+
+
+        self.rules_value = (
+            tk.StringVar(
+                value="—"
             )
         )
 
@@ -5248,6 +7190,13 @@ class WiFiWatchApp:
         self.scan_value = (
             tk.StringVar(
                 value="Never"
+            )
+        )
+
+
+        self.update_value = (
+            tk.StringVar(
+                value="Checking..."
             )
         )
 
@@ -5267,6 +7216,16 @@ class WiFiWatchApp:
             self.show_pairing()
 
 
+        threading.Thread(
+
+            target=
+                self.check_update,
+
+            daemon=True
+
+        ).start()
+
+
         self.root.protocol(
 
             "WM_DELETE_WINDOW",
@@ -5277,12 +7236,19 @@ class WiFiWatchApp:
 
 
     def label(
+
         self,
+
         parent,
+
         text="",
+
         size=12,
+
         bold=False,
+
         color="#ffffff"
+
     ):
 
         return tk.Label(
@@ -5301,9 +7267,12 @@ class WiFiWatchApp:
 
                 size,
 
-                "bold"
-                if bold
-                else "normal"
+                (
+                    "bold"
+                    if bold
+                    else
+                    "normal"
+                )
 
             )
 
@@ -5327,6 +7296,16 @@ class WiFiWatchApp:
         )
 
 
+    def clear_body(self):
+
+        for widget in (
+            self.body
+            .winfo_children()
+        ):
+
+            widget.destroy()
+
+
     def build_ui(self):
 
         header = tk.Frame(
@@ -5344,12 +7323,15 @@ class WiFiWatchApp:
 
             padx=28,
 
-            pady=(25, 10)
+            pady=(
+                25,
+                10
+            )
 
         )
 
 
-        logo = tk.Label(
+        icon = tk.Label(
 
             header,
 
@@ -5365,19 +7347,19 @@ class WiFiWatchApp:
 
             font=(
                 "Arial",
-                20,
+                21,
                 "bold"
             )
 
         )
 
 
-        logo.pack(
+        icon.pack(
             side="left"
         )
 
 
-        title = tk.Frame(
+        titles = tk.Frame(
 
             header,
 
@@ -5386,7 +7368,7 @@ class WiFiWatchApp:
         )
 
 
-        title.pack(
+        titles.pack(
 
             side="left",
 
@@ -5397,7 +7379,7 @@ class WiFiWatchApp:
 
         self.label(
 
-            title,
+            titles,
 
             "WiFi Watch Agent",
 
@@ -5412,9 +7394,12 @@ class WiFiWatchApp:
 
         self.label(
 
-            title,
+            titles,
 
-            f"Expert Device Intelligence · v{APP_VERSION}",
+            (
+                "Expert Device Intelligence "
+                f"· v{APP_VERSION}"
+            ),
 
             10,
 
@@ -5449,18 +7434,8 @@ class WiFiWatchApp:
         )
 
 
-    def clear_body(self):
-
-        for widget in (
-            self.body
-            .winfo_children()
-        ):
-
-            widget.destroy()
-
-
     # ========================================================
-    # PAIRING
+    # PAIR
     # ========================================================
 
     def show_pairing(self):
@@ -5482,7 +7457,10 @@ class WiFiWatchApp:
 
             anchor="w",
 
-            pady=(10, 7)
+            pady=(
+                10,
+                7
+            )
 
         )
 
@@ -5492,8 +7470,8 @@ class WiFiWatchApp:
             self.body,
 
             (
-                "Generate a pairing code from your "
-                "WiFi Watch dashboard."
+                "Generate a pairing code "
+                "from your WiFi Watch dashboard."
             ),
 
             11,
@@ -5506,7 +7484,10 @@ class WiFiWatchApp:
 
             anchor="w",
 
-            pady=(0, 22)
+            pady=(
+                0,
+                22
+            )
 
         )
 
@@ -5555,7 +7536,10 @@ class WiFiWatchApp:
 
             ipady=12,
 
-            pady=(7, 15)
+            pady=(
+                7,
+                15
+            )
 
         )
 
@@ -5617,9 +7601,11 @@ class WiFiWatchApp:
     def pair(self):
 
         code = (
+
             self.code_entry
             .get()
             .strip()
+
         )
 
 
@@ -5646,16 +7632,18 @@ class WiFiWatchApp:
         threading.Thread(
 
             target=
-                self._pair_worker,
+                self.pair_worker,
 
-            args=(code,),
+            args=(
+                code,
+            ),
 
             daemon=True
 
         ).start()
 
 
-    def _pair_worker(
+    def pair_worker(
         self,
         code
     ):
@@ -5673,7 +7661,7 @@ class WiFiWatchApp:
 
                 0,
 
-                self._pair_success
+                self.pair_success
 
             )
 
@@ -5681,7 +7669,7 @@ class WiFiWatchApp:
         except Exception as exc:
 
             log(
-                f"Pair error: {exc}"
+                f"Pairing error: {exc}"
             )
 
 
@@ -5690,20 +7678,23 @@ class WiFiWatchApp:
                 0,
 
                 lambda:
-                    self._pair_error(
+                    self.pair_error(
                         str(exc)
                     )
 
             )
 
 
-    def _pair_success(self):
+    def pair_success(self):
 
         messagebox.showinfo(
 
             "WiFi Watch",
 
-            "Agent paired successfully."
+            (
+                "Agent paired "
+                "successfully."
+            )
 
         )
 
@@ -5713,7 +7704,7 @@ class WiFiWatchApp:
         self.start_monitoring()
 
 
-    def _pair_error(
+    def pair_error(
         self,
         error
     ):
@@ -5735,7 +7726,7 @@ class WiFiWatchApp:
 
 
     # ========================================================
-    # CONNECTED
+    # CONNECTED UI
     # ========================================================
 
     def show_connected(self):
@@ -5759,7 +7750,10 @@ class WiFiWatchApp:
 
             anchor="w",
 
-            pady=(8, 20)
+            pady=(
+                8,
+                20
+            )
 
         )
 
@@ -5792,12 +7786,17 @@ class WiFiWatchApp:
 
             (
                 "Devices detected",
-                self.device_value
+                self.devices_value
             ),
 
             (
                 "Identified devices",
                 self.identified_value
+            ),
+
+            (
+                "Fingerprint rules",
+                self.rules_value
             ),
 
             (
@@ -5808,6 +7807,11 @@ class WiFiWatchApp:
             (
                 "Last scan",
                 self.scan_value
+            ),
+
+            (
+                "Agent update",
+                self.update_value
             ),
 
         ]
@@ -5833,7 +7837,7 @@ class WiFiWatchApp:
 
                 padx=18,
 
-                pady=9
+                pady=8
 
             )
 
@@ -5880,7 +7884,7 @@ class WiFiWatchApp:
             )
 
 
-        button = tk.Button(
+        scan_button = tk.Button(
 
             self.body,
 
@@ -5905,13 +7909,49 @@ class WiFiWatchApp:
         )
 
 
-        button.pack(
+        scan_button.pack(
 
             fill="x",
 
             ipady=9,
 
-            pady=(20, 10)
+            pady=(
+                20,
+                9
+            )
+
+        )
+
+
+        update_button = tk.Button(
+
+            self.body,
+
+            text=
+                "Check for Agent Update",
+
+            bg="#13232d",
+
+            fg="white",
+
+            relief="flat",
+
+            command=
+                self.update_button_pressed
+
+        )
+
+
+        update_button.pack(
+
+            fill="x",
+
+            ipady=7,
+
+            pady=(
+                0,
+                9
+            )
 
         )
 
@@ -5921,9 +7961,9 @@ class WiFiWatchApp:
             self.body,
 
             (
-                "WiFi Watch combines network discovery, "
-                "Bonjour, UPnP, NetBIOS and service "
-                "fingerprinting to identify devices."
+                "WiFi Watch automatically "
+                "rescans approximately every "
+                f"{SCAN_INTERVAL} seconds."
             ),
 
             9,
@@ -5933,7 +7973,34 @@ class WiFiWatchApp:
             "#8da2af"
 
         ).pack(
-            pady=(5, 10)
+            pady=(
+                4,
+                8
+            )
+        )
+
+
+        self.label(
+
+            self.body,
+
+            (
+                "Device fingerprint rules "
+                "can update automatically "
+                "without reinstalling the Agent."
+            ),
+
+            9,
+
+            False,
+
+            "#8da2af"
+
+        ).pack(
+            pady=(
+                0,
+                8
+            )
         )
 
 
@@ -5953,7 +8020,10 @@ class WiFiWatchApp:
             "#617986"
 
         ).pack(
-            pady=(0, 15)
+            pady=(
+                0,
+                15
+            )
         )
 
 
@@ -5961,7 +8031,8 @@ class WiFiWatchApp:
 
             self.body,
 
-            text="Disconnect this Agent",
+            text=
+                "Disconnect this Agent",
 
             bg="#13232d",
 
@@ -5969,7 +8040,8 @@ class WiFiWatchApp:
 
             relief="flat",
 
-            command=self.disconnect
+            command=
+                self.disconnect
 
         )
 
@@ -5984,7 +8056,7 @@ class WiFiWatchApp:
 
 
     # ========================================================
-    # MONITOR
+    # MONITORING
     # ========================================================
 
     def start_monitoring(self):
@@ -6062,6 +8134,13 @@ class WiFiWatchApp:
             return
 
 
+        started = time.time()
+
+        last_local_ip = None
+
+        ruleset = "unknown"
+
+
         try:
 
             self.root.after(
@@ -6069,8 +8148,7 @@ class WiFiWatchApp:
                 0,
 
                 lambda:
-                    self.status_value
-                    .set(
+                    self.status_value.set(
                         "Expert scanning..."
                     )
 
@@ -6082,11 +8160,49 @@ class WiFiWatchApp:
             )
 
 
-            (
-                devices,
-                network,
+            result = (
+                scan_network()
+            )
+
+
+            devices = (
+                result[
+                    "devices"
+                ]
+            )
+
+
+            network = (
+                result[
+                    "network"
+                ]
+            )
+
+
+            local_ip = (
+                result[
+                    "local_ip"
+                ]
+            )
+
+
+            last_local_ip = (
                 local_ip
-            ) = scan_network()
+            )
+
+
+            ruleset = (
+                result[
+                    "ruleset_version"
+                ]
+            )
+
+
+            duration_ms = (
+                result[
+                    "duration_ms"
+                ]
+            )
 
 
             sync_devices(
@@ -6105,21 +8221,29 @@ class WiFiWatchApp:
                 for device in devices
 
                 if (
+
                     device.get(
                         "friendly_name"
                     )
+
                     or
+
                     device.get(
                         "hostname"
                     )
+
                     or
+
                     device.get(
                         "vendor"
                     )
+
                     or
+
                     device.get(
                         "model"
                     )
+
                 )
 
             )
@@ -6131,11 +8255,13 @@ class WiFiWatchApp:
 
                 for device in devices
 
-                if device.get(
-                    "security_status"
+                if (
+                    device.get(
+                        "security_status"
+                    )
+                    ==
+                    "warning"
                 )
-                ==
-                "warning"
 
             )
 
@@ -6146,11 +8272,32 @@ class WiFiWatchApp:
 
                 for device in devices
 
-                if device.get(
-                    "security_status"
+                if (
+                    device.get(
+                        "security_status"
+                    )
+                    ==
+                    "review"
                 )
-                ==
-                "review"
+
+            )
+
+
+            report_scan(
+
+                self.config,
+
+                ruleset,
+
+                duration_ms,
+
+                len(
+                    devices
+                ),
+
+                local_ip,
+
+                None
 
             )
 
@@ -6162,17 +8309,23 @@ class WiFiWatchApp:
                 lambda:
                     self.scan_success(
 
-                        len(devices),
+                        len(
+                            devices
+                        ),
 
                         identified,
 
-                        str(network),
+                        str(
+                            network
+                        ),
 
                         local_ip,
 
                         warnings,
 
-                        reviews
+                        reviews,
+
+                        ruleset
 
                     )
 
@@ -6181,9 +8334,44 @@ class WiFiWatchApp:
 
         except Exception as exc:
 
+            duration_ms = int(
+
+                (
+                    time.time()
+                    -
+                    started
+                )
+
+                *
+                1000
+
+            )
+
+
             log(
                 f"SCAN ERROR: {exc}"
             )
+
+
+            if self.is_paired():
+
+                report_scan(
+
+                    self.config,
+
+                    ruleset,
+
+                    duration_ms,
+
+                    0,
+
+                    last_local_ip,
+
+                    str(
+                        exc
+                    )
+
+                )
 
 
             self.root.after(
@@ -6204,13 +8392,23 @@ class WiFiWatchApp:
 
 
     def scan_success(
+
         self,
+
         count,
+
         identified,
+
         network,
+
         local_ip,
+
         warnings,
-        reviews
+
+        reviews,
+
+        ruleset
+
     ):
 
         self.status_value.set(
@@ -6226,15 +8424,23 @@ class WiFiWatchApp:
         )
 
 
-        self.device_value.set(
-            str(count)
+        self.devices_value.set(
+            str(
+                count
+            )
         )
 
 
         self.identified_value.set(
 
-            f"{identified} / {count}"
+            f"{identified} / "
+            f"{count}"
 
+        )
+
+
+        self.rules_value.set(
+            ruleset
         )
 
 
@@ -6252,7 +8458,8 @@ class WiFiWatchApp:
 
             self.security_value.set(
 
-                f"{reviews} item(s) to review"
+                f"{reviews} item(s) "
+                "to review"
 
             )
 
@@ -6285,9 +8492,125 @@ class WiFiWatchApp:
         )
 
 
+        self.security_value.set(
+            "Scan failed"
+        )
+
+
         log(
             error
         )
+
+
+    # ========================================================
+    # UPDATE CHECK
+    # ========================================================
+
+    def check_update(self):
+
+        release = (
+            latest_release()
+        )
+
+
+        if not release:
+
+            self.root.after(
+
+                0,
+
+                lambda:
+                    self.update_value.set(
+                        "Unable to check"
+                    )
+
+            )
+
+            return
+
+
+        latest_version = (
+            release[
+                "version"
+            ]
+        )
+
+
+        if (
+            version_tuple(
+                latest_version
+            )
+
+            >
+
+            version_tuple(
+                APP_VERSION
+            )
+        ):
+
+            self.latest_update_url = (
+                release[
+                    "url"
+                ]
+            )
+
+
+            self.root.after(
+
+                0,
+
+                lambda:
+                    self.update_value.set(
+
+                        f"v{latest_version} available"
+
+                    )
+
+            )
+
+
+        else:
+
+            self.latest_update_url = None
+
+
+            self.root.after(
+
+                0,
+
+                lambda:
+                    self.update_value.set(
+                        "Up to date"
+                    )
+
+            )
+
+
+    def update_button_pressed(self):
+
+        if self.latest_update_url:
+
+            webbrowser.open(
+                self.latest_update_url
+            )
+
+
+            return
+
+
+        self.update_value.set(
+            "Checking..."
+        )
+
+
+        threading.Thread(
+
+            target=
+                self.check_update,
+
+            daemon=True
+
+        ).start()
 
 
     # ========================================================
@@ -6300,7 +8623,10 @@ class WiFiWatchApp:
 
             "Disconnect Agent",
 
-            "Disconnect this computer from WiFi Watch?"
+            (
+                "Disconnect this computer "
+                "from WiFi Watch?"
+            )
 
         ):
 
@@ -6332,6 +8658,7 @@ class WiFiWatchApp:
         self.root.mainloop()
 
 
+
 # ============================================================
 # START
 # ============================================================
@@ -6341,12 +8668,14 @@ if __name__ == "__main__":
     if (
 
         "YOUR_REAL_"
-        in SUPABASE_URL
+        in
+        SUPABASE_URL
 
         or
 
         "YOUR_REAL_"
-        in SUPABASE_KEY
+        in
+        SUPABASE_KEY
 
     ):
 
@@ -6360,8 +8689,9 @@ if __name__ == "__main__":
             "WiFi Watch",
 
             (
-                "Supabase URL and publishable "
-                "key have not been configured."
+                "Supabase URL and "
+                "publishable key have "
+                "not been configured."
             )
 
         )
@@ -6375,8 +8705,16 @@ if __name__ == "__main__":
 
     log(
 
-        f"Starting WiFi Watch Agent "
+        "Starting WiFi Watch Agent "
         f"{APP_VERSION}"
+
+    )
+
+
+    log(
+
+        "Engine version "
+        f"{ENGINE_VERSION}"
 
     )
 
