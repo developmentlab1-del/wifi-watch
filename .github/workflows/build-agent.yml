@@ -6,14 +6,11 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "v*"
     paths:
       - "agent/**"
       - ".github/workflows/build-agent.yml"
-
-  push:
-    tags:
-      - "v*"
-
 
 permissions:
   contents: write
