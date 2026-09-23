@@ -7,14 +7,15 @@ import platform
 import re
 import shutil
 import socket
+import ssl
 import struct
 import subprocess
+import tempfile
 import threading
 import time
 import urllib.parse
 import webbrowser
 import xml.etree.ElementTree as ET
-
 from pathlib import Path
 
 import tkinter as tk
@@ -22,6 +23,7 @@ from tkinter import messagebox
 
 import psutil
 import requests
+import urllib3
 
 from zeroconf import (
     IPVersion,
@@ -32,7 +34,7 @@ from zeroconf import (
 
 
 # ============================================================
-# OPTIONAL LOCAL MAC VENDOR DATABASE
+# OPTIONAL OFFLINE MAC VENDOR DATABASE
 # ============================================================
 
 try:
@@ -48,20 +50,27 @@ except Exception:
     MAC_VENDOR_PARSER = None
 
 
+urllib3.disable_warnings(
+    urllib3.exceptions.InsecureRequestWarning
+)
+
+
 
 # ============================================================
-# WIFI WATCH v1
+# WIFI WATCH
 # ============================================================
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 
-ENGINE_VERSION = 1
+ENGINE_VERSION = 2
 
 SCAN_INTERVAL = 30
 
-RULE_REFRESH_SECONDS = (
+CLOUD_RULE_REFRESH_SECONDS = (
     6 * 60 * 60
 )
+
+LEARNED_RULE_REFRESH_SECONDS = 60
 
 REQUEST_TIMEOUT = 20
 
@@ -70,16 +79,12 @@ MAX_WORKERS = 80
 MAX_NETWORK_ADDRESSES = 1024
 
 
+
 # ============================================================
-# IMPORTANT
+# SUPABASE
 #
-# USE ONLY:
-# sb_publishable_...
-#
-# NEVER:
-# sb_secret_
-# service_role
-# database password
+# USE ONLY THE PUBLISHABLE KEY.
+# NEVER PUT A SECRET / SERVICE_ROLE KEY HERE.
 # ============================================================
 
 SUPABASE_URL = (
@@ -90,6 +95,11 @@ SUPABASE_KEY = (
     "sb_publishable_L9TUAFyJ_S0l81UDNi8imw_FVTYm4cI"
 )
 
+
+
+# ============================================================
+# UPDATE SOURCE
+# ============================================================
 
 GITHUB_LATEST_API = (
     "https://api.github.com/repos/"
@@ -106,7 +116,7 @@ GITHUB_RELEASES_URL = (
 
 
 # ============================================================
-# CAPABILITIES
+# AGENT CAPABILITIES
 # ============================================================
 
 CAPABILITIES = {
@@ -135,7 +145,19 @@ CAPABILITIES = {
     "mac_vendor":
         True,
 
+    "http_identity":
+        True,
+
+    "tls_identity":
+        True,
+
+    "ssh_banner":
+        True,
+
     "cloud_rules":
+        True,
+
+    "learned_fingerprints":
         True,
 
     "security_observation":
@@ -235,6 +257,36 @@ TCP_SERVICES = {
 }
 
 
+HTTP_PORTS = {
+
+    80,
+
+    5000,
+
+    8000,
+
+    8001,
+
+    8008,
+
+    8080,
+
+    32400,
+
+}
+
+
+HTTPS_PORTS = {
+
+    443,
+
+    5001,
+
+    8443,
+
+}
+
+
 REFUSED_CODES = {
 
     errno.ECONNREFUSED,
@@ -250,7 +302,7 @@ REFUSED_CODES = {
 
 
 # ============================================================
-# MDNS TYPES
+# MDNS / BONJOUR
 # ============================================================
 
 DEFAULT_MDNS_TYPES = {
@@ -286,6 +338,102 @@ DEFAULT_MDNS_TYPES = {
     "_sleep-proxy._udp.local.",
 
     "_spotify-connect._tcp.local.",
+
+}
+
+
+
+# ============================================================
+# IDENTITY FILTERING
+# ============================================================
+
+BAD_VALUES = {
+
+    "",
+
+    "unknown",
+
+    "none",
+
+    "null",
+
+    "nil",
+
+    "device",
+
+    "localhost",
+
+    "local",
+
+    "n/a",
+
+    "na",
+
+    "0,1,2",
+
+    "0, 1, 2",
+
+    "0.1.2",
+
+    "default",
+
+    "generic",
+
+}
+
+
+GENERIC_TITLES = {
+
+    "login",
+
+    "sign in",
+
+    "home",
+
+    "index",
+
+    "welcome",
+
+    "web interface",
+
+    "management",
+
+    "admin",
+
+    "administrator",
+
+    "dashboard",
+
+    "router",
+
+}
+
+
+GENERIC_ANCHORS = {
+
+    "iphone",
+
+    "ipad",
+
+    "android",
+
+    "device",
+
+    "router",
+
+    "camera",
+
+    "printer",
+
+    "tv",
+
+    "smart tv",
+
+    "computer",
+
+    "nas",
+
+    "server",
 
 }
 
@@ -377,28 +525,33 @@ LOG_FILE = (
     "agent.log"
 )
 
-RULES_FILE = (
+CLOUD_RULES_FILE = (
     APP_FOLDER
     /
     "fingerprint_rules.json"
 )
 
+LEARNED_RULES_FILE = (
+    APP_FOLDER
+    /
+    "learned_fingerprints.json"
+)
+
 
 
 # ============================================================
-# LOG
+# LOGGING
 # ============================================================
 
-def log(message):
-
-    stamp = time.strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-
+def log(
+    message
+):
 
     line = (
-        f"[{stamp}] "
+
+        f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
         f"{message}"
+
     )
 
 
@@ -420,8 +573,11 @@ def log(message):
         ) as file:
 
             file.write(
-                line + "\n"
+                line
+                +
+                "\n"
             )
+
 
     except Exception:
 
@@ -525,7 +681,9 @@ def load_config():
     )
 
 
-def save_config(data):
+def save_config(
+    data
+):
 
     save_json_file(
         CONFIG_FILE,
@@ -541,6 +699,7 @@ def delete_config():
 
             CONFIG_FILE.unlink()
 
+
     except Exception as exc:
 
         log(
@@ -550,7 +709,7 @@ def delete_config():
 
 
 # ============================================================
-# RPC
+# SUPABASE RPC
 # ============================================================
 
 def rpc(
@@ -558,18 +717,13 @@ def rpc(
     payload
 ):
 
-    url = (
-
-        f"{SUPABASE_URL}"
-        f"/rest/v1/rpc/"
-        f"{function_name}"
-
-    )
-
-
     response = requests.post(
 
-        url,
+        (
+            f"{SUPABASE_URL}"
+            f"/rest/v1/rpc/"
+            f"{function_name}"
+        ),
 
         headers={
 
@@ -624,7 +778,9 @@ def rpc(
 # PAIRING
 # ============================================================
 
-def claim_pairing_code(code):
+def claim_pairing_code(
+    code
+):
 
     result = rpc(
 
@@ -714,7 +870,9 @@ def claim_pairing_code(code):
 # HEARTBEAT
 # ============================================================
 
-def heartbeat(config):
+def heartbeat(
+    config
+):
 
     return rpc(
 
@@ -742,7 +900,7 @@ def heartbeat(config):
 
 
 # ============================================================
-# SCAN HEALTH REPORT
+# AGENT HEALTH REPORT
 # ============================================================
 
 def report_scan(
@@ -803,7 +961,9 @@ def report_scan(
 
                 "p_last_error":
                     (
-                        str(error)
+                        str(
+                            error
+                        )
                         if error
                         else None
                     ),
@@ -822,23 +982,34 @@ def report_scan(
 
 
 # ============================================================
-# CLOUD RULES
+# CLOUD / LEARNED RULE CACHE
 # ============================================================
 
-_rules_memory = None
+_cloud_rules_memory = None
 
-_rules_fetched_at = 0
+_cloud_rules_fetched_at = 0
 
+_learned_rules_memory = None
+
+_learned_rules_fetched_at = 0
+
+
+
+# ============================================================
+# CLOUD FINGERPRINT RULES
+# ============================================================
 
 def fetch_cloud_rules(
     force=False
 ):
 
-    global _rules_memory
-    global _rules_fetched_at
+    global _cloud_rules_memory
+    global _cloud_rules_fetched_at
 
 
-    now = time.time()
+    now = (
+        time.time()
+    )
 
 
     if (
@@ -847,20 +1018,22 @@ def fetch_cloud_rules(
 
         and
 
-        _rules_memory is not None
+        _cloud_rules_memory
+        is not None
 
         and
 
         now
         -
-        _rules_fetched_at
-
+        _cloud_rules_fetched_at
         <
-        RULE_REFRESH_SECONDS
+        CLOUD_RULE_REFRESH_SECONDS
 
     ):
 
-        return _rules_memory
+        return (
+            _cloud_rules_memory
+        )
 
 
     try:
@@ -885,7 +1058,7 @@ def fetch_cloud_rules(
         ):
 
             raise RuntimeError(
-                "Invalid rules response."
+                "Invalid cloud rules response."
             )
 
 
@@ -911,28 +1084,27 @@ def fetch_cloud_rules(
 
         save_json_file(
 
-            RULES_FILE,
+            CLOUD_RULES_FILE,
 
             cached
 
         )
 
 
-        _rules_memory = (
+        _cloud_rules_memory = (
             cached
         )
 
 
-        _rules_fetched_at = (
+        _cloud_rules_fetched_at = (
             now
         )
 
 
         log(
 
-            "Fingerprint rules loaded: "
-            f"{len(cached['rules'])} "
-            "rule(s), "
+            f"Cloud rules: "
+            f"{len(cached['rules'])} rule(s), "
             f"ruleset "
             f"{cached['ruleset_version']}"
 
@@ -951,7 +1123,7 @@ def fetch_cloud_rules(
 
         cached = load_json_file(
 
-            RULES_FILE,
+            CLOUD_RULES_FILE,
 
             {
 
@@ -966,12 +1138,12 @@ def fetch_cloud_rules(
         )
 
 
-        _rules_memory = (
+        _cloud_rules_memory = (
             cached
         )
 
 
-        _rules_fetched_at = (
+        _cloud_rules_fetched_at = (
             now
         )
 
@@ -981,7 +1153,202 @@ def fetch_cloud_rules(
 
 
 # ============================================================
-# COMMAND PATHS
+# PERSONAL LEARNED FINGERPRINTS
+# ============================================================
+
+def fetch_learned_rules(
+    config,
+    force=False
+):
+
+    global _learned_rules_memory
+    global _learned_rules_fetched_at
+
+
+    now = (
+        time.time()
+    )
+
+
+    if (
+
+        not force
+
+        and
+
+        _learned_rules_memory
+        is not None
+
+        and
+
+        _learned_rules_memory.get(
+            "network_id"
+        )
+        ==
+        config.get(
+            "network_id"
+        )
+
+        and
+
+        now
+        -
+        _learned_rules_fetched_at
+        <
+        LEARNED_RULE_REFRESH_SECONDS
+
+    ):
+
+        return (
+            _learned_rules_memory
+        )
+
+
+    try:
+
+        result = rpc(
+
+            "get_agent_learned_fingerprints",
+
+            {
+
+                "p_agent_id":
+                    config[
+                        "agent_id"
+                    ],
+
+                "p_agent_secret":
+                    config[
+                        "agent_secret"
+                    ],
+
+            }
+
+        )
+
+
+        if not isinstance(
+            result,
+            dict
+        ):
+
+            raise RuntimeError(
+                "Invalid learned fingerprint response."
+            )
+
+
+        cached = {
+
+            "fetched_at":
+                now,
+
+            "network_id":
+                result.get(
+                    "network_id"
+                ),
+
+            "rules":
+                result.get(
+                    "rules",
+                    []
+                ),
+
+        }
+
+
+        save_json_file(
+
+            LEARNED_RULES_FILE,
+
+            cached
+
+        )
+
+
+        _learned_rules_memory = (
+            cached
+        )
+
+
+        _learned_rules_fetched_at = (
+            now
+        )
+
+
+        log(
+
+            "Personal learned fingerprints: "
+            f"{len(cached['rules'])}"
+
+        )
+
+
+        return cached
+
+
+    except Exception as exc:
+
+        log(
+            f"Learned fingerprint fetch failed: {exc}"
+        )
+
+
+        cached = load_json_file(
+
+            LEARNED_RULES_FILE,
+
+            {
+
+                "network_id":
+                    None,
+
+                "rules":
+                    [],
+
+            }
+
+        )
+
+
+        if (
+            cached.get(
+                "network_id"
+            )
+            !=
+            config.get(
+                "network_id"
+            )
+        ):
+
+            cached = {
+
+                "network_id":
+                    config.get(
+                        "network_id"
+                    ),
+
+                "rules":
+                    [],
+
+            }
+
+
+        _learned_rules_memory = (
+            cached
+        )
+
+
+        _learned_rules_fetched_at = (
+            now
+        )
+
+
+        return cached
+
+
+
+# ============================================================
+# COMMAND HELPERS
 # ============================================================
 
 def command_path(
@@ -989,8 +1356,10 @@ def command_path(
     candidates
 ):
 
-    found = shutil.which(
-        name
+    found = (
+        shutil.which(
+            name
+        )
     )
 
 
@@ -1016,7 +1385,9 @@ def command_path(
 # MAC HELPERS
 # ============================================================
 
-def normalize_mac(mac):
+def normalize_mac(
+    mac
+):
 
     if not mac:
 
@@ -1025,7 +1396,9 @@ def normalize_mac(mac):
 
     text = (
 
-        str(mac)
+        str(
+            mac
+        )
 
         .strip()
 
@@ -1039,8 +1412,10 @@ def normalize_mac(mac):
     )
 
 
-    parts = text.split(
-        ":"
+    parts = (
+        text.split(
+            ":"
+        )
     )
 
 
@@ -1082,178 +1457,91 @@ def normalize_mac(mac):
     )
 
 
-def valid_mac(mac):
+def valid_mac(
+    mac
+):
 
-    mac = normalize_mac(
-        mac
-    )
-
-
-    if not mac:
-
-        return False
-
-
-    if mac in (
-
-        "00:00:00:00:00:00",
-
-        "ff:ff:ff:ff:ff:ff",
-
-    ):
-
-        return False
-
-
-    try:
-
-        first_byte = int(
-
-            mac.split(":")[0],
-
-            16
-
+    mac = (
+        normalize_mac(
+            mac
         )
-
-
-        if first_byte & 1:
-
-            return False
-
-
-    except Exception:
-
-        return False
-
-
-    return True
-
-
-def private_mac(mac):
-
-    mac = normalize_mac(
-        mac
-    )
-
-
-    if not mac:
-
-        return False
-
-
-    try:
-
-        first_byte = int(
-
-            mac.split(":")[0],
-
-            16
-
-        )
-
-
-        return bool(
-            first_byte & 2
-        )
-
-
-    except Exception:
-
-        return False
-
-
-def mac_vendor(mac):
-
-    mac = normalize_mac(
-        mac
     )
 
 
     if (
-        not valid_mac(mac)
+        not mac
         or
-        private_mac(mac)
+        mac
+        in (
+            "00:00:00:00:00:00",
+            "ff:ff:ff:ff:ff:ff",
+        )
     ):
 
-        return None
-
-
-    if not MAC_VENDOR_PARSER:
-
-        return None
+        return False
 
 
     try:
 
-        comment = (
-            MAC_VENDOR_PARSER
-            .get_comment(
-                mac
-            )
+        first_byte = int(
+
+            mac.split(":")[0],
+
+            16
+
         )
 
 
-        manufacturer = (
-            MAC_VENDOR_PARSER
-            .get_manuf(
-                mac
-            )
-        )
-
-
-        value = (
-            comment
-            or
-            manufacturer
-        )
-
-
-        return clean_identity_text(
-            value,
-            require_letters=True
+        return not bool(
+            first_byte & 1
         )
 
 
     except Exception:
 
-        return None
+        return False
+
+
+def private_mac(
+    mac
+):
+
+    mac = (
+        normalize_mac(
+            mac
+        )
+    )
+
+
+    if not mac:
+
+        return False
+
+
+    try:
+
+        return bool(
+
+            int(
+                mac.split(":")[0],
+                16
+            )
+
+            &
+            2
+
+        )
+
+
+    except Exception:
+
+        return False
 
 
 
 # ============================================================
 # IDENTITY TEXT FILTERING
 # ============================================================
-
-BAD_VALUES = {
-
-    "",
-
-    "unknown",
-
-    "none",
-
-    "null",
-
-    "nil",
-
-    "device",
-
-    "localhost",
-
-    "local",
-
-    "n/a",
-
-    "na",
-
-    "0,1,2",
-
-    "0, 1, 2",
-
-    "0.1.2",
-
-}
-
 
 def clean_identity_text(
 
@@ -1292,7 +1580,9 @@ def clean_identity_text(
 
         except Exception:
 
-            return match.group(0)
+            return (
+                match.group(0)
+            )
 
 
     value = re.sub(
@@ -1337,23 +1627,26 @@ def clean_identity_text(
         value = value[:-6]
 
 
-    value = value.strip()
+    value = re.sub(
+
+        r"\s+",
+
+        " ",
+
+        value
+
+    ).strip()
 
 
-    if not value:
-
-        return None
-
-
-    lower = value.lower()
-
-
-    if lower in BAD_VALUES:
-
-        return None
-
-
-    if len(value) > 160:
+    if (
+        not value
+        or
+        value.lower()
+        in
+        BAD_VALUES
+        or
+        len(value) > 160
+    ):
 
         return None
 
@@ -1372,8 +1665,11 @@ def clean_identity_text(
 
 
     if re.fullmatch(
+
         r"[\d\s,._\-]+",
+
         value
+
     ):
 
         return None
@@ -1399,8 +1695,8 @@ def clean_identity_text(
         and
 
         not any(
-            char.isalpha()
-            for char in value
+            character.isalpha()
+            for character in value
         )
 
     ):
@@ -1415,12 +1711,14 @@ def valid_model(
     value
 ):
 
-    value = clean_identity_text(
+    value = (
+        clean_identity_text(
 
-        value,
+            value,
 
-        require_letters=True
+            require_letters=True
 
+        )
     )
 
 
@@ -1444,17 +1742,135 @@ def valid_model(
     return value
 
 
+def useful_http_title(
+    value
+):
+
+    value = (
+        clean_identity_text(
+
+            value,
+
+            require_letters=True
+
+        )
+    )
+
+
+    if not value:
+
+        return None
+
+
+    lower = (
+        value
+        .lower()
+        .strip()
+    )
+
+
+    if (
+
+        lower in
+        GENERIC_TITLES
+
+        or
+
+        len(value) > 120
+
+    ):
+
+        return None
+
+
+    return value
+
+
 
 # ============================================================
-# RECORDS
+# MAC VENDOR
 # ============================================================
 
-def new_record(ip):
+def mac_vendor(
+    mac
+):
+
+    mac = (
+        normalize_mac(
+            mac
+        )
+    )
+
+
+    if (
+
+        not valid_mac(
+            mac
+        )
+
+        or
+
+        private_mac(
+            mac
+        )
+
+        or
+
+        not MAC_VENDOR_PARSER
+
+    ):
+
+        return None
+
+
+    try:
+
+        value = (
+
+            MAC_VENDOR_PARSER
+            .get_comment(
+                mac
+            )
+
+            or
+
+            MAC_VENDOR_PARSER
+            .get_manuf(
+                mac
+            )
+
+        )
+
+
+        return clean_identity_text(
+
+            value,
+
+            require_letters=True
+
+        )
+
+
+    except Exception:
+
+        return None
+
+
+
+# ============================================================
+# DEVICE RECORD
+# ============================================================
+
+def new_record(
+    ip
+):
 
     return {
 
         "ip":
-            str(ip),
+            str(
+                ip
+            ),
 
         "mac":
             None,
@@ -1492,6 +1908,15 @@ def new_record(ip):
         "ssdp":
             [],
 
+        "http":
+            [],
+
+        "tls":
+            [],
+
+        "ssh":
+            [],
+
         "netbios":
             [],
 
@@ -1503,6 +1928,15 @@ def new_record(ip):
 
         "cloud_result":
             {},
+
+        "learned_rule":
+            None,
+
+        "learned_result":
+            {},
+
+        "learned_confidence":
+            0,
 
     }
 
@@ -1521,7 +1955,9 @@ def ensure_record(
 
         address = (
             ipaddress.ip_address(
-                str(ip)
+                str(
+                    ip
+                )
             )
         )
 
@@ -1551,14 +1987,18 @@ def ensure_record(
 
     if key not in records:
 
-        records[key] = (
+        records[
+            key
+        ] = (
             new_record(
                 key
             )
         )
 
 
-    return records[key]
+    return records[
+        key
+    ]
 
 
 def add_candidate(
@@ -1579,19 +2019,23 @@ def add_candidate(
 
     if model:
 
-        value = valid_model(
-            value
+        value = (
+            valid_model(
+                value
+            )
         )
 
 
     else:
 
-        value = clean_identity_text(
+        value = (
+            clean_identity_text(
 
-            value,
+                value,
 
-            require_letters=True
+                require_letters=True
 
+            )
         )
 
 
@@ -1600,7 +2044,49 @@ def add_candidate(
         return
 
 
-    candidate = {
+    for item in record[field]:
+
+        if (
+            item[
+                "value"
+            ].lower()
+            ==
+            value.lower()
+        ):
+
+            if (
+                score
+                >
+                item[
+                    "score"
+                ]
+            ):
+
+                item[
+                    "score"
+                ] = int(
+                    score
+                )
+
+
+                item[
+                    "source"
+                ] = source
+
+
+            record[
+                "identity_sources"
+            ].add(
+                source
+            )
+
+
+            return
+
+
+    record[
+        field
+    ].append({
 
         "value":
             value,
@@ -1613,38 +2099,7 @@ def add_candidate(
                 score
             ),
 
-    }
-
-
-    existing = [
-
-        item
-
-        for item in record[field]
-
-        if (
-            item["value"].lower()
-            ==
-            value.lower()
-        )
-
-    ]
-
-
-    if existing:
-
-        if score > existing[0]["score"]:
-
-            existing[0][
-                "score"
-            ] = score
-
-
-    else:
-
-        record[field].append(
-            candidate
-        )
+    })
 
 
     record[
@@ -1659,9 +2114,11 @@ def best_candidate(
     field
 ):
 
-    values = record.get(
-        field,
-        []
+    values = (
+        record.get(
+            field,
+            []
+        )
     )
 
 
@@ -1670,7 +2127,7 @@ def best_candidate(
         return None
 
 
-    values = sorted(
+    return max(
 
         values,
 
@@ -1678,21 +2135,16 @@ def best_candidate(
             item.get(
                 "score",
                 0
-            ),
+            )
 
-        reverse=True
-
-    )
-
-
-    return values[0][
+    )[
         "value"
     ]
 
 
 
 # ============================================================
-# NETWORK DETAILS
+# LOCAL NETWORK
 # ============================================================
 
 def local_ip_address():
@@ -1737,11 +2189,9 @@ def local_ip_address():
 
 
     for addresses in (
-
         psutil
         .net_if_addrs()
         .values()
-
     ):
 
         for address in addresses:
@@ -1804,11 +2254,9 @@ def network_details():
         name,
         addresses
     ) in (
-
         psutil
         .net_if_addrs()
         .items()
-
     ):
 
         matched = False
@@ -1974,23 +2422,23 @@ def default_gateway():
 
             if match:
 
-                return match.group(1)
+                return (
+                    match.group(1)
+                )
 
 
         elif system == "Linux":
 
-            ip_command = (
-                command_path(
+            ip_command = command_path(
 
-                    "ip",
+                "ip",
 
-                    [
-                        "/usr/sbin/ip",
-                        "/usr/bin/ip",
-                        "/sbin/ip"
-                    ]
+                [
+                    "/usr/sbin/ip",
+                    "/usr/bin/ip",
+                    "/sbin/ip"
+                ]
 
-                )
             )
 
 
@@ -2022,22 +2470,22 @@ def default_gateway():
 
             if match:
 
-                return match.group(1)
+                return (
+                    match.group(1)
+                )
 
 
         elif system == "Windows":
 
-            flags = 0
+            flags = getattr(
 
-
-            if hasattr(
                 subprocess,
-                "CREATE_NO_WINDOW"
-            ):
 
-                flags = (
-                    subprocess.CREATE_NO_WINDOW
-                )
+                "CREATE_NO_WINDOW",
+
+                0
+
+            )
 
 
             output = subprocess.check_output(
@@ -2074,7 +2522,9 @@ def default_gateway():
 
             if match:
 
-                return match.group(1)
+                return (
+                    match.group(1)
+                )
 
 
     except Exception:
@@ -2090,7 +2540,9 @@ def default_gateway():
 # NEIGHBOR SEED
 # ============================================================
 
-def seed_neighbor(ip):
+def seed_neighbor(
+    ip
+):
 
     sock = socket.socket(
 
@@ -2113,7 +2565,9 @@ def seed_neighbor(ip):
             b"\x00",
 
             (
-                str(ip),
+                str(
+                    ip
+                ),
                 9
             )
 
@@ -2132,10 +2586,12 @@ def seed_neighbor(ip):
 
 
 # ============================================================
-# PING
+# ICMP
 # ============================================================
 
-def ping_host(ip):
+def ping_host(
+    ip
+):
 
     ip = str(
         ip
@@ -2193,14 +2649,15 @@ def ping_host(ip):
         ]
 
 
-        if hasattr(
-            subprocess,
-            "CREATE_NO_WINDOW"
-        ):
+        flags = getattr(
 
-            flags = (
-                subprocess.CREATE_NO_WINDOW
-            )
+            subprocess,
+
+            "CREATE_NO_WINDOW",
+
+            0
+
+        )
 
 
     else:
@@ -2246,7 +2703,11 @@ def ping_host(ip):
         )
 
 
-        if result.returncode == 0:
+        if (
+            result.returncode
+            ==
+            0
+        ):
 
             return ip
 
@@ -2261,10 +2722,12 @@ def ping_host(ip):
 
 
 # ============================================================
-# TCP CHECK
+# TCP DISCOVERY
 # ============================================================
 
-def tcp_probe(ip):
+def tcp_probe(
+    ip
+):
 
     ip = str(
         ip
@@ -2343,7 +2806,7 @@ def tcp_probe(ip):
 
 
 # ============================================================
-# ARP / NEIGHBORS
+# NEIGHBOR TABLE
 # ============================================================
 
 def macos_neighbors():
@@ -2393,14 +2856,20 @@ def macos_neighbors():
         output
     ):
 
-        mac = normalize_mac(
-            raw_mac
+        mac = (
+            normalize_mac(
+                raw_mac
+            )
         )
 
 
-        if valid_mac(mac):
+        if valid_mac(
+            mac
+        ):
 
-            result[ip] = mac
+            result[
+                ip
+            ] = mac
 
 
     return result
@@ -2408,17 +2877,15 @@ def macos_neighbors():
 
 def windows_neighbors():
 
-    flags = 0
+    flags = getattr(
 
-
-    if hasattr(
         subprocess,
-        "CREATE_NO_WINDOW"
-    ):
 
-        flags = (
-            subprocess.CREATE_NO_WINDOW
-        )
+        "CREATE_NO_WINDOW",
+
+        0
+
+    )
 
 
     output = subprocess.check_output(
@@ -2458,14 +2925,20 @@ def windows_neighbors():
         output
     ):
 
-        mac = normalize_mac(
-            raw_mac
+        mac = (
+            normalize_mac(
+                raw_mac
+            )
         )
 
 
-        if valid_mac(mac):
+        if valid_mac(
+            mac
+        ):
 
-            result[ip] = mac
+            result[
+                ip
+            ] = mac
 
 
     return result
@@ -2522,14 +2995,20 @@ def linux_neighbors():
             output
         ):
 
-            mac = normalize_mac(
-                raw_mac
+            mac = (
+                normalize_mac(
+                    raw_mac
+                )
             )
 
 
-            if valid_mac(mac):
+            if valid_mac(
+                mac
+            ):
 
-                result[ip] = mac
+                result[
+                    ip
+                ] = mac
 
 
     except Exception:
@@ -2551,15 +3030,21 @@ def neighbor_table():
 
         if system == "Darwin":
 
-            return macos_neighbors()
+            return (
+                macos_neighbors()
+            )
 
 
         if system == "Windows":
 
-            return windows_neighbors()
+            return (
+                windows_neighbors()
+            )
 
 
-        return linux_neighbors()
+        return (
+            linux_neighbors()
+        )
 
 
     except Exception as exc:
@@ -2577,21 +3062,18 @@ def neighbor_table():
 # REVERSE DNS
 # ============================================================
 
-def reverse_dns(ip):
+def reverse_dns(
+    ip
+):
 
     try:
 
         hostname = (
-            socket.gethostbyaddr(
-                ip
-            )[0]
-        )
-
-
-        hostname = (
             clean_identity_text(
 
-                hostname,
+                socket.gethostbyaddr(
+                    ip
+                )[0],
 
                 require_letters=True
 
@@ -2661,6 +3143,7 @@ def netbios_encoded_name():
 
 
     return (
+
         b"\x20"
         +
         bytes(
@@ -2668,10 +3151,13 @@ def netbios_encoded_name():
         )
         +
         b"\x00"
+
     )
 
 
-def netbios_names(ip):
+def netbios_names(
+    ip
+):
 
     transaction_id = (
 
@@ -2782,12 +3268,17 @@ def netbios_names(ip):
 
 
         while (
-            offset < len(data)
+            offset
+            <
+            len(data)
         ):
 
             length = (
-                data[offset]
+                data[
+                    offset
+                ]
             )
+
 
             offset += 1
 
@@ -2804,7 +3295,9 @@ def netbios_names(ip):
 
 
         if (
-            data[offset]
+            data[
+                offset
+            ]
             &
             0xC0
         ) == 0xC0:
@@ -2817,8 +3310,11 @@ def netbios_names(ip):
             while True:
 
                 length = (
-                    data[offset]
+                    data[
+                        offset
+                    ]
                 )
+
 
                 offset += 1
 
@@ -2836,6 +3332,7 @@ def netbios_names(ip):
             _record_class,
             _ttl,
             rdlength
+
         ) = struct.unpack(
 
             "!HHIH",
@@ -2852,8 +3349,10 @@ def netbios_names(ip):
 
 
         payload = data[
+
             offset:
             offset + rdlength
+
         ]
 
 
@@ -2877,8 +3376,10 @@ def netbios_names(ip):
         ):
 
             entry = payload[
+
                 position:
                 position + 18
+
             ]
 
 
@@ -2945,7 +3446,8 @@ def netbios_names(ip):
 
                 and
 
-                suffix in (
+                suffix
+                in (
                     0x00,
                     0x20
                 )
@@ -2974,7 +3476,7 @@ def netbios_names(ip):
 
 
 # ============================================================
-# SSDP / UPNP
+# SSDP
 # ============================================================
 
 def parse_ssdp_headers(
@@ -2983,12 +3485,11 @@ def parse_ssdp_headers(
 
     try:
 
-        text = data.decode(
-
-            "utf-8",
-
-            errors="ignore"
-
+        text = (
+            data.decode(
+                "utf-8",
+                errors="ignore"
+            )
         )
 
 
@@ -3150,6 +3651,11 @@ def ssdp_discovery():
     return results
 
 
+
+# ============================================================
+# UPNP
+# ============================================================
+
 def allowed_upnp_location(
 
     url,
@@ -3167,22 +3673,19 @@ def allowed_upnp_location(
         )
 
 
-        if parsed.scheme not in (
+        if (
 
-            "http",
-            "https",
+            parsed.scheme
+            not in (
+                "http",
+                "https",
+            )
+
+            or
+
+            not parsed.hostname
 
         ):
-
-            return False
-
-
-        host = (
-            parsed.hostname
-        )
-
-
-        if not host:
 
             return False
 
@@ -3191,7 +3694,7 @@ def allowed_upnp_location(
 
             address = (
                 ipaddress.ip_address(
-                    host
+                    parsed.hostname
                 )
             )
 
@@ -3202,7 +3705,7 @@ def allowed_upnp_location(
                 ipaddress.ip_address(
 
                     socket.gethostbyname(
-                        host
+                        parsed.hostname
                     )
 
                 )
@@ -3211,11 +3714,15 @@ def allowed_upnp_location(
 
         return (
 
-            address.version == 4
+            address.version
+            ==
+            4
 
             and
 
-            address in network
+            address
+            in
+            network
 
         )
 
@@ -3249,6 +3756,7 @@ def xml_value(
 
 
         if (
+
             local_name
             ==
             name
@@ -3260,7 +3768,8 @@ def xml_value(
         ):
 
             value = (
-                element.text.strip()
+                element.text
+                .strip()
             )
 
 
@@ -3293,7 +3802,15 @@ def upnp_identity(
 
     try:
 
-        response = requests.get(
+        session = (
+            requests.Session()
+        )
+
+
+        session.trust_env = False
+
+
+        response = session.get(
 
             location,
 
@@ -3309,11 +3826,7 @@ def upnp_identity(
             headers={
 
                 "User-Agent":
-                    (
-                        "WiFiWatch/"
-                        +
-                        APP_VERSION
-                    )
+                    f"WiFiWatch/{APP_VERSION}"
 
             }
 
@@ -3396,9 +3909,11 @@ def upnp_identity(
         if (
 
             model_name
+
             and
 
             model_number
+
             and
 
             model_number.lower()
@@ -3474,6 +3989,7 @@ def decode_txt(
                 )
 
                 else
+
                 str(
                     raw_key
                 )
@@ -3493,6 +4009,7 @@ def decode_txt(
                 )
 
                 else
+
                 str(
                     raw_value
                 )
@@ -3527,6 +4044,7 @@ class MDNSListener(
         self.results = (
             results
         )
+
 
         self.lock = (
             threading.Lock()
@@ -3580,10 +4098,15 @@ class MDNSListener(
 
 
     def remove_service(
+
         self,
+
         zeroconf,
+
         service_type,
+
         name
+
     ):
 
         pass
@@ -3714,8 +4237,10 @@ def mdns_discovery():
         )
 
 
-        listener = MDNSListener(
-            results
+        listener = (
+            MDNSListener(
+                results
+            )
         )
 
 
@@ -3786,17 +4311,20 @@ def mdns_discovery():
 
 
 # ============================================================
-# APPLY RAW IDENTITY DATA
+# APPLY MDNS
 # ============================================================
 
 def apply_mdns(
+
     record,
+
     entries
+
 ):
 
-    record["mdns"] = (
-        entries[:30]
-    )
+    record[
+        "mdns"
+    ] = entries[:30]
 
 
     for entry in entries:
@@ -3833,30 +4361,37 @@ def apply_mdns(
 
         if instance:
 
-            score = 72
+            score = (
 
+                82
 
-            if any(
+                if any(
 
-                value in service
+                    value
+                    in
+                    service
 
-                for value in (
+                    for value in (
 
-                    "_googlecast",
+                        "_googlecast",
 
-                    "_airplay",
+                        "_airplay",
 
-                    "_ipp",
+                        "_ipp",
 
-                    "_printer",
+                        "_printer",
 
-                    "_workstation",
+                        "_workstation",
+
+                    )
 
                 )
 
-            ):
+                else
 
-                score = 82
+                72
+
+            )
 
 
             add_candidate(
@@ -3915,7 +4450,9 @@ def apply_mdns(
 
                     "friendly_candidates",
 
-                    props[key],
+                    props[
+                        key
+                    ],
 
                     "mdns_txt",
 
@@ -3942,7 +4479,9 @@ def apply_mdns(
 
                     "model_candidates",
 
-                    props[key],
+                    props[
+                        key
+                    ],
 
                     "mdns_txt",
 
@@ -3973,7 +4512,9 @@ def apply_mdns(
 
                     "vendor_candidates",
 
-                    props[key],
+                    props[
+                        key
+                    ],
 
                     "mdns_txt",
 
@@ -3988,6 +4529,11 @@ def apply_mdns(
             "mdns"
         )
 
+
+
+# ============================================================
+# APPLY SSDP
+# ============================================================
 
 def apply_ssdp(
 
@@ -4006,9 +4552,11 @@ def apply_ssdp(
 
     for entry in entries:
 
-        headers = entry.get(
-            "headers",
-            {}
+        headers = (
+            entry.get(
+                "headers",
+                {}
+            )
         )
 
 
@@ -4048,7 +4596,8 @@ def apply_ssdp(
 
             and
 
-            location not in
+            location
+            not in
             used_locations
 
         ):
@@ -4153,14 +4702,1013 @@ def apply_ssdp(
         )
 
 
-    record["ssdp"] = (
-        saved[:25]
-    )
+    record[
+        "ssdp"
+    ] = saved[:25]
 
 
 
 # ============================================================
-# CLOUD RULE ENGINE
+# HTTP IDENTITY
+# ============================================================
+
+def extract_html_title(
+    text
+):
+
+    if not text:
+
+        return None
+
+
+    match = re.search(
+
+        r"<title[^>]*>(.*?)</title>",
+
+        text,
+
+        flags=(
+            re.IGNORECASE
+            |
+            re.DOTALL
+        )
+
+    )
+
+
+    if not match:
+
+        return None
+
+
+    title = re.sub(
+
+        r"<[^>]+>",
+
+        " ",
+
+        match.group(1)
+
+    )
+
+
+    title = re.sub(
+
+        r"\s+",
+
+        " ",
+
+        title
+
+    ).strip()
+
+
+    return (
+        useful_http_title(
+            title
+        )
+    )
+
+
+def probe_http(
+
+    ip,
+
+    port,
+
+    use_https=False
+
+):
+
+    scheme = (
+
+        "https"
+
+        if use_https
+
+        else
+
+        "http"
+
+    )
+
+
+    url = (
+
+        f"{scheme}://"
+        f"{ip}:"
+        f"{port}/"
+
+    )
+
+
+    session = (
+        requests.Session()
+    )
+
+
+    session.trust_env = False
+
+
+    response = None
+
+
+    try:
+
+        response = session.get(
+
+            url,
+
+            timeout=(
+                0.7,
+                1.4
+            ),
+
+            allow_redirects=False,
+
+            verify=False,
+
+            stream=True,
+
+            headers={
+
+                "User-Agent":
+                    f"WiFiWatch/{APP_VERSION}",
+
+                "Accept":
+                    (
+                        "text/html,"
+                        "application/xhtml+xml,"
+                        "*/*;q=0.5"
+                    ),
+
+            }
+
+        )
+
+
+        body = bytearray()
+
+
+        try:
+
+            for chunk in (
+                response.iter_content(
+                    chunk_size=4096
+                )
+            ):
+
+                if not chunk:
+
+                    continue
+
+
+                body.extend(
+                    chunk
+                )
+
+
+                if len(body) >= 65536:
+
+                    break
+
+
+        except Exception:
+
+            pass
+
+
+        encoding = (
+
+            response.encoding
+
+            or
+
+            "utf-8"
+
+        )
+
+
+        try:
+
+            text = bytes(
+                body
+            ).decode(
+
+                encoding,
+
+                errors="ignore"
+
+            )
+
+
+        except Exception:
+
+            text = bytes(
+                body
+            ).decode(
+
+                "utf-8",
+
+                errors="ignore"
+
+            )
+
+
+        return {
+
+            "port":
+                port,
+
+            "scheme":
+                scheme,
+
+            "status":
+                response.status_code,
+
+            "server":
+                clean_identity_text(
+
+                    response.headers.get(
+                        "Server"
+                    ),
+
+                    require_letters=True,
+
+                    allow_short=True
+
+                ),
+
+            "title":
+                extract_html_title(
+                    text
+                ),
+
+            "content_type":
+                response.headers.get(
+                    "Content-Type"
+                ),
+
+            "location":
+                response.headers.get(
+                    "Location"
+                ),
+
+        }
+
+
+    except Exception:
+
+        return None
+
+
+    finally:
+
+        if response is not None:
+
+            try:
+
+                response.close()
+
+            except Exception:
+
+                pass
+
+
+        session.close()
+
+
+
+# ============================================================
+# TLS CERTIFICATE IDENTITY
+# ============================================================
+
+def decode_certificate_der(
+    der_bytes
+):
+
+    decoder = getattr(
+
+        getattr(
+            ssl,
+            "_ssl",
+            None
+        ),
+
+        "_test_decode_cert",
+
+        None
+
+    )
+
+
+    if not decoder:
+
+        return None
+
+
+    temp_path = None
+
+
+    try:
+
+        pem = (
+            ssl.DER_cert_to_PEM_cert(
+                der_bytes
+            )
+        )
+
+
+        with tempfile.NamedTemporaryFile(
+
+            "w",
+
+            delete=False,
+
+            suffix=".pem",
+
+            encoding="utf-8"
+
+        ) as file:
+
+            file.write(
+                pem
+            )
+
+
+            temp_path = (
+                file.name
+            )
+
+
+        return decoder(
+            temp_path
+        )
+
+
+    except Exception:
+
+        return None
+
+
+    finally:
+
+        if temp_path:
+
+            try:
+
+                os.unlink(
+                    temp_path
+                )
+
+            except Exception:
+
+                pass
+
+
+def certificate_names(
+    cert
+):
+
+    if not isinstance(
+        cert,
+        dict
+    ):
+
+        return (
+            [],
+            None
+        )
+
+
+    names = []
+
+
+    for item in (
+        cert.get(
+            "subject",
+            []
+        )
+    ):
+
+        for (
+            key,
+            value
+        ) in item:
+
+            if key == "commonName":
+
+                common_name = (
+                    clean_identity_text(
+
+                        value,
+
+                        require_letters=True
+
+                    )
+                )
+
+
+                if (
+
+                    common_name
+
+                    and
+
+                    common_name
+                    not in names
+
+                ):
+
+                    names.append(
+                        common_name
+                    )
+
+
+    for (
+        kind,
+        value
+    ) in (
+        cert.get(
+            "subjectAltName",
+            []
+        )
+    ):
+
+        if kind == "DNS":
+
+            name = (
+                clean_identity_text(
+
+                    value,
+
+                    require_letters=True
+
+                )
+            )
+
+
+            if (
+
+                name
+
+                and
+
+                name not in names
+
+            ):
+
+                names.append(
+                    name
+                )
+
+
+    issuer_parts = []
+
+
+    for item in (
+        cert.get(
+            "issuer",
+            []
+        )
+    ):
+
+        for (
+            key,
+            value
+        ) in item:
+
+            if key in (
+
+                "commonName",
+
+                "organizationName",
+
+            ):
+
+                cleaned = (
+                    clean_identity_text(
+
+                        value,
+
+                        require_letters=True,
+
+                        allow_short=True
+
+                    )
+                )
+
+
+                if cleaned:
+
+                    issuer_parts.append(
+                        cleaned
+                    )
+
+
+    issuer = None
+
+
+    if issuer_parts:
+
+        issuer = " / ".join(
+
+            dict.fromkeys(
+                issuer_parts
+            )
+
+        )
+
+
+    return (
+        names[:10],
+        issuer
+    )
+
+
+def probe_tls_certificate(
+
+    ip,
+
+    port
+
+):
+
+    context = (
+        ssl.create_default_context()
+    )
+
+
+    context.check_hostname = False
+
+    context.verify_mode = (
+        ssl.CERT_NONE
+    )
+
+
+    raw = None
+
+    wrapped = None
+
+
+    try:
+
+        raw = (
+            socket.create_connection(
+
+                (
+                    ip,
+                    port
+                ),
+
+                timeout=0.9
+
+            )
+        )
+
+
+        wrapped = (
+            context.wrap_socket(
+                raw
+            )
+        )
+
+
+        wrapped.settimeout(
+            0.9
+        )
+
+
+        der = (
+            wrapped.getpeercert(
+                binary_form=True
+            )
+        )
+
+
+        if not der:
+
+            return None
+
+
+        cert = (
+            decode_certificate_der(
+                der
+            )
+        )
+
+
+        names, issuer = (
+            certificate_names(
+                cert
+            )
+        )
+
+
+        return {
+
+            "port":
+                port,
+
+            "names":
+                names,
+
+            "issuer":
+                issuer,
+
+        }
+
+
+    except Exception:
+
+        return None
+
+
+    finally:
+
+        try:
+
+            if wrapped:
+
+                wrapped.close()
+
+
+            elif raw:
+
+                raw.close()
+
+
+        except Exception:
+
+            pass
+
+
+
+# ============================================================
+# SSH BANNER
+# ============================================================
+
+def probe_ssh_banner(
+
+    ip,
+
+    port=22
+
+):
+
+    sock = socket.socket(
+
+        socket.AF_INET,
+
+        socket.SOCK_STREAM
+
+    )
+
+
+    sock.settimeout(
+        0.8
+    )
+
+
+    try:
+
+        sock.connect(
+            (
+                ip,
+                port
+            )
+        )
+
+
+        data = (
+            sock.recv(
+                512
+            )
+        )
+
+
+        if not data:
+
+            return None
+
+
+        banner = (
+            data.decode(
+
+                "utf-8",
+
+                errors="ignore"
+
+            )
+            .strip()
+        )
+
+
+        if not banner.startswith(
+            "SSH-"
+        ):
+
+            return None
+
+
+        return {
+
+            "port":
+                port,
+
+            "banner":
+                banner[:240],
+
+        }
+
+
+    except Exception:
+
+        return None
+
+
+    finally:
+
+        try:
+
+            sock.close()
+
+        except Exception:
+
+            pass
+
+
+
+# ============================================================
+# SERVICE METADATA ENRICHMENT
+# ============================================================
+
+def service_metadata_probe(
+
+    ip,
+
+    ports
+
+):
+
+    result = {
+
+        "ip":
+            ip,
+
+        "http":
+            [],
+
+        "tls":
+            [],
+
+        "ssh":
+            [],
+
+    }
+
+
+    for port in sorted(
+
+        set(
+            ports
+        )
+        &
+        HTTP_PORTS
+
+    ):
+
+        item = (
+            probe_http(
+
+                ip,
+
+                port,
+
+                use_https=False
+
+            )
+        )
+
+
+        if item:
+
+            result[
+                "http"
+            ].append(
+                item
+            )
+
+
+    for port in sorted(
+
+        set(
+            ports
+        )
+        &
+        HTTPS_PORTS
+
+    ):
+
+        item = (
+            probe_http(
+
+                ip,
+
+                port,
+
+                use_https=True
+
+            )
+        )
+
+
+        if item:
+
+            result[
+                "http"
+            ].append(
+                item
+            )
+
+
+        cert = (
+            probe_tls_certificate(
+
+                ip,
+
+                port
+
+            )
+        )
+
+
+        if cert:
+
+            result[
+                "tls"
+            ].append(
+                cert
+            )
+
+
+    if 22 in ports:
+
+        item = (
+            probe_ssh_banner(
+
+                ip,
+
+                22
+
+            )
+        )
+
+
+        if item:
+
+            result[
+                "ssh"
+            ].append(
+                item
+            )
+
+
+    return result
+
+
+def apply_service_metadata(
+
+    record,
+
+    metadata
+
+):
+
+    record[
+        "http"
+    ] = (
+        metadata.get(
+            "http",
+            []
+        )[:12]
+    )
+
+
+    record[
+        "tls"
+    ] = (
+        metadata.get(
+            "tls",
+            []
+        )[:8]
+    )
+
+
+    record[
+        "ssh"
+    ] = (
+        metadata.get(
+            "ssh",
+            []
+        )[:4]
+    )
+
+
+    for item in (
+        record[
+            "http"
+        ]
+    ):
+
+        if item.get(
+            "title"
+        ):
+
+            add_candidate(
+
+                record,
+
+                "friendly_candidates",
+
+                item[
+                    "title"
+                ],
+
+                "http_title",
+
+                72
+
+            )
+
+
+            record[
+                "identity_sources"
+            ].add(
+                "http"
+            )
+
+
+        if item.get(
+            "server"
+        ):
+
+            record[
+                "identity_sources"
+            ].add(
+                "http"
+            )
+
+
+    for item in (
+        record[
+            "tls"
+        ]
+    ):
+
+        for name in (
+            item.get(
+                "names",
+                []
+            )
+        ):
+
+            add_candidate(
+
+                record,
+
+                "hostname_candidates",
+
+                name,
+
+                "tls_certificate",
+
+                70
+
+            )
+
+
+        record[
+            "identity_sources"
+        ].add(
+            "tls"
+        )
+
+
+    if record[
+        "ssh"
+    ]:
+
+        record[
+            "identity_sources"
+        ].add(
+            "ssh"
+        )
+
+
+
+# ============================================================
+# RULE ENGINE TEXT
 # ============================================================
 
 def record_text(
@@ -4182,9 +5730,11 @@ def record_text(
 
     ):
 
-        for item in record.get(
-            field,
-            []
+        for item in (
+            record.get(
+                field,
+                []
+            )
         ):
 
             values.append(
@@ -4195,49 +5745,63 @@ def record_text(
             )
 
 
-    values.append(
+    for field in (
 
-        json.dumps(
-            record.get(
-                "mdns",
-                []
-            ),
-            ensure_ascii=False
+        "mdns",
+
+        "ssdp",
+
+        "http",
+
+        "tls",
+
+        "ssh",
+
+        "netbios",
+
+    ):
+
+        values.append(
+
+            json.dumps(
+
+                record.get(
+                    field,
+                    []
+                ),
+
+                ensure_ascii=False
+
+            )
+
         )
-
-    )
-
-
-    values.append(
-
-        json.dumps(
-            record.get(
-                "ssdp",
-                []
-            ),
-            ensure_ascii=False
-        )
-
-    )
 
 
     return (
+
         " ".join(
             values
         )
         .lower()
+
     )
 
 
 def text_has_any(
+
     text,
+
     values
+
 ):
 
     return any(
 
-        str(value).lower()
-        in text
+        str(
+            value
+        ).lower()
+        in
+        text
 
         for value in values
 
@@ -4245,30 +5809,47 @@ def text_has_any(
 
 
 def text_has_all(
+
     text,
+
     values
+
 ):
 
     return all(
 
-        str(value).lower()
-        in text
+        str(
+            value
+        ).lower()
+        in
+        text
 
         for value in values
 
     )
 
 
-def cloud_rule_matches(
+
+# ============================================================
+# CLOUD RULE MATCHING
+# ============================================================
+
+def rule_matches(
 
     record,
 
-    rule
+    rule,
+
+    ignore_device_id=True
 
 ):
 
-    match = rule.get(
-        "match",
+    match = (
+        rule.get(
+            "match",
+            {}
+        )
+        or
         {}
     )
 
@@ -4286,6 +5867,7 @@ def cloud_rule_matches(
 
 
     friendly = (
+
         best_candidate(
 
             record,
@@ -4293,12 +5875,16 @@ def cloud_rule_matches(
             "friendly_candidates"
 
         )
+
         or
+
         ""
+
     ).lower()
 
 
     hostname = (
+
         best_candidate(
 
             record,
@@ -4306,12 +5892,16 @@ def cloud_rule_matches(
             "hostname_candidates"
 
         )
+
         or
+
         ""
+
     ).lower()
 
 
     vendor = (
+
         best_candidate(
 
             record,
@@ -4319,12 +5909,16 @@ def cloud_rule_matches(
             "vendor_candidates"
 
         )
+
         or
+
         ""
+
     ).lower()
 
 
     model = (
+
         best_candidate(
 
             record,
@@ -4332,8 +5926,11 @@ def cloud_rule_matches(
             "model_candidates"
 
         )
+
         or
+
         ""
+
     ).lower()
 
 
@@ -4343,7 +5940,9 @@ def cloud_rule_matches(
             record.get(
                 "mdns",
                 []
-            )
+            ),
+
+            ensure_ascii=False
 
         )
         .lower()
@@ -4356,7 +5955,54 @@ def cloud_rule_matches(
             record.get(
                 "ssdp",
                 []
-            )
+            ),
+
+            ensure_ascii=False
+
+        )
+        .lower()
+    )
+
+
+    http_text = (
+        json.dumps(
+
+            record.get(
+                "http",
+                []
+            ),
+
+            ensure_ascii=False
+
+        )
+        .lower()
+    )
+
+
+    tls_text = (
+        json.dumps(
+
+            record.get(
+                "tls",
+                []
+            ),
+
+            ensure_ascii=False
+
+        )
+        .lower()
+    )
+
+
+    ssh_text = (
+        json.dumps(
+
+            record.get(
+                "ssh",
+                []
+            ),
+
+            ensure_ascii=False
 
         )
         .lower()
@@ -4364,26 +6010,60 @@ def cloud_rule_matches(
 
 
     ports = set(
+
         record.get(
             "open_ports",
             set()
+        )
+
+    )
+
+
+    record_mac = (
+        normalize_mac(
+
+            record.get(
+                "mac"
+            )
+
         )
     )
 
 
     for (
         key,
-        value
+        raw_value
     ) in match.items():
 
-        if not isinstance(
-            value,
-            list
+        if (
+            key
+            ==
+            "device_id"
+
+            and
+
+            ignore_device_id
         ):
 
-            value = [
-                value
+            continue
+
+
+        value = (
+
+            raw_value
+
+            if isinstance(
+                raw_value,
+                list
+            )
+
+            else
+
+            [
+                raw_value
             ]
+
+        )
 
 
         if key == "contains_any":
@@ -4407,22 +6087,25 @@ def cloud_rule_matches(
 
 
         elif key in (
+
             "name_contains",
-            "name_contains_any"
+
+            "name_contains_any",
+
         ):
 
-            name_text = (
-                friendly
-                +
-                " "
-                +
-                hostname
-            )
-
-
             if not text_has_any(
-                name_text,
+
+                (
+                    friendly
+                    +
+                    " "
+                    +
+                    hostname
+                ),
+
                 value
+
             ):
 
                 return False
@@ -4478,11 +6161,43 @@ def cloud_rule_matches(
                 return False
 
 
+        elif key == "http_contains":
+
+            if not text_has_any(
+                http_text,
+                value
+            ):
+
+                return False
+
+
+        elif key == "tls_contains":
+
+            if not text_has_any(
+                tls_text,
+                value
+            ):
+
+                return False
+
+
+        elif key == "ssh_contains":
+
+            if not text_has_any(
+                ssh_text,
+                value
+            ):
+
+                return False
+
+
         elif key == "ports_any":
 
             wanted = {
 
-                int(item)
+                int(
+                    item
+                )
 
                 for item in value
 
@@ -4502,7 +6217,9 @@ def cloud_rule_matches(
 
             wanted = {
 
-                int(item)
+                int(
+                    item
+                )
 
                 for item in value
 
@@ -4516,8 +6233,811 @@ def cloud_rule_matches(
                 return False
 
 
+        elif key == "mac_exact":
+
+            wanted = {
+
+                normalize_mac(
+                    item
+                )
+
+                for item in value
+
+            }
+
+
+            if (
+
+                not record_mac
+
+                or
+
+                record_mac
+                not in
+                wanted
+
+            ):
+
+                return False
+
+
+        elif key == "mac_prefix":
+
+            prefixes = [
+
+                str(
+                    item
+                )
+                .lower()
+                .replace(
+                    "-",
+                    ":"
+                )
+
+                for item in value
+
+            ]
+
+
+            if (
+
+                not record_mac
+
+                or
+
+                not any(
+
+                    record_mac.startswith(
+                        prefix
+                    )
+
+                    for prefix in prefixes
+
+                )
+
+            ):
+
+                return False
+
+
+        elif key == "gateway":
+
+            if (
+                bool(
+                    record.get(
+                        "gateway"
+                    )
+                )
+                !=
+                bool(
+                    raw_value
+                )
+            ):
+
+                return False
+
+
+        elif key == "private_mac":
+
+            if (
+
+                bool(
+
+                    record_mac
+
+                    and
+
+                    private_mac(
+                        record_mac
+                    )
+
+                )
+
+                !=
+
+                bool(
+                    raw_value
+                )
+
+            ):
+
+                return False
+
+
+        else:
+
+            return False
+
+
     return True
 
+
+
+# ============================================================
+# PERSONAL LEARNING
+# ============================================================
+
+def specific_anchor(
+    values
+):
+
+    if not isinstance(
+        values,
+        list
+    ):
+
+        values = [
+            values
+        ]
+
+
+    for value in values:
+
+        text = (
+
+            str(
+                value
+            )
+            .strip()
+            .lower()
+
+        )
+
+
+        if (
+
+            len(text) >= 5
+
+            and
+
+            text not in
+            GENERIC_ANCHORS
+
+        ):
+
+            return True
+
+
+    return False
+
+
+def learned_rule_match_strength(
+
+    record,
+
+    rule
+
+):
+
+    """
+    Personal learned identity matcher.
+
+    A stable globally-administered MAC can identify a device by itself.
+
+    If there is no stable MAC, the Agent requires useful hostname/model
+    or several independent service fingerprints.
+
+    IP address is intentionally never used as identity proof.
+    """
+
+    match = (
+        rule.get(
+            "match",
+            {}
+        )
+        or
+        {}
+    )
+
+
+    record_mac = (
+        normalize_mac(
+
+            record.get(
+                "mac"
+            )
+
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # STRONGEST ANCHOR: STABLE MAC
+    # --------------------------------------------------------
+
+    if match.get(
+        "mac_exact"
+    ):
+
+        wanted = (
+            match.get(
+                "mac_exact"
+            )
+        )
+
+
+        wanted = (
+
+            wanted
+
+            if isinstance(
+                wanted,
+                list
+            )
+
+            else
+
+            [
+                wanted
+            ]
+
+        )
+
+
+        wanted = {
+
+            normalize_mac(
+                item
+            )
+
+            for item in wanted
+
+        }
+
+
+        if (
+
+            record_mac
+
+            and
+
+            not private_mac(
+                record_mac
+            )
+
+            and
+
+            record_mac in wanted
+
+        ):
+
+            return 99
+
+
+        return 0
+
+
+    hostname = (
+
+        best_candidate(
+
+            record,
+
+            "hostname_candidates"
+
+        )
+
+        or
+
+        ""
+
+    ).lower()
+
+
+    vendor = (
+
+        best_candidate(
+
+            record,
+
+            "vendor_candidates"
+
+        )
+
+        or
+
+        ""
+
+    ).lower()
+
+
+    model = (
+
+        best_candidate(
+
+            record,
+
+            "model_candidates"
+
+        )
+
+        or
+
+        ""
+
+    ).lower()
+
+
+    mdns_text = (
+        json.dumps(
+
+            record.get(
+                "mdns",
+                []
+            ),
+
+            ensure_ascii=False
+
+        )
+        .lower()
+    )
+
+
+    ssdp_text = (
+        json.dumps(
+
+            record.get(
+                "ssdp",
+                []
+            ),
+
+            ensure_ascii=False
+
+        )
+        .lower()
+    )
+
+
+    http_text = (
+        json.dumps(
+
+            record.get(
+                "http",
+                []
+            ),
+
+            ensure_ascii=False
+
+        )
+        .lower()
+    )
+
+
+    tls_text = (
+        json.dumps(
+
+            record.get(
+                "tls",
+                []
+            ),
+
+            ensure_ascii=False
+
+        )
+        .lower()
+    )
+
+
+    score = 0
+
+    strong_anchor = False
+
+
+    values = (
+        match.get(
+            "hostname_contains_any"
+        )
+    )
+
+
+    if (
+
+        values
+
+        and
+
+        specific_anchor(
+            values
+        )
+
+    ):
+
+        values = (
+
+            values
+
+            if isinstance(
+                values,
+                list
+            )
+
+            else
+
+            [
+                values
+            ]
+
+        )
+
+
+        if text_has_any(
+            hostname,
+            values
+        ):
+
+            score += 3
+
+            strong_anchor = True
+
+
+    values = (
+        match.get(
+            "model_contains"
+        )
+    )
+
+
+    if (
+
+        values
+
+        and
+
+        specific_anchor(
+            values
+        )
+
+    ):
+
+        values = (
+
+            values
+
+            if isinstance(
+                values,
+                list
+            )
+
+            else
+
+            [
+                values
+            ]
+
+        )
+
+
+        if text_has_any(
+            model,
+            values
+        ):
+
+            score += 3
+
+            strong_anchor = True
+
+
+    values = (
+        match.get(
+            "ssdp_contains"
+        )
+    )
+
+
+    if (
+
+        values
+
+        and
+
+        specific_anchor(
+            values
+        )
+
+    ):
+
+        values = (
+
+            values
+
+            if isinstance(
+                values,
+                list
+            )
+
+            else
+
+            [
+                values
+            ]
+
+        )
+
+
+        if text_has_any(
+            ssdp_text,
+            values
+        ):
+
+            score += 2
+
+
+    values = (
+        match.get(
+            "tls_contains"
+        )
+    )
+
+
+    if (
+
+        values
+
+        and
+
+        specific_anchor(
+            values
+        )
+
+    ):
+
+        values = (
+
+            values
+
+            if isinstance(
+                values,
+                list
+            )
+
+            else
+
+            [
+                values
+            ]
+
+        )
+
+
+        if text_has_any(
+            tls_text,
+            values
+        ):
+
+            score += 2
+
+
+    values = (
+        match.get(
+            "http_contains"
+        )
+    )
+
+
+    if (
+
+        values
+
+        and
+
+        specific_anchor(
+            values
+        )
+
+    ):
+
+        values = (
+
+            values
+
+            if isinstance(
+                values,
+                list
+            )
+
+            else
+
+            [
+                values
+            ]
+
+        )
+
+
+        if text_has_any(
+            http_text,
+            values
+        ):
+
+            score += 2
+
+
+    values = (
+        match.get(
+            "mdns_contains"
+        )
+    )
+
+
+    if values:
+
+        values = (
+
+            values
+
+            if isinstance(
+                values,
+                list
+            )
+
+            else
+
+            [
+                values
+            ]
+
+        )
+
+
+        if text_has_any(
+            mdns_text,
+            values
+        ):
+
+            score += 1
+
+
+    values = (
+        match.get(
+            "manufacturer_contains"
+        )
+    )
+
+
+    if values:
+
+        values = (
+
+            values
+
+            if isinstance(
+                values,
+                list
+            )
+
+            else
+
+            [
+                values
+            ]
+
+        )
+
+
+        if text_has_any(
+            vendor,
+            values
+        ):
+
+            score += 1
+
+
+    if (
+
+        strong_anchor
+
+        and
+
+        score >= 3
+
+    ):
+
+        if score >= 5:
+
+            return 97
+
+
+        return 94
+
+
+    if score >= 5:
+
+        return 95
+
+
+    return 0
+
+
+def apply_learned_rules(
+
+    record,
+
+    rules
+
+):
+
+    ordered = sorted(
+
+        rules,
+
+        key=lambda rule:
+            int(
+                rule.get(
+                    "priority",
+                    0
+                )
+            ),
+
+        reverse=True
+
+    )
+
+
+    for rule in ordered:
+
+        try:
+
+            strength = (
+                learned_rule_match_strength(
+
+                    record,
+
+                    rule
+
+                )
+            )
+
+
+            if strength <= 0:
+
+                continue
+
+
+            record[
+                "learned_rule"
+            ] = (
+                rule.get(
+                    "name"
+                )
+            )
+
+
+            record[
+                "learned_result"
+            ] = (
+                rule.get(
+                    "result",
+                    {}
+                )
+                or
+                {}
+            )
+
+
+            record[
+                "learned_confidence"
+            ] = strength
+
+
+            record[
+                "identity_sources"
+            ].add(
+                "learned_fingerprint"
+            )
+
+
+            return
+
+
+        except Exception:
+
+            continue
+
+
+
+# ============================================================
+# CLOUD RULES
+# ============================================================
 
 def apply_cloud_rules(
 
@@ -4548,21 +7068,17 @@ def apply_cloud_rules(
 
         try:
 
-            if not cloud_rule_matches(
+            if not rule_matches(
 
                 record,
 
-                rule
+                rule,
+
+                ignore_device_id=True
 
             ):
 
                 continue
-
-
-            result = rule.get(
-                "result",
-                {}
-            )
 
 
             record[
@@ -4577,7 +7093,12 @@ def apply_cloud_rules(
             record[
                 "cloud_result"
             ] = (
-                result
+                rule.get(
+                    "result",
+                    {}
+                )
+                or
+                {}
             )
 
 
@@ -4598,7 +7119,7 @@ def apply_cloud_rules(
 
 
 # ============================================================
-# BUILT-IN DEVICE TYPE ENGINE
+# DEVICE TYPE ENGINE
 # ============================================================
 
 def infer_device_type(
@@ -4630,6 +7151,7 @@ def infer_device_type(
 
 
     combined = (
+
         " ".join(
 
             value
@@ -4637,8 +7159,11 @@ def infer_device_type(
             for value in (
 
                 friendly,
+
                 hostname,
+
                 vendor,
+
                 model,
 
             )
@@ -4648,32 +7173,14 @@ def infer_device_type(
         )
 
         .lower()
+
     )
 
 
-    mdns_text = (
-        json.dumps(
-
-            record.get(
-                "mdns",
-                []
-            )
-
+    evidence = (
+        record_text(
+            record
         )
-        .lower()
-    )
-
-
-    ssdp_text = (
-        json.dumps(
-
-            record.get(
-                "ssdp",
-                []
-            )
-
-        )
-        .lower()
     )
 
 
@@ -4685,12 +7192,15 @@ def infer_device_type(
     )
 
 
-    # Computer names are stronger evidence
-    # than generic AirPlay advertisement.
+    # --------------------------------------------------------
+    # COMPUTER
+    # --------------------------------------------------------
 
     if any(
 
-        value in combined
+        value
+        in
+        combined
 
         for value in (
 
@@ -4716,6 +7226,8 @@ def infer_device_type(
 
             "elitebook",
 
+            "surface pro",
+
         )
 
     ):
@@ -4723,9 +7235,15 @@ def infer_device_type(
         return "computer"
 
 
+    # --------------------------------------------------------
+    # PHONE / TABLET
+    # --------------------------------------------------------
+
     if any(
 
-        value in combined
+        value
+        in
+        combined
 
         for value in (
 
@@ -4748,9 +7266,15 @@ def infer_device_type(
         return "mobile"
 
 
+    # --------------------------------------------------------
+    # GAME CONSOLE
+    # --------------------------------------------------------
+
     if any(
 
-        value in combined
+        value
+        in
+        combined
 
         for value in (
 
@@ -4771,15 +7295,21 @@ def infer_device_type(
         return "game_console"
 
 
+    # --------------------------------------------------------
+    # PRINTER
+    # --------------------------------------------------------
+
     if (
 
         "_ipp._tcp"
-        in mdns_text
+        in
+        evidence
 
         or
 
         "_printer._tcp"
-        in mdns_text
+        in
+        evidence
 
         or
 
@@ -4792,27 +7322,37 @@ def infer_device_type(
         or
 
         "printer"
-        in combined
+        in
+        combined
 
         or
 
         "laserjet"
-        in combined
+        in
+        combined
 
     ):
 
         return "printer"
 
 
+    # --------------------------------------------------------
+    # NAS
+    # --------------------------------------------------------
+
     if any(
 
-        value in combined
+        value
+        in
+        combined
 
         for value in (
 
             "synology",
 
             "qnap",
+
+            "diskstation",
 
             "nas",
 
@@ -4823,9 +7363,15 @@ def infer_device_type(
         return "nas"
 
 
+    # --------------------------------------------------------
+    # CAMERA
+    # --------------------------------------------------------
+
     if any(
 
-        value in combined
+        value
+        in
+        combined
 
         for value in (
 
@@ -4843,6 +7389,8 @@ def infer_device_type(
 
             "ring",
 
+            "eufycam",
+
         )
 
     ):
@@ -4850,9 +7398,15 @@ def infer_device_type(
         return "camera"
 
 
+    # --------------------------------------------------------
+    # SMART TV / MEDIA
+    # --------------------------------------------------------
+
     if any(
 
-        value in combined
+        value
+        in
+        combined
 
         for value in (
 
@@ -4892,33 +7446,47 @@ def infer_device_type(
 
 
     if (
+
         "mediarenderer"
-        in ssdp_text
-    ):
+        in
+        evidence
 
-        return "smart_tv_media"
+        or
 
-
-    if (
         "_googlecast._tcp"
-        in mdns_text
+        in
+        evidence
+
     ):
 
         return "smart_tv_media"
 
+
+    # --------------------------------------------------------
+    # SMART HOME
+    # --------------------------------------------------------
 
     if (
         "_hap._tcp"
-        in mdns_text
+        in
+        evidence
     ):
 
         return "smart_home"
 
 
+    # --------------------------------------------------------
+    # MEDIA SERVER
+    # --------------------------------------------------------
+
     if 32400 in ports:
 
         return "media_server"
 
+
+    # --------------------------------------------------------
+    # COMPUTER / NAS
+    # --------------------------------------------------------
 
     if (
 
@@ -4937,10 +7505,18 @@ def infer_device_type(
         return "computer_or_nas"
 
 
+    # --------------------------------------------------------
+    # COMPUTER / SERVER
+    # --------------------------------------------------------
+
     if 22 in ports:
 
         return "computer_or_server"
 
+
+    # --------------------------------------------------------
+    # APPLE DEVICE
+    # --------------------------------------------------------
 
     if 62078 in ports:
 
@@ -4952,7 +7528,7 @@ def infer_device_type(
 
 
 # ============================================================
-# OS INFERENCE
+# OS ENGINE
 # ============================================================
 
 def infer_os(
@@ -4962,6 +7538,8 @@ def infer_os(
     friendly,
 
     hostname,
+
+    vendor,
 
     model,
 
@@ -4994,6 +7572,7 @@ def infer_os(
 
 
     combined = (
+
         " ".join(
 
             value
@@ -5001,7 +7580,11 @@ def infer_os(
             for value in (
 
                 friendly,
+
                 hostname,
+
+                vendor,
+
                 model,
 
             )
@@ -5011,59 +7594,77 @@ def infer_os(
         )
 
         .lower()
+
     )
 
 
-    if (
-        "macbook"
-        in combined
+    ssh_text = (
+        json.dumps(
 
-        or
+            record.get(
+                "ssh",
+                []
+            ),
 
-        "imac"
-        in combined
+            ensure_ascii=False
 
-        or
+        )
+        .lower()
+    )
 
-        "mac mini"
-        in combined
+
+    if any(
+
+        value
+        in
+        combined
+
+        for value in (
+
+            "macbook",
+
+            "imac",
+
+            "mac mini",
+
+            "mac studio",
+
+        )
 
     ):
 
         return "macOS"
 
 
-    if (
-        "iphone"
-        in combined
-    ):
+    if "iphone" in combined:
 
         return "iOS"
 
 
-    if (
-        "ipad"
-        in combined
-    ):
+    if "ipad" in combined:
 
         return "iPadOS"
 
 
     if any(
 
-        value in combined
+        value
+        in
+        combined
 
         for value in (
+
+            "mitv",
+
+            "mi tv",
+
+            "google tv",
 
             "android",
 
             "galaxy",
 
             "pixel",
-
-            "mitv",
-
-            "mi tv",
 
         )
 
@@ -5080,6 +7681,31 @@ def infer_os(
         return "Windows-like"
 
 
+    if "dropbear" in ssh_text:
+
+        return "Embedded Linux-like"
+
+
+    if (
+
+        "openssh"
+        in
+        ssh_text
+
+        and
+
+        device_type
+        in (
+            "computer_or_server",
+            "nas",
+            "router_gateway",
+        )
+
+    ):
+
+        return "Unix/Linux-like"
+
+
     if (
         device_type
         ==
@@ -5094,7 +7720,7 @@ def infer_os(
 
 
 # ============================================================
-# SECURITY ASSESSMENT
+# SECURITY OBSERVATION
 # ============================================================
 
 def security_assessment(
@@ -5268,7 +7894,9 @@ def security_assessment(
 
     levels = {
 
-        item["severity"]
+        item[
+            "severity"
+        ]
 
         for item in findings
 
@@ -5303,19 +7931,14 @@ def security_assessment(
                     "info",
 
                 "title":
-                    (
-                        "No obvious risky "
-                        "service detected"
-                    ),
+                    "No obvious risky service detected",
 
                 "detail":
                     (
-                        "The limited local network "
-                        "service check did not find "
-                        "one of WiFi Watch's currently "
-                        "flagged services. This does "
-                        "not prove the device is "
-                        "fully secure."
+                        "The limited local-network service check "
+                        "did not find one of WiFi Watch's currently "
+                        "flagged services. This does not prove the "
+                        "device is fully secure."
                     ),
 
             }]
@@ -5333,17 +7956,12 @@ def security_assessment(
                 "info",
 
             "title":
-                (
-                    "Security status "
-                    "not determined"
-                ),
+                "Security status not determined",
 
             "detail":
                 (
-                    "The device was discovered, "
-                    "but none of the limited TCP "
-                    "services checked by WiFi Watch "
-                    "responded."
+                    "The device was discovered, but none of the "
+                    "limited TCP services checked by WiFi Watch responded."
                 ),
 
         }]
@@ -5353,7 +7971,7 @@ def security_assessment(
 
 
 # ============================================================
-# CONFIDENCE
+# IDENTITY CONFIDENCE
 # ============================================================
 
 def identity_confidence(
@@ -5380,6 +7998,30 @@ def identity_confidence(
 
 
     if record.get(
+        "learned_rule"
+    ):
+
+        return max(
+
+            90,
+
+            min(
+
+                99,
+
+                int(
+                    record.get(
+                        "learned_confidence",
+                        94
+                    )
+                )
+
+            )
+
+        )
+
+
+    if record.get(
         "gateway"
     ):
 
@@ -5401,9 +8043,11 @@ def identity_confidence(
 
     ):
 
-        for item in record.get(
-            field,
-            []
+        for item in (
+            record.get(
+                field,
+                []
+            )
         ):
 
             scores.append(
@@ -5444,18 +8088,26 @@ def identity_confidence(
 
 
     if (
+
         vendor
+
         and
+
         model
+
     ):
 
         base += 3
 
 
     if (
+
         friendly
+
         and
+
         hostname
+
     ):
 
         base += 2
@@ -5483,6 +8135,11 @@ def identity_confidence(
     if sources >= 3:
 
         base += 2
+
+
+    if sources >= 5:
+
+        base += 1
 
 
     return max(
@@ -5541,9 +8198,17 @@ def service_output(
 # FULL EXPERT SCAN
 # ============================================================
 
-def scan_network():
+def scan_network(
 
-    started = time.time()
+    config,
+
+    force_rules=False
+
+):
+
+    started = (
+        time.time()
+    )
 
 
     details = (
@@ -5580,13 +8245,26 @@ def scan_network():
     records = {}
 
 
-    rules_package = (
-        fetch_cloud_rules()
+    cloud_package = (
+        fetch_cloud_rules(
+            force=force_rules
+        )
+    )
+
+
+    learned_package = (
+        fetch_learned_rules(
+
+            config,
+
+            force=force_rules
+
+        )
     )
 
 
     ruleset_version = (
-        rules_package.get(
+        cloud_package.get(
             "ruleset_version",
             "unknown"
         )
@@ -5594,25 +8272,35 @@ def scan_network():
 
 
     cloud_rules = (
-        rules_package.get(
+        cloud_package.get(
             "rules",
             []
         )
     )
 
 
-    # --------------------------------------------------------
+    learned_rules = (
+        learned_package.get(
+            "rules",
+            []
+        )
+    )
+
+
+    # ========================================================
     # LOCAL AGENT
-    # --------------------------------------------------------
+    # ========================================================
 
-    local_record = ensure_record(
+    local_record = (
+        ensure_record(
 
-        records,
+            records,
 
-        network,
+            network,
 
-        local_ip
+            local_ip
 
+        )
     )
 
 
@@ -5663,9 +8351,9 @@ def scan_network():
     )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # GATEWAY
-    # --------------------------------------------------------
+    # ========================================================
 
     gateway = (
         default_gateway()
@@ -5733,6 +8421,10 @@ def scan_network():
     )
 
     log(
+        f"Personal learned rules {len(learned_rules)}"
+    )
+
+    log(
         f"Network {network}"
     )
 
@@ -5746,7 +8438,7 @@ def scan_network():
 
 
     # ========================================================
-    # PASS 1 - NEIGHBOR RESOLUTION
+    # PASS 1 - NEIGHBOR SEED
     # ========================================================
 
     with concurrent.futures.ThreadPoolExecutor(
@@ -5757,10 +8449,15 @@ def scan_network():
     ) as executor:
 
         list(
+
             executor.map(
+
                 seed_neighbor,
+
                 hosts
+
             )
+
         )
 
 
@@ -5778,8 +8475,11 @@ def scan_network():
         futures = [
 
             executor.submit(
+
                 ping_host,
+
                 ip
+
             )
 
             for ip in hosts
@@ -5796,19 +8496,23 @@ def scan_network():
 
             try:
 
-                ip = future.result()
+                ip = (
+                    future.result()
+                )
 
 
                 if ip:
 
-                    record = ensure_record(
+                    record = (
+                        ensure_record(
 
-                        records,
+                            records,
 
-                        network,
+                            network,
 
-                        ip
+                            ip
 
+                        )
                     )
 
 
@@ -5827,7 +8531,7 @@ def scan_network():
 
 
     # ========================================================
-    # PASS 3 - TCP
+    # PASS 3 - TCP SERVICES
     # ========================================================
 
     with concurrent.futures.ThreadPoolExecutor(
@@ -5840,8 +8544,11 @@ def scan_network():
         futures = [
 
             executor.submit(
+
                 tcp_probe,
+
                 ip
+
             )
 
             for ip in hosts
@@ -5862,6 +8569,7 @@ def scan_network():
                     ip,
                     alive,
                     ports
+
                 ) = future.result()
 
 
@@ -5870,14 +8578,16 @@ def scan_network():
                     continue
 
 
-                record = ensure_record(
+                record = (
+                    ensure_record(
 
-                    records,
+                        records,
 
-                    network,
+                        network,
 
-                    ip
+                        ip
 
+                    )
                 )
 
 
@@ -5916,19 +8626,23 @@ def scan_network():
         ssdp_discovery()
     ):
 
-        ip = entry.get(
-            "ip"
+        ip = (
+            entry.get(
+                "ip"
+            )
         )
 
 
-        record = ensure_record(
+        record = (
+            ensure_record(
 
-            records,
+                records,
 
-            network,
+                network,
 
-            ip
+                ip
 
+            )
         )
 
 
@@ -5962,7 +8676,9 @@ def scan_network():
 
         apply_ssdp(
 
-            records[ip],
+            records[
+                ip
+            ],
 
             entries,
 
@@ -5983,14 +8699,16 @@ def scan_network():
         .items()
     ):
 
-        record = ensure_record(
+        record = (
+            ensure_record(
 
-            records,
+                records,
 
-            network,
+                network,
 
-            ip
+                ip
 
+            )
         )
 
 
@@ -6016,7 +8734,7 @@ def scan_network():
 
 
     # ========================================================
-    # PASS 6 - ARP TABLE
+    # PASS 6 - ARP
     # ========================================================
 
     time.sleep(
@@ -6032,14 +8750,16 @@ def scan_network():
         .items()
     ):
 
-        record = ensure_record(
+        record = (
+            ensure_record(
 
-            records,
+                records,
 
-            network,
+                network,
 
-            ip
+                ip
 
+            )
         )
 
 
@@ -6129,19 +8849,27 @@ def scan_network():
 
 
                 if (
+
                     hostname
+
                     and
+
                     ip in records
+
                 ):
 
-                    records[ip][
+                    records[
+                        ip
+                    ][
                         "reverse_dns"
                     ] = hostname
 
 
                     add_candidate(
 
-                        records[ip],
+                        records[
+                            ip
+                        ],
 
                         "hostname_candidates",
 
@@ -6180,7 +8908,7 @@ def scan_network():
             ):
             ip
 
-            for ip in (
+            for ip in list(
                 records.keys()
             )
 
@@ -6208,7 +8936,9 @@ def scan_network():
                 )
 
 
-                records[ip][
+                records[
+                    ip
+                ][
                     "netbios"
                 ] = names
 
@@ -6217,7 +8947,9 @@ def scan_network():
 
                     add_candidate(
 
-                        records[ip],
+                        records[
+                            ip
+                        ],
 
                         "friendly_candidates",
 
@@ -6232,7 +8964,9 @@ def scan_network():
 
                     add_candidate(
 
-                        records[ip],
+                        records[
+                            ip
+                        ],
 
                         "hostname_candidates",
 
@@ -6251,18 +8985,19 @@ def scan_network():
 
 
     # ========================================================
-    # SECOND TCP CHECK FOR LATE DISCOVERED DEVICES
+    # SECOND TCP CHECK FOR LATE DISCOVERIES
     # ========================================================
 
     late_ips = [
 
         ip
 
-        for ip in (
-            records.keys()
-        )
+        for (
+            ip,
+            record
+        ) in records.items()
 
-        if not records[ip][
+        if not record[
             "open_ports"
         ]
 
@@ -6304,23 +9039,32 @@ def scan_network():
                     ip,
                     alive,
                     ports
+
                 ) = future.result()
 
 
                 if (
+
                     alive
+
                     and
+
                     ip in records
+
                 ):
 
-                    records[ip][
+                    records[
+                        ip
+                    ][
                         "methods"
                     ].add(
                         "tcp"
                     )
 
 
-                    records[ip][
+                    records[
+                        ip
+                    ][
                         "open_ports"
                     ].update(
                         ports
@@ -6333,12 +9077,95 @@ def scan_network():
 
 
     # ========================================================
-    # CLOUD RULES
+    # PASS 9 - HTTP / TLS / SSH IDENTITY
+    # ========================================================
+
+    with concurrent.futures.ThreadPoolExecutor(
+
+        max_workers=24
+
+    ) as executor:
+
+        futures = {
+
+            executor.submit(
+
+                service_metadata_probe,
+
+                ip,
+
+                record[
+                    "open_ports"
+                ]
+
+            ):
+            ip
+
+            for (
+                ip,
+                record
+            ) in records.items()
+
+            if record[
+                "open_ports"
+            ]
+
+        }
+
+
+        for future in (
+            concurrent.futures
+            .as_completed(
+                futures
+            )
+        ):
+
+            ip = (
+                futures[
+                    future
+                ]
+            )
+
+
+            try:
+
+                metadata = (
+                    future.result()
+                )
+
+
+                apply_service_metadata(
+
+                    records[
+                        ip
+                    ],
+
+                    metadata
+
+                )
+
+
+            except Exception:
+
+                pass
+
+
+    # ========================================================
+    # PASS 10 - PERSONAL + CLOUD INTELLIGENCE
     # ========================================================
 
     for record in (
         records.values()
     ):
+
+        apply_learned_rules(
+
+            record,
+
+            learned_rules
+
+        )
+
 
         apply_cloud_rules(
 
@@ -6350,7 +9177,7 @@ def scan_network():
 
 
     # ========================================================
-    # FINAL IDENTITIES
+    # FINAL IDENTITY
     # ========================================================
 
     devices = []
@@ -6368,7 +9195,9 @@ def scan_network():
     ):
 
         record = (
-            records[ip]
+            records[
+                ip
+            ]
         )
 
 
@@ -6424,74 +9253,84 @@ def scan_network():
         )
 
 
+        learned_result = (
+            record.get(
+                "learned_result",
+                {}
+            )
+        )
+
+
+        # ----------------------------------------------------
+        # GLOBAL CLOUD IDENTITY
+        # ----------------------------------------------------
+
         if cloud_result.get(
             "friendly_name"
         ):
 
-            candidate = clean_identity_text(
+            friendly = (
 
-                cloud_result[
-                    "friendly_name"
-                ],
+                clean_identity_text(
 
-                require_letters=True
+                    cloud_result[
+                        "friendly_name"
+                    ],
+
+                    require_letters=True
+
+                )
+
+                or
+
+                friendly
 
             )
-
-
-            if candidate:
-
-                friendly = (
-                    candidate
-                )
 
 
         if cloud_result.get(
             "manufacturer"
         ):
 
-            candidate = clean_identity_text(
+            vendor = (
 
-                cloud_result[
-                    "manufacturer"
-                ],
+                clean_identity_text(
 
-                require_letters=True
+                    cloud_result[
+                        "manufacturer"
+                    ],
+
+                    require_letters=True
+
+                )
+
+                or
+
+                vendor
 
             )
-
-
-            if candidate:
-
-                vendor = (
-                    candidate
-                )
 
 
         if cloud_result.get(
             "model"
         ):
 
-            candidate = valid_model(
+            model = (
 
-                cloud_result[
-                    "model"
-                ]
+                valid_model(
+
+                    cloud_result[
+                        "model"
+                    ]
+
+                )
+
+                or
+
+                model
 
             )
 
-
-            if candidate:
-
-                model = (
-                    candidate
-                )
-
-
-        # ----------------------------------------------------
-        # Built-in classification first.
-        # Cloud rule can override it afterwards.
-        # ----------------------------------------------------
 
         device_type = (
             infer_device_type(
@@ -6519,6 +9358,8 @@ def scan_network():
 
                 hostname,
 
+                vendor,
+
                 model,
 
                 device_type
@@ -6531,12 +9372,12 @@ def scan_network():
             "device_type"
         ):
 
-            device_type = (
-                str(
-                    cloud_result[
-                        "device_type"
-                    ]
-                )
+            device_type = str(
+
+                cloud_result[
+                    "device_type"
+                ]
+
             )
 
 
@@ -6544,19 +9385,114 @@ def scan_network():
             "os_guess"
         ):
 
-            os_guess = (
-                str(
-                    cloud_result[
-                        "os_guess"
-                    ]
-                )
+            os_guess = str(
+
+                cloud_result[
+                    "os_guess"
+                ]
+
             )
 
 
         # ----------------------------------------------------
-        # Local machine identity is authoritative.
-        # This prevents AirPlay from turning a MacBook
-        # into a Smart TV.
+        # PERSONAL LEARNING OVERRIDES GLOBAL GENERIC RULES
+        # ----------------------------------------------------
+
+        if learned_result.get(
+            "friendly_name"
+        ):
+
+            friendly = (
+
+                clean_identity_text(
+
+                    learned_result[
+                        "friendly_name"
+                    ],
+
+                    require_letters=True
+
+                )
+
+                or
+
+                friendly
+
+            )
+
+
+        if learned_result.get(
+            "manufacturer"
+        ):
+
+            vendor = (
+
+                clean_identity_text(
+
+                    learned_result[
+                        "manufacturer"
+                    ],
+
+                    require_letters=True
+
+                )
+
+                or
+
+                vendor
+
+            )
+
+
+        if learned_result.get(
+            "model"
+        ):
+
+            model = (
+
+                valid_model(
+
+                    learned_result[
+                        "model"
+                    ]
+
+                )
+
+                or
+
+                model
+
+            )
+
+
+        if learned_result.get(
+            "device_type"
+        ):
+
+            device_type = str(
+
+                learned_result[
+                    "device_type"
+                ]
+
+            )
+
+
+        if learned_result.get(
+            "os_guess"
+        ):
+
+            os_guess = str(
+
+                learned_result[
+                    "os_guess"
+                ]
+
+            )
+
+
+        # ----------------------------------------------------
+        # LOCAL AGENT ROLE IS AUTHORITATIVE
         # ----------------------------------------------------
 
         if record.get(
@@ -6568,11 +9504,12 @@ def scan_network():
             )
 
 
-            if (
+            system = (
                 platform.system()
-                ==
-                "Darwin"
-            ):
+            )
+
+
+            if system == "Darwin":
 
                 os_guess = (
                     "macOS"
@@ -6580,28 +9517,24 @@ def scan_network():
 
 
                 vendor = (
+
                     vendor
+
                     or
+
                     "Apple"
+
                 )
 
 
-            elif (
-                platform.system()
-                ==
-                "Windows"
-            ):
+            elif system == "Windows":
 
                 os_guess = (
                     "Windows"
                 )
 
 
-            elif (
-                platform.system()
-                ==
-                "Linux"
-            ):
+            elif system == "Linux":
 
                 os_guess = (
                     "Linux"
@@ -6609,7 +9542,7 @@ def scan_network():
 
 
         # ----------------------------------------------------
-        # Gateway identity is authoritative.
+        # GATEWAY ROLE IS AUTHORITATIVE
         # ----------------------------------------------------
 
         if record.get(
@@ -6643,21 +9576,26 @@ def scan_network():
         (
             security_status,
             security_findings
-        ) = security_assessment(
 
-            record[
-                "open_ports"
-            ]
+        ) = (
+            security_assessment(
 
+                record[
+                    "open_ports"
+                ]
+
+            )
         )
 
 
-        mac = normalize_mac(
+        mac = (
+            normalize_mac(
 
-            record.get(
-                "mac"
+                record.get(
+                    "mac"
+                )
+
             )
-
         )
 
 
@@ -6668,12 +9606,38 @@ def scan_network():
             mac = None
 
 
+        fingerprint_rule = (
+
+            record.get(
+                "learned_rule"
+            )
+
+            or
+
+            record.get(
+                "cloud_rule"
+            )
+
+        )
+
+
         fingerprint_data = {
+
+            "engine_version":
+                ENGINE_VERSION,
 
             "ruleset_version":
                 ruleset_version,
 
             "fingerprint_rule":
+                fingerprint_rule,
+
+            "learned_rule":
+                record.get(
+                    "learned_rule"
+                ),
+
+            "cloud_rule":
                 record.get(
                     "cloud_rule"
                 ),
@@ -6694,11 +9658,15 @@ def scan_network():
 
             "private_mac":
                 bool(
+
                     mac
+
                     and
+
                     private_mac(
                         mac
                     )
+
                 ),
 
             "reverse_dns":
@@ -6721,6 +9689,24 @@ def scan_network():
             "ssdp_devices":
                 record.get(
                     "ssdp",
+                    []
+                ),
+
+            "http_identity":
+                record.get(
+                    "http",
+                    []
+                ),
+
+            "tls_identity":
+                record.get(
+                    "tls",
+                    []
+                ),
+
+            "ssh_banners":
+                record.get(
+                    "ssh",
                     []
                 ),
 
@@ -6782,38 +9768,44 @@ def scan_network():
 
             "identity_sources":
                 sorted(
+
                     record[
                         "identity_sources"
                     ]
+
                 ),
 
             "fingerprint_data":
                 fingerprint_data,
 
             "fingerprint_rule":
-                record.get(
-                    "cloud_rule"
-                ),
+                fingerprint_rule,
 
             "discovery_methods":
                 sorted(
+
                     record[
                         "methods"
                     ]
+
                 ),
 
             "open_ports":
                 sorted(
+
                     record[
                         "open_ports"
                     ]
+
                 ),
 
             "services":
                 service_output(
+
                     record[
                         "open_ports"
                     ]
+
                 ),
 
             "security_status":
@@ -6845,8 +9837,7 @@ def scan_network():
 
 
     log(
-        f"FINAL DEVICE COUNT: "
-        f"{len(devices)}"
+        f"FINAL DEVICE COUNT: {len(devices)}"
     )
 
 
@@ -6896,10 +9887,7 @@ def scan_network():
 
 
     log(
-
-        f"Scan duration: "
-        f"{duration_ms} ms"
-
+        f"Scan duration: {duration_ms} ms"
     )
 
 
@@ -6922,6 +9910,11 @@ def scan_network():
         "ruleset_version":
             ruleset_version,
 
+        "learned_rules":
+            len(
+                learned_rules
+            ),
+
         "duration_ms":
             duration_ms,
 
@@ -6934,8 +9927,11 @@ def scan_network():
 # ============================================================
 
 def sync_devices(
+
     config,
+
     devices
+
 ):
 
     return rpc(
@@ -6964,7 +9960,7 @@ def sync_devices(
 
 
 # ============================================================
-# UPDATE CHECK
+# VERSION CHECK
 # ============================================================
 
 def version_tuple(
@@ -6973,13 +9969,17 @@ def version_tuple(
 
     value = (
 
-        str(value)
+        str(
+            value
+        )
 
         .strip()
 
         .lower()
 
-        .lstrip("v")
+        .lstrip(
+            "v"
+        )
 
     )
 
@@ -7032,17 +10032,10 @@ def latest_release():
             headers={
 
                 "Accept":
-                    (
-                        "application/"
-                        "vnd.github+json"
-                    ),
+                    "application/vnd.github+json",
 
                 "User-Agent":
-                    (
-                        "WiFiWatch/"
-                        +
-                        APP_VERSION
-                    ),
+                    f"WiFiWatch/{APP_VERSION}",
 
             }
 
@@ -7059,8 +10052,10 @@ def latest_release():
         )
 
 
-        tag = data.get(
-            "tag_name"
+        tag = (
+            data.get(
+                "tag_name"
+            )
         )
 
 
@@ -7077,11 +10072,16 @@ def latest_release():
                 ),
 
             "url":
-                data.get(
-                    "html_url"
-                )
-                or
-                GITHUB_RELEASES_URL,
+                (
+                    data.get(
+                        "html_url"
+                    )
+
+                    or
+
+                    GITHUB_RELEASES_URL
+
+                ),
 
         }
 
@@ -7098,9 +10098,13 @@ def latest_release():
 
 class WiFiWatchApp:
 
-    def __init__(self):
+    def __init__(
+        self
+    ):
 
-        self.root = tk.Tk()
+        self.root = (
+            tk.Tk()
+        )
 
 
         self.root.title(
@@ -7109,13 +10113,13 @@ class WiFiWatchApp:
 
 
         self.root.geometry(
-            "610x690"
+            "620x735"
         )
 
 
         self.root.minsize(
-            520,
-            560
+            530,
+            590
         )
 
 
@@ -7140,7 +10144,6 @@ class WiFiWatchApp:
 
 
         self.monitor_thread = None
-
 
         self.latest_update_url = None
 
@@ -7176,6 +10179,13 @@ class WiFiWatchApp:
         self.rules_value = (
             tk.StringVar(
                 value="—"
+            )
+        )
+
+
+        self.learned_value = (
+            tk.StringVar(
+                value="0"
             )
         )
 
@@ -7235,6 +10245,10 @@ class WiFiWatchApp:
         )
 
 
+    # ========================================================
+    # GUI HELPERS
+    # ========================================================
+
     def label(
 
         self,
@@ -7279,7 +10293,9 @@ class WiFiWatchApp:
         )
 
 
-    def is_paired(self):
+    def is_paired(
+        self
+    ):
 
         return bool(
 
@@ -7296,7 +10312,9 @@ class WiFiWatchApp:
         )
 
 
-    def clear_body(self):
+    def clear_body(
+        self
+    ):
 
         for widget in (
             self.body
@@ -7306,7 +10324,13 @@ class WiFiWatchApp:
             widget.destroy()
 
 
-    def build_ui(self):
+    # ========================================================
+    # MAIN WINDOW
+    # ========================================================
+
+    def build_ui(
+        self
+    ):
 
         header = tk.Frame(
 
@@ -7398,7 +10422,8 @@ class WiFiWatchApp:
 
             (
                 "Expert Device Intelligence "
-                f"· v{APP_VERSION}"
+                f"· v{APP_VERSION} "
+                f"· Engine {ENGINE_VERSION}"
             ),
 
             10,
@@ -7435,10 +10460,12 @@ class WiFiWatchApp:
 
 
     # ========================================================
-    # PAIR
+    # PAIRING UI
     # ========================================================
 
-    def show_pairing(self):
+    def show_pairing(
+        self
+    ):
 
         self.clear_body()
 
@@ -7544,7 +10571,7 @@ class WiFiWatchApp:
         )
 
 
-        button = tk.Button(
+        tk.Button(
 
             self.body,
 
@@ -7562,12 +10589,10 @@ class WiFiWatchApp:
                 "bold"
             ),
 
-            command=self.pair
+            command=
+                self.pair
 
-        )
-
-
-        button.pack(
+        ).pack(
 
             fill="x",
 
@@ -7598,7 +10623,9 @@ class WiFiWatchApp:
         )
 
 
-    def pair(self):
+    def pair(
+        self
+    ):
 
         code = (
 
@@ -7644,8 +10671,11 @@ class WiFiWatchApp:
 
 
     def pair_worker(
+
         self,
+
         code
+
     ):
 
         try:
@@ -7679,22 +10709,23 @@ class WiFiWatchApp:
 
                 lambda:
                     self.pair_error(
-                        str(exc)
+                        str(
+                            exc
+                        )
                     )
 
             )
 
 
-    def pair_success(self):
+    def pair_success(
+        self
+    ):
 
         messagebox.showinfo(
 
             "WiFi Watch",
 
-            (
-                "Agent paired "
-                "successfully."
-            )
+            "Agent paired successfully."
 
         )
 
@@ -7705,8 +10736,11 @@ class WiFiWatchApp:
 
 
     def pair_error(
+
         self,
+
         error
+
     ):
 
         self.pair_status.config(
@@ -7729,7 +10763,9 @@ class WiFiWatchApp:
     # CONNECTED UI
     # ========================================================
 
-    def show_connected(self):
+    def show_connected(
+        self
+    ):
 
         self.clear_body()
 
@@ -7795,8 +10831,13 @@ class WiFiWatchApp:
             ),
 
             (
-                "Fingerprint rules",
+                "Cloud ruleset",
                 self.rules_value
+            ),
+
+            (
+                "Personal learned rules",
+                self.learned_value
             ),
 
             (
@@ -7884,7 +10925,7 @@ class WiFiWatchApp:
             )
 
 
-        scan_button = tk.Button(
+        tk.Button(
 
             self.body,
 
@@ -7906,10 +10947,7 @@ class WiFiWatchApp:
             command=
                 self.manual_scan
 
-        )
-
-
-        scan_button.pack(
+        ).pack(
 
             fill="x",
 
@@ -7923,7 +10961,37 @@ class WiFiWatchApp:
         )
 
 
-        update_button = tk.Button(
+        tk.Button(
+
+            self.body,
+
+            text=
+                "Refresh Intelligence & Scan",
+
+            bg="#182b36",
+
+            fg="white",
+
+            relief="flat",
+
+            command=
+                self.refresh_intelligence_scan
+
+        ).pack(
+
+            fill="x",
+
+            ipady=7,
+
+            pady=(
+                0,
+                9
+            )
+
+        )
+
+
+        tk.Button(
 
             self.body,
 
@@ -7939,10 +11007,7 @@ class WiFiWatchApp:
             command=
                 self.update_button_pressed
 
-        )
-
-
-        update_button.pack(
+        ).pack(
 
             fill="x",
 
@@ -7961,8 +11026,7 @@ class WiFiWatchApp:
             self.body,
 
             (
-                "WiFi Watch automatically "
-                "rescans approximately every "
+                "Automatic scan approximately every "
                 f"{SCAN_INTERVAL} seconds."
             ),
 
@@ -7975,7 +11039,7 @@ class WiFiWatchApp:
         ).pack(
             pady=(
                 4,
-                8
+                5
             )
         )
 
@@ -7985,9 +11049,8 @@ class WiFiWatchApp:
             self.body,
 
             (
-                "Device fingerprint rules "
-                "can update automatically "
-                "without reinstalling the Agent."
+                "Teach WiFi Watch on the website, then use "
+                "Refresh Intelligence & Scan for immediate recognition."
             ),
 
             9,
@@ -8027,7 +11090,7 @@ class WiFiWatchApp:
         )
 
 
-        disconnect = tk.Button(
+        tk.Button(
 
             self.body,
 
@@ -8043,10 +11106,7 @@ class WiFiWatchApp:
             command=
                 self.disconnect
 
-        )
-
-
-        disconnect.pack(
+        ).pack(
 
             fill="x",
 
@@ -8059,7 +11119,9 @@ class WiFiWatchApp:
     # MONITORING
     # ========================================================
 
-    def start_monitoring(self):
+    def start_monitoring(
+        self
+    ):
 
         if (
 
@@ -8093,14 +11155,18 @@ class WiFiWatchApp:
         self.monitor_thread.start()
 
 
-    def monitor_loop(self):
+    def monitor_loop(
+        self
+    ):
 
         while not (
             self.stop_event
             .is_set()
         ):
 
-            self.perform_scan()
+            self.perform_scan(
+                False
+            )
 
 
             self.stop_event.wait(
@@ -8108,19 +11174,49 @@ class WiFiWatchApp:
             )
 
 
-    def manual_scan(self):
+    def manual_scan(
+        self
+    ):
 
         threading.Thread(
 
             target=
                 self.perform_scan,
 
+            args=(
+                False,
+            ),
+
             daemon=True
 
         ).start()
 
 
-    def perform_scan(self):
+    def refresh_intelligence_scan(
+        self
+    ):
+
+        threading.Thread(
+
+            target=
+                self.perform_scan,
+
+            args=(
+                True,
+            ),
+
+            daemon=True
+
+        ).start()
+
+
+    def perform_scan(
+
+        self,
+
+        force_rules=False
+
+    ):
 
         if not self.is_paired():
 
@@ -8134,7 +11230,10 @@ class WiFiWatchApp:
             return
 
 
-        started = time.time()
+        started = (
+            time.time()
+        )
+
 
         last_local_ip = None
 
@@ -8161,7 +11260,14 @@ class WiFiWatchApp:
 
 
             result = (
-                scan_network()
+                scan_network(
+
+                    self.config,
+
+                    force_rules=
+                        force_rules
+
+                )
             )
 
 
@@ -8194,6 +11300,13 @@ class WiFiWatchApp:
             ruleset = (
                 result[
                     "ruleset_version"
+                ]
+            )
+
+
+            learned_rules = (
+                result[
+                    "learned_rules"
                 ]
             )
 
@@ -8283,6 +11396,23 @@ class WiFiWatchApp:
             )
 
 
+            unknown_security = sum(
+
+                1
+
+                for device in devices
+
+                if (
+                    device.get(
+                        "security_status"
+                    )
+                    ==
+                    "unknown"
+                )
+
+            )
+
+
             report_scan(
 
                 self.config,
@@ -8325,7 +11455,11 @@ class WiFiWatchApp:
 
                         reviews,
 
-                        ruleset
+                        unknown_security,
+
+                        ruleset,
+
+                        learned_rules
 
                     )
 
@@ -8380,7 +11514,9 @@ class WiFiWatchApp:
 
                 lambda:
                     self.scan_error(
-                        str(exc)
+                        str(
+                            exc
+                        )
                     )
 
             )
@@ -8407,7 +11543,11 @@ class WiFiWatchApp:
 
         reviews,
 
-        ruleset
+        unknown_security,
+
+        ruleset,
+
+        learned_rules
 
     ):
 
@@ -8444,6 +11584,13 @@ class WiFiWatchApp:
         )
 
 
+        self.learned_value.set(
+            str(
+                learned_rules
+            )
+        )
+
+
         if warnings:
 
             self.security_value.set(
@@ -8464,11 +11611,20 @@ class WiFiWatchApp:
             )
 
 
+        elif unknown_security:
+
+            self.security_value.set(
+
+                f"{unknown_security} unknown"
+
+            )
+
+
         else:
 
             self.security_value.set(
 
-                "No obvious issues"
+                "No obvious issues observed"
 
             )
 
@@ -8483,8 +11639,11 @@ class WiFiWatchApp:
 
 
     def scan_error(
+
         self,
+
         error
+
     ):
 
         self.status_value.set(
@@ -8506,7 +11665,9 @@ class WiFiWatchApp:
     # UPDATE CHECK
     # ========================================================
 
-    def check_update(self):
+    def check_update(
+        self
+    ):
 
         release = (
             latest_release()
@@ -8526,6 +11687,7 @@ class WiFiWatchApp:
 
             )
 
+
             return
 
 
@@ -8537,6 +11699,7 @@ class WiFiWatchApp:
 
 
         if (
+
             version_tuple(
                 latest_version
             )
@@ -8546,6 +11709,7 @@ class WiFiWatchApp:
             version_tuple(
                 APP_VERSION
             )
+
         ):
 
             self.latest_update_url = (
@@ -8586,7 +11750,9 @@ class WiFiWatchApp:
             )
 
 
-    def update_button_pressed(self):
+    def update_button_pressed(
+        self
+    ):
 
         if self.latest_update_url:
 
@@ -8617,7 +11783,9 @@ class WiFiWatchApp:
     # DISCONNECT
     # ========================================================
 
-    def disconnect(self):
+    def disconnect(
+        self
+    ):
 
         if not messagebox.askyesno(
 
@@ -8645,7 +11813,9 @@ class WiFiWatchApp:
         self.show_pairing()
 
 
-    def close(self):
+    def close(
+        self
+    ):
 
         self.stop_event.set()
 
@@ -8653,7 +11823,9 @@ class WiFiWatchApp:
         self.root.destroy()
 
 
-    def run(self):
+    def run(
+        self
+    ):
 
         self.root.mainloop()
 
@@ -8689,9 +11861,8 @@ if __name__ == "__main__":
             "WiFi Watch",
 
             (
-                "Supabase URL and "
-                "publishable key have "
-                "not been configured."
+                "Supabase URL and publishable key "
+                "have not been configured."
             )
 
         )
@@ -8705,7 +11876,7 @@ if __name__ == "__main__":
 
     log(
 
-        "Starting WiFi Watch Agent "
+        f"Starting WiFi Watch Agent "
         f"{APP_VERSION}"
 
     )
@@ -8713,7 +11884,7 @@ if __name__ == "__main__":
 
     log(
 
-        "Engine version "
+        f"Engine version "
         f"{ENGINE_VERSION}"
 
     )
