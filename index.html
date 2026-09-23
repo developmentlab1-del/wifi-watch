@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
 
 <meta
@@ -10,97 +12,316 @@
 
 <meta
     name="theme-color"
-    content="#071017"
+    content="#061017"
 >
 
 <title>WiFi Watch</title>
 
+
 <style>
 
 :root {
-    --bg: #061017;
-    --bg2: #081720;
-    --panel: #0b2029;
-    --panel2: #102a35;
-    --panel3: #153541;
 
-    --border: rgba(255,255,255,.075);
+    --bg:
+        #061017;
 
-    --text: #f4f8fa;
-    --muted: #91a7b3;
-    --muted2: #637c88;
+    --panel:
+        #0b2029;
 
-    --green: #35e79a;
-    --green-bg: rgba(53,231,154,.10);
+    --panel-2:
+        #102a35;
 
-    --yellow: #ffbd63;
-    --yellow-bg: rgba(255,189,99,.12);
+    --panel-3:
+        #153541;
 
-    --red: #ff8087;
-    --red-bg: rgba(255,128,135,.12);
+    --border:
+        rgba(255,255,255,.075);
 
-    --blue: #75b6ff;
-    --blue-bg: rgba(117,182,255,.12);
+    --text:
+        #f4f8fa;
 
-    --purple: #bea5ff;
-    --purple-bg: rgba(190,165,255,.12);
+    --muted:
+        #91a7b3;
 
-    --radius: 17px;
-    --shadow: 0 28px 80px rgba(0,0,0,.35);
+    --muted-2:
+        #637c88;
+
+    --green:
+        #35e79a;
+
+    --green-soft:
+        rgba(53,231,154,.10);
+
+    --yellow:
+        #ffbd63;
+
+    --yellow-soft:
+        rgba(255,189,99,.12);
+
+    --red:
+        #ff8087;
+
+    --red-soft:
+        rgba(255,128,135,.12);
+
+    --blue:
+        #75b6ff;
+
+    --blue-soft:
+        rgba(117,182,255,.12);
+
+    --purple:
+        #bea5ff;
+
+    --purple-soft:
+        rgba(190,165,255,.12);
+
+    --radius:
+        17px;
+
+    --shadow:
+        0 28px 80px rgba(0,0,0,.35);
+
 }
+
 
 * {
-    box-sizing: border-box;
+
+    box-sizing:
+        border-box;
+
 }
+
 
 html,
 body {
-    margin: 0;
-    min-height: 100%;
+
+    margin:
+        0;
+
+    min-height:
+        100%;
+
 }
 
+
 body {
+
     background:
+
         radial-gradient(
             circle at 20% 0%,
             rgba(53,231,154,.065),
             transparent 30%
         ),
+
         var(--bg);
 
-    color: var(--text);
+    color:
+        var(--text);
 
     font-family:
+
         Inter,
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
         sans-serif;
+
 }
+
 
 button,
 input,
 select {
-    font: inherit;
+
+    font:
+        inherit;
+
 }
+
 
 button {
-    cursor: pointer;
+
+    cursor:
+        pointer;
+
 }
+
 
 button:disabled {
-    opacity: .5;
-    cursor: not-allowed;
+
+    opacity:
+        .5;
+
+    cursor:
+        not-allowed;
+
 }
+
 
 a {
-    color: inherit;
-    text-decoration: none;
+
+    color:
+        inherit;
+
+    text-decoration:
+        none;
+
 }
 
+
 .hidden {
-    display: none !important;
+
+    display:
+        none !important;
+
 }
+
+
+
+/* ============================================================
+   STARTUP LOADING SCREEN
+============================================================ */
+
+.loading-screen {
+
+    position:
+        fixed;
+
+    inset:
+        0;
+
+    z-index:
+        5000;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    background:
+
+        radial-gradient(
+            circle at 50% 30%,
+            rgba(53,231,154,.09),
+            transparent 35%
+        ),
+
+        #061017;
+
+}
+
+
+.loading-box {
+
+    text-align:
+        center;
+
+}
+
+
+.loading-logo {
+
+    width:
+        62px;
+
+    height:
+        62px;
+
+    margin:
+        0 auto 18px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    border-radius:
+        17px;
+
+    background:
+        var(--green);
+
+    color:
+        #042116;
+
+    font-size:
+        30px;
+
+    font-weight:
+        950;
+
+    box-shadow:
+        0 15px 45px rgba(53,231,154,.15);
+
+}
+
+
+.loading-title {
+
+    font-size:
+        26px;
+
+    font-weight:
+        900;
+
+}
+
+
+.loading-text {
+
+    margin-top:
+        8px;
+
+    color:
+        var(--muted);
+
+    font-size:
+        13px;
+
+}
+
+
+.loading-spinner {
+
+    width:
+        31px;
+
+    height:
+        31px;
+
+    margin:
+        23px auto 0;
+
+    border:
+        3px solid rgba(255,255,255,.09);
+
+    border-top-color:
+        var(--green);
+
+    border-radius:
+        50%;
+
+    animation:
+        wifiWatchSpin .7s linear infinite;
+
+}
+
+
+@keyframes wifiWatchSpin {
+
+    to {
+
+        transform:
+            rotate(360deg);
+
+    }
+
+}
+
 
 
 /* ============================================================
@@ -108,172 +329,319 @@ a {
 ============================================================ */
 
 .auth-screen {
-    min-height: 100vh;
 
-    display: grid;
+    min-height:
+        100vh;
+
+    display:
+        grid;
+
     grid-template-columns:
-        minmax(0, 1.15fr)
-        minmax(420px, .85fr);
+
+        minmax(0,1.15fr)
+
+        minmax(420px,.85fr);
+
 }
 
-.auth-hero {
-    padding: 70px;
 
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+.auth-hero {
+
+    padding:
+        70px;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    justify-content:
+        space-between;
 
     background:
+
         radial-gradient(
             circle at 30% 30%,
             rgba(53,231,154,.15),
             transparent 35%
         );
+
 }
+
 
 .brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
 
-    font-size: 21px;
-    font-weight: 900;
-}
+    display:
+        flex;
 
-.logo {
-    width: 42px;
-    height: 42px;
+    align-items:
+        center;
 
-    display: grid;
-    place-items: center;
-
-    border-radius: 12px;
-
-    background: var(--green);
-    color: #042116;
-
-    font-size: 20px;
-    font-weight: 950;
-}
-
-.hero-copy {
-    max-width: 700px;
-}
-
-.hero-copy h1 {
-    margin: 0 0 20px;
+    gap:
+        12px;
 
     font-size:
-        clamp(44px, 6vw, 78px);
+        21px;
 
-    line-height: .98;
-    letter-spacing: -3px;
+    font-weight:
+        900;
+
 }
+
+
+.logo {
+
+    width:
+        42px;
+
+    height:
+        42px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    border-radius:
+        12px;
+
+    background:
+        var(--green);
+
+    color:
+        #042116;
+
+    font-size:
+        20px;
+
+    font-weight:
+        950;
+
+}
+
+
+.hero-copy {
+
+    max-width:
+        700px;
+
+}
+
+
+.hero-copy h1 {
+
+    margin:
+        0 0 20px;
+
+    font-size:
+        clamp(44px,6vw,78px);
+
+    line-height:
+        .98;
+
+    letter-spacing:
+        -3px;
+
+}
+
 
 .hero-copy p {
-    max-width: 600px;
 
-    color: var(--muted);
+    max-width:
+        600px;
 
-    font-size: 18px;
-    line-height: 1.65;
+    color:
+        var(--muted);
+
+    font-size:
+        18px;
+
+    line-height:
+        1.65;
+
 }
+
 
 .hero-tags {
-    margin-top: 28px;
 
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    margin-top:
+        28px;
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        8px;
+
 }
+
 
 .hero-tag {
-    padding: 9px 13px;
 
-    border: 1px solid var(--border);
-    border-radius: 999px;
+    padding:
+        9px 13px;
 
-    color: #c9d6dc;
-    background: rgba(255,255,255,.025);
+    border:
+        1px solid var(--border);
 
-    font-size: 13px;
+    border-radius:
+        999px;
+
+    background:
+        rgba(255,255,255,.025);
+
+    color:
+        #c9d6dc;
+
+    font-size:
+        13px;
+
 }
 
+
 .auth-side {
-    padding: 40px;
 
-    display: grid;
-    place-items: center;
+    padding:
+        40px;
 
-    border-left: 1px solid var(--border);
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    border-left:
+        1px solid var(--border);
 
     background:
         rgba(5,15,21,.55);
+
 }
 
+
 .auth-card {
-    width: 100%;
-    max-width: 460px;
 
-    padding: 34px;
+    width:
+        100%;
 
-    border: 1px solid var(--border);
-    border-radius: 23px;
+    max-width:
+        460px;
+
+    padding:
+        34px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        23px;
 
     background:
         rgba(12,32,42,.82);
 
-    backdrop-filter: blur(15px);
+    backdrop-filter:
+        blur(15px);
 
-    box-shadow: var(--shadow);
+    box-shadow:
+        var(--shadow);
+
 }
+
 
 .auth-card h2 {
-    margin: 0 0 7px;
 
-    font-size: 29px;
+    margin:
+        0 0 7px;
+
+    font-size:
+        29px;
+
 }
+
 
 .auth-subtitle {
-    margin: 0 0 25px;
 
-    color: var(--muted);
-    line-height: 1.5;
+    margin:
+        0 0 25px;
+
+    color:
+        var(--muted);
+
 }
+
 
 .auth-tabs {
-    margin-bottom: 22px;
-    padding: 4px;
 
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    margin-bottom:
+        22px;
 
-    border-radius: 12px;
+    padding:
+        4px;
 
-    background: #07171f;
+    display:
+        grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    border-radius:
+        12px;
+
+    background:
+        #07171f;
+
 }
+
 
 .auth-tab {
-    padding: 10px;
 
-    border: 0;
-    border-radius: 9px;
+    padding:
+        10px;
 
-    background: transparent;
-    color: var(--muted);
+    border:
+        0;
 
-    font-weight: 750;
+    border-radius:
+        9px;
+
+    background:
+        transparent;
+
+    color:
+        var(--muted);
+
+    font-weight:
+        750;
+
 }
+
 
 .auth-tab.active {
-    background: var(--panel3);
-    color: white;
+
+    background:
+        var(--panel-3);
+
+    color:
+        white;
+
 }
 
+
 .auth-footer {
-    margin-top: 18px;
-    text-align: center;
+
+    margin-top:
+        18px;
+
+    text-align:
+        center;
+
 }
+
 
 
 /* ============================================================
@@ -281,53 +649,88 @@ a {
 ============================================================ */
 
 .field {
-    margin-bottom: 16px;
+
+    margin-bottom:
+        16px;
+
 }
+
 
 .field label {
-    display: block;
 
-    margin-bottom: 7px;
+    display:
+        block;
 
-    color: var(--muted);
+    margin-bottom:
+        7px;
 
-    font-size: 13px;
-    font-weight: 750;
+    color:
+        var(--muted);
+
+    font-size:
+        13px;
+
+    font-weight:
+        750;
+
 }
+
 
 .input,
 .select {
-    width: 100%;
 
-    padding: 12px 13px;
+    width:
+        100%;
 
-    border: 1px solid var(--border);
-    border-radius: 11px;
+    padding:
+        12px 13px;
 
-    outline: none;
+    border:
+        1px solid var(--border);
 
-    background: #07171f;
-    color: white;
+    border-radius:
+        11px;
+
+    outline:
+        none;
+
+    background:
+        #07171f;
+
+    color:
+        white;
+
 }
+
 
 .input:focus,
 .select:focus {
+
     border-color:
         rgba(53,231,154,.55);
 
     box-shadow:
-        0 0 0 3px
-        rgba(53,231,154,.08);
+        0 0 0 3px rgba(53,231,154,.08);
+
 }
+
 
 .link-button {
-    padding: 0;
 
-    border: 0;
+    padding:
+        0;
 
-    background: transparent;
-    color: var(--green);
+    border:
+        0;
+
+    background:
+        transparent;
+
+    color:
+        var(--green);
+
 }
+
 
 
 /* ============================================================
@@ -335,198 +738,375 @@ a {
 ============================================================ */
 
 .btn {
-    min-height: 40px;
 
-    padding: 9px 14px;
+    min-height:
+        40px;
 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    padding:
+        9px 14px;
 
-    gap: 7px;
+    display:
+        inline-flex;
 
-    border: 1px solid transparent;
-    border-radius: 10px;
+    align-items:
+        center;
 
-    font-weight: 780;
+    justify-content:
+        center;
 
-    transition: .14s ease;
+    gap:
+        7px;
+
+    border:
+        1px solid transparent;
+
+    border-radius:
+        10px;
+
+    font-weight:
+        780;
+
+    transition:
+        .14s ease;
+
 }
+
 
 .btn:hover {
-    transform: translateY(-1px);
+
+    transform:
+        translateY(-1px);
+
 }
+
 
 .btn-primary {
-    background: var(--green);
-    color: #042116;
+
+    background:
+        var(--green);
+
+    color:
+        #042116;
+
 }
+
 
 .btn-secondary {
-    border-color: var(--border);
 
-    background: var(--panel2);
-    color: white;
+    border-color:
+        var(--border);
+
+    background:
+        var(--panel-2);
+
+    color:
+        white;
+
 }
+
 
 .btn-ghost {
-    border-color: var(--border);
 
-    background: transparent;
-    color: var(--muted);
+    border-color:
+        var(--border);
+
+    background:
+        transparent;
+
+    color:
+        var(--muted);
+
 }
 
+
 .btn-danger {
+
     border-color:
         rgba(255,128,135,.22);
 
-    background: var(--red-bg);
-    color: #ff9aa0;
+    background:
+        var(--red-soft);
+
+    color:
+        #ff9aa0;
+
 }
 
-.btn-full {
-    width: 100%;
+
+.btn-purple {
+
+    border-color:
+        rgba(190,165,255,.22);
+
+    background:
+        var(--purple-soft);
+
+    color:
+        #d5c8ff;
+
 }
+
+
+.btn-full {
+
+    width:
+        100%;
+
+}
+
 
 
 /* ============================================================
-   APP
+   APPLICATION
 ============================================================ */
 
 .app-shell {
-    min-height: 100vh;
 
-    display: grid;
+    min-height:
+        100vh;
+
+    display:
+        grid;
+
     grid-template-columns:
+
         260px
+
         minmax(0,1fr);
+
 }
 
+
 .sidebar {
-    position: sticky;
-    top: 0;
 
-    height: 100vh;
+    position:
+        sticky;
 
-    padding: 21px 15px;
+    top:
+        0;
 
-    display: flex;
-    flex-direction: column;
+    height:
+        100vh;
 
-    border-right: 1px solid var(--border);
+    padding:
+        21px 15px;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    border-right:
+        1px solid var(--border);
 
     background:
         rgba(5,15,21,.95);
 
-    backdrop-filter: blur(14px);
+    backdrop-filter:
+        blur(14px);
+
 }
+
 
 .sidebar-brand {
-    padding: 4px 8px 26px;
+
+    padding:
+        4px 8px 26px;
+
 }
+
 
 .network-picker {
-    padding: 0 6px 20px;
+
+    padding:
+        0 6px 20px;
+
 }
+
 
 .network-picker label {
-    display: block;
 
-    margin-bottom: 7px;
+    display:
+        block;
 
-    color: var(--muted2);
+    margin-bottom:
+        7px;
 
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: .8px;
+    color:
+        var(--muted-2);
 
-    text-transform: uppercase;
+    font-size:
+        10px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        .8px;
+
+    text-transform:
+        uppercase;
+
 }
+
 
 .navigation {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        4px;
+
 }
+
 
 .nav-btn {
-    width: 100%;
 
-    padding: 11px 12px;
+    width:
+        100%;
 
-    display: flex;
-    align-items: center;
+    padding:
+        11px 12px;
 
-    gap: 10px;
+    display:
+        flex;
 
-    border: 0;
-    border-radius: 10px;
+    align-items:
+        center;
 
-    background: transparent;
-    color: var(--muted);
+    gap:
+        10px;
 
-    text-align: left;
+    border:
+        0;
 
-    font-weight: 720;
+    border-radius:
+        10px;
+
+    background:
+        transparent;
+
+    color:
+        var(--muted);
+
+    text-align:
+        left;
+
+    font-weight:
+        720;
+
 }
 
+
 .nav-btn:hover {
+
     background:
         rgba(255,255,255,.035);
 
-    color: white;
+    color:
+        white;
+
 }
+
 
 .nav-btn.active {
-    background: var(--green-bg);
-    color: var(--green);
+
+    background:
+        var(--green-soft);
+
+    color:
+        var(--green);
+
 }
+
 
 .nav-count {
-    margin-left: auto;
 
-    min-width: 22px;
-    height: 22px;
+    margin-left:
+        auto;
 
-    padding: 0 6px;
+    min-width:
+        22px;
 
-    display: grid;
-    place-items: center;
+    height:
+        22px;
 
-    border-radius: 999px;
+    padding:
+        0 6px;
 
-    background: var(--red-bg);
-    color: #ff9ba1;
+    display:
+        grid;
 
-    font-size: 11px;
-    font-weight: 850;
+    place-items:
+        center;
+
+    border-radius:
+        999px;
+
+    background:
+        var(--red-soft);
+
+    color:
+        #ff9ba1;
+
+    font-size:
+        11px;
+
+    font-weight:
+        850;
+
 }
+
 
 .sidebar-bottom {
-    margin-top: auto;
 
-    padding: 15px 7px 3px;
+    margin-top:
+        auto;
 
-    border-top: 1px solid var(--border);
+    padding:
+        15px 7px 3px;
+
+    border-top:
+        1px solid var(--border);
+
 }
+
 
 .sidebar-email {
-    margin-bottom: 10px;
 
-    overflow: hidden;
+    margin-bottom:
+        10px;
 
-    color: var(--muted);
+    overflow:
+        hidden;
 
-    font-size: 12px;
+    color:
+        var(--muted);
 
-    text-overflow: ellipsis;
+    font-size:
+        12px;
+
+    text-overflow:
+        ellipsis;
+
 }
+
 
 .main {
-    min-width: 0;
 
-    padding: 30px 32px 60px;
+    min-width:
+        0;
+
+    padding:
+        30px 32px 60px;
+
 }
+
 
 
 /* ============================================================
@@ -534,34 +1114,66 @@ a {
 ============================================================ */
 
 .topbar {
-    margin-bottom: 27px;
 
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    margin-bottom:
+        27px;
 
-    gap: 20px;
+    display:
+        flex;
+
+    align-items:
+        flex-start;
+
+    justify-content:
+        space-between;
+
+    gap:
+        20px;
+
 }
+
 
 .page-title {
-    margin: 0;
 
-    font-size: 31px;
-    letter-spacing: -1px;
+    margin:
+        0;
+
+    font-size:
+        31px;
+
+    letter-spacing:
+        -1px;
+
 }
+
 
 .page-subtitle {
-    margin: 7px 0 0;
 
-    color: var(--muted);
-    line-height: 1.5;
+    margin:
+        7px 0 0;
+
+    color:
+        var(--muted);
+
+    line-height:
+        1.5;
+
 }
+
 
 .top-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        8px;
+
 }
+
 
 
 /* ============================================================
@@ -569,93 +1181,178 @@ a {
 ============================================================ */
 
 .grid {
-    display: grid;
-    gap: 17px;
+
+    display:
+        grid;
+
+    gap:
+        17px;
+
 }
 
+
 .stats-grid {
+
     grid-template-columns:
         repeat(5,1fr);
 
-    margin-bottom: 20px;
+    margin-bottom:
+        20px;
+
 }
+
+
+.two-column-grid {
+
+    grid-template-columns:
+        repeat(2,minmax(0,1fr));
+
+}
+
 
 .stat {
-    min-width: 0;
 
-    padding: 20px;
+    min-width:
+        0;
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    padding:
+        20px;
 
-    background: var(--panel);
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        var(--radius);
+
+    background:
+        var(--panel);
+
 }
+
 
 .stat-label {
-    color: var(--muted);
 
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: .65px;
+    color:
+        var(--muted);
 
-    text-transform: uppercase;
+    font-size:
+        11px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        .65px;
+
+    text-transform:
+        uppercase;
+
 }
+
 
 .stat-value {
-    margin-top: 9px;
 
-    font-size: 35px;
-    font-weight: 900;
+    margin-top:
+        9px;
+
+    font-size:
+        35px;
+
+    font-weight:
+        900;
+
 }
+
 
 .stat-caption {
-    margin-top: 5px;
 
-    color: var(--muted2);
+    margin-top:
+        5px;
 
-    font-size: 12px;
+    color:
+        var(--muted-2);
+
+    font-size:
+        12px;
+
 }
+
 
 .card {
-    margin-bottom: 20px;
 
-    overflow: hidden;
+    margin-bottom:
+        20px;
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    overflow:
+        hidden;
 
-    background: var(--panel);
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        var(--radius);
+
+    background:
+        var(--panel);
+
 }
+
 
 .card-head {
-    padding: 19px 21px;
 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    padding:
+        19px 21px;
 
-    gap: 15px;
+    display:
+        flex;
 
-    border-bottom: 1px solid var(--border);
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        15px;
+
+    border-bottom:
+        1px solid var(--border);
+
 }
+
 
 .card-title {
-    margin: 0;
 
-    font-size: 19px;
+    margin:
+        0;
+
+    font-size:
+        19px;
+
 }
+
 
 .card-subtitle {
-    margin: 4px 0 0;
 
-    color: var(--muted);
+    margin:
+        4px 0 0;
 
-    font-size: 13px;
+    color:
+        var(--muted);
+
+    font-size:
+        13px;
+
 }
+
 
 .card-body {
-    padding: 20px 21px;
+
+    padding:
+        20px 21px;
+
 }
+
 
 
 /* ============================================================
@@ -663,51 +1360,102 @@ a {
 ============================================================ */
 
 .badge {
-    padding: 5px 8px;
 
-    display: inline-flex;
-    align-items: center;
+    padding:
+        5px 8px;
 
-    gap: 5px;
+    display:
+        inline-flex;
 
-    border-radius: 999px;
+    align-items:
+        center;
 
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: .3px;
+    gap:
+        5px;
 
-    text-transform: uppercase;
+    border-radius:
+        999px;
+
+    font-size:
+        10px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        .3px;
+
+    text-transform:
+        uppercase;
+
 }
+
 
 .badge-green {
-    background: var(--green-bg);
-    color: var(--green);
+
+    background:
+        var(--green-soft);
+
+    color:
+        var(--green);
+
 }
+
 
 .badge-yellow {
-    background: var(--yellow-bg);
-    color: var(--yellow);
+
+    background:
+        var(--yellow-soft);
+
+    color:
+        var(--yellow);
+
 }
+
 
 .badge-red {
-    background: var(--red-bg);
-    color: #ff9ba1;
+
+    background:
+        var(--red-soft);
+
+    color:
+        #ff9ba1;
+
 }
+
 
 .badge-blue {
-    background: var(--blue-bg);
-    color: #91c7ff;
+
+    background:
+        var(--blue-soft);
+
+    color:
+        #91c7ff;
+
 }
+
 
 .badge-purple {
-    background: var(--purple-bg);
-    color: #d0c0ff;
+
+    background:
+        var(--purple-soft);
+
+    color:
+        #d0c0ff;
+
 }
 
+
 .badge-gray {
-    background: rgba(255,255,255,.05);
-    color: var(--muted);
+
+    background:
+        rgba(255,255,255,.05);
+
+    color:
+        var(--muted);
+
 }
+
 
 
 /* ============================================================
@@ -715,59 +1463,108 @@ a {
 ============================================================ */
 
 .agent-row {
-    padding: 16px 0;
 
-    display: grid;
+    padding:
+        16px 0;
+
+    display:
+        grid;
+
     grid-template-columns:
+
         auto
+
         minmax(0,1fr)
+
         auto;
 
-    align-items: center;
+    align-items:
+        center;
 
-    gap: 14px;
+    gap:
+        14px;
 
-    border-bottom: 1px solid var(--border);
+    border-bottom:
+        1px solid var(--border);
+
 }
+
 
 .agent-row:last-child {
-    border-bottom: 0;
+
+    border-bottom:
+        0;
+
 }
+
 
 .agent-icon {
-    width: 48px;
-    height: 48px;
 
-    display: grid;
-    place-items: center;
+    width:
+        48px;
 
-    border-radius: 13px;
+    height:
+        48px;
 
-    background: var(--panel2);
+    display:
+        grid;
 
-    font-size: 21px;
+    place-items:
+        center;
+
+    border-radius:
+        13px;
+
+    background:
+        var(--panel-2);
+
+    font-size:
+        21px;
+
 }
+
 
 .agent-name {
-    font-weight: 850;
+
+    font-weight:
+        850;
+
 }
+
 
 .agent-meta {
-    margin-top: 5px;
 
-    color: var(--muted);
+    margin-top:
+        5px;
 
-    font-size: 12px;
-    line-height: 1.55;
+    color:
+        var(--muted);
+
+    font-size:
+        12px;
+
+    line-height:
+        1.55;
+
 }
+
 
 .agent-health {
-    display: flex;
-    align-items: flex-end;
-    flex-direction: column;
 
-    gap: 5px;
+    display:
+        flex;
+
+    align-items:
+        flex-end;
+
+    flex-direction:
+        column;
+
+    gap:
+        5px;
+
 }
+
 
 
 /* ============================================================
@@ -775,198 +1572,348 @@ a {
 ============================================================ */
 
 .table-wrap {
-    overflow-x: auto;
+
+    overflow-x:
+        auto;
+
 }
+
 
 table {
-    width: 100%;
 
-    border-collapse: collapse;
+    width:
+        100%;
+
+    border-collapse:
+        collapse;
+
 }
+
 
 th {
-    padding: 12px 13px;
 
-    color: var(--muted2);
+    padding:
+        12px 13px;
 
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: .6px;
+    color:
+        var(--muted-2);
 
-    text-align: left;
-    text-transform: uppercase;
+    font-size:
+        10px;
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        .6px;
+
+    text-align:
+        left;
+
+    text-transform:
+        uppercase;
+
 }
+
 
 td {
-    padding: 14px 13px;
 
-    border-top: 1px solid var(--border);
+    padding:
+        14px 13px;
 
-    color: #dae7eb;
+    border-top:
+        1px solid var(--border);
 
-    font-size: 13px;
+    color:
+        #dae7eb;
+
+    font-size:
+        13px;
+
 }
+
 
 tbody tr {
-    cursor: pointer;
 
-    transition: background .12s ease;
+    cursor:
+        pointer;
+
+    transition:
+        background .12s ease;
+
 }
+
 
 tbody tr:hover {
-    background: rgba(255,255,255,.025);
+
+    background:
+        rgba(255,255,255,.025);
+
 }
+
 
 .device-main {
-    min-width: 220px;
 
-    display: flex;
-    align-items: center;
+    min-width:
+        220px;
 
-    gap: 10px;
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        10px;
+
 }
+
 
 .device-icon {
-    width: 39px;
-    height: 39px;
 
-    flex: 0 0 auto;
+    width:
+        39px;
 
-    display: grid;
-    place-items: center;
+    height:
+        39px;
 
-    border-radius: 11px;
+    flex:
+        0 0 auto;
 
-    background: var(--panel2);
+    display:
+        grid;
 
-    font-size: 18px;
+    place-items:
+        center;
+
+    border-radius:
+        11px;
+
+    background:
+        var(--panel-2);
+
+    font-size:
+        18px;
+
 }
+
 
 .device-name {
-    color: white;
 
-    font-weight: 850;
+    color:
+        white;
+
+    font-weight:
+        850;
+
 }
+
 
 .device-small {
-    margin-top: 3px;
 
-    color: var(--muted);
+    margin-top:
+        3px;
 
-    font-size: 11px;
-    line-height: 1.45;
+    color:
+        var(--muted);
+
+    font-size:
+        11px;
+
+    line-height:
+        1.45;
+
 }
+
 
 .confidence {
-    display: flex;
-    align-items: center;
 
-    gap: 7px;
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        7px;
+
 }
+
 
 .confidence-track {
-    width: 60px;
-    height: 6px;
 
-    overflow: hidden;
+    width:
+        60px;
 
-    border-radius: 99px;
+    height:
+        6px;
 
-    background: rgba(255,255,255,.06);
+    overflow:
+        hidden;
+
+    border-radius:
+        99px;
+
+    background:
+        rgba(255,255,255,.06);
+
 }
+
 
 .confidence-fill {
-    height: 100%;
 
-    border-radius: inherit;
+    height:
+        100%;
 
-    background: var(--green);
+    border-radius:
+        inherit;
+
+    background:
+        var(--green);
+
 }
+
 
 
 /* ============================================================
-   FILTER BAR
+   FILTERS
 ============================================================ */
 
 .filters {
-    padding: 13px;
 
-    display: grid;
+    padding:
+        13px;
+
+    display:
+        grid;
 
     grid-template-columns:
+
         minmax(200px,2fr)
+
         repeat(3,minmax(130px,1fr));
 
-    gap: 9px;
+    gap:
+        9px;
 
-    border-bottom: 1px solid var(--border);
+    border-bottom:
+        1px solid var(--border);
+
 }
+
 
 
 /* ============================================================
-   ALERTS / ACTIVITY
+   FEEDS
 ============================================================ */
 
 .feed-item {
-    padding: 17px 0;
 
-    display: grid;
+    padding:
+        17px 0;
+
+    display:
+        grid;
 
     grid-template-columns:
+
         auto
+
         minmax(0,1fr)
+
         auto;
 
-    gap: 13px;
+    gap:
+        13px;
 
-    border-bottom: 1px solid var(--border);
+    border-bottom:
+        1px solid var(--border);
+
 }
+
 
 .feed-item:last-child {
-    border-bottom: 0;
+
+    border-bottom:
+        0;
+
 }
+
 
 .feed-icon {
-    width: 38px;
-    height: 38px;
 
-    display: grid;
-    place-items: center;
+    width:
+        38px;
 
-    border-radius: 11px;
+    height:
+        38px;
 
-    background: var(--panel2);
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    border-radius:
+        11px;
+
+    background:
+        var(--panel-2);
+
 }
+
 
 .feed-title {
-    font-weight: 820;
+
+    font-weight:
+        820;
+
 }
+
 
 .feed-message {
-    margin-top: 4px;
 
-    color: var(--muted);
+    margin-top:
+        4px;
 
-    font-size: 12px;
-    line-height: 1.5;
+    color:
+        var(--muted);
+
+    font-size:
+        12px;
+
+    line-height:
+        1.5;
+
 }
+
 
 .feed-time {
-    color: var(--muted2);
 
-    font-size: 11px;
+    color:
+        var(--muted-2);
 
-    white-space: nowrap;
+    font-size:
+        11px;
+
+    white-space:
+        nowrap;
+
 }
 
+
 .unread-item {
+
     background:
+
         linear-gradient(
             90deg,
             rgba(53,231,154,.035),
             transparent
         );
+
 }
+
 
 
 /* ============================================================
@@ -974,53 +1921,86 @@ tbody tr:hover {
 ============================================================ */
 
 .network-grid {
-    display: grid;
+
+    display:
+        grid;
 
     grid-template-columns:
+
         repeat(
             auto-fill,
             minmax(280px,1fr)
         );
 
-    gap: 15px;
+    gap:
+        15px;
+
 }
+
 
 .network-card {
-    padding: 20px;
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    padding:
+        20px;
 
-    background: var(--panel);
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        var(--radius);
+
+    background:
+        var(--panel);
+
 }
 
+
 .network-card.selected {
+
     border-color:
         rgba(53,231,154,.40);
 
     box-shadow:
-        inset 0 0 0 1px
-        rgba(53,231,154,.08);
+        inset 0 0 0 1px rgba(53,231,154,.08);
+
 }
+
 
 .network-card h3 {
-    margin: 0 0 5px;
+
+    margin:
+        0 0 5px;
+
 }
+
 
 .network-card p {
-    margin: 0 0 18px;
 
-    color: var(--muted);
+    margin:
+        0 0 18px;
 
-    font-size: 12px;
+    color:
+        var(--muted);
+
+    font-size:
+        12px;
+
 }
+
 
 .network-actions {
-    display: flex;
-    flex-wrap: wrap;
 
-    gap: 7px;
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        7px;
+
 }
+
 
 
 /* ============================================================
@@ -1028,234 +2008,475 @@ tbody tr:hover {
 ============================================================ */
 
 .settings-grid {
-    display: grid;
+
+    display:
+        grid;
 
     grid-template-columns:
         repeat(2,minmax(0,1fr));
 
-    gap: 17px;
+    gap:
+        17px;
+
 }
+
 
 .setting-card {
-    padding: 21px;
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    padding:
+        21px;
 
-    background: var(--panel);
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        var(--radius);
+
+    background:
+        var(--panel);
+
 }
+
 
 .setting-card h3 {
-    margin: 0 0 8px;
+
+    margin:
+        0 0 8px;
+
 }
+
 
 .setting-card p {
-    color: var(--muted);
 
-    font-size: 13px;
-    line-height: 1.55;
+    color:
+        var(--muted);
+
+    font-size:
+        13px;
+
+    line-height:
+        1.55;
+
 }
+
 
 .setting-row {
-    padding: 12px 0;
 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    padding:
+        12px 0;
 
-    gap: 15px;
+    display:
+        flex;
 
-    border-bottom: 1px solid var(--border);
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        15px;
+
+    border-bottom:
+        1px solid var(--border);
+
 }
+
 
 .setting-row:last-child {
-    border-bottom: 0;
+
+    border-bottom:
+        0;
+
 }
+
 
 .setting-row-name {
-    font-weight: 720;
+
+    font-weight:
+        720;
+
 }
+
 
 .setting-row-note {
-    margin-top: 3px;
 
-    color: var(--muted2);
+    margin-top:
+        3px;
 
-    font-size: 11px;
+    color:
+        var(--muted-2);
+
+    font-size:
+        11px;
+
 }
+
 
 .factor {
-    margin-top: 8px;
-    padding: 12px;
 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    margin-top:
+        8px;
 
-    gap: 10px;
+    padding:
+        12px;
 
-    border: 1px solid var(--border);
-    border-radius: 11px;
+    display:
+        flex;
 
-    background: rgba(255,255,255,.02);
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        10px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        11px;
+
+    background:
+        rgba(255,255,255,.02);
+
 }
+
 
 .toggle {
-    width: 46px;
-    height: 25px;
 
-    position: relative;
+    width:
+        46px;
 
-    appearance: none;
+    height:
+        25px;
 
-    border-radius: 999px;
+    position:
+        relative;
 
-    background: #27404a;
+    appearance:
+        none;
 
-    cursor: pointer;
+    border-radius:
+        999px;
 
-    transition: .15s;
+    background:
+        #27404a;
+
+    cursor:
+        pointer;
+
+    transition:
+        .15s;
+
 }
+
 
 .toggle:checked {
-    background: var(--green);
+
+    background:
+        var(--green);
+
 }
+
 
 .toggle::after {
-    content: "";
 
-    position: absolute;
+    content:
+        "";
 
-    top: 3px;
-    left: 3px;
+    position:
+        absolute;
 
-    width: 19px;
-    height: 19px;
+    top:
+        3px;
 
-    border-radius: 50%;
+    left:
+        3px;
 
-    background: white;
+    width:
+        19px;
 
-    transition: .15s;
+    height:
+        19px;
+
+    border-radius:
+        50%;
+
+    background:
+        white;
+
+    transition:
+        .15s;
+
 }
+
 
 .toggle:checked::after {
-    transform: translateX(21px);
+
+    transform:
+        translateX(21px);
+
 }
+
 
 
 /* ============================================================
-   DETAILS
+   DEVICE DETAILS
 ============================================================ */
 
 .detail-grid {
-    display: grid;
+
+    display:
+        grid;
 
     grid-template-columns:
         repeat(2,1fr);
 
-    gap: 9px;
+    gap:
+        9px;
+
 }
+
 
 .detail-item {
-    padding: 12px;
 
-    border: 1px solid var(--border);
-    border-radius: 11px;
+    padding:
+        12px;
 
-    background: rgba(255,255,255,.02);
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        11px;
+
+    background:
+        rgba(255,255,255,.02);
+
 }
+
 
 .detail-label {
-    margin-bottom: 5px;
 
-    color: var(--muted2);
+    margin-bottom:
+        5px;
 
-    font-size: 10px;
-    font-weight: 850;
-    letter-spacing: .45px;
+    color:
+        var(--muted-2);
 
-    text-transform: uppercase;
+    font-size:
+        10px;
+
+    font-weight:
+        850;
+
+    letter-spacing:
+        .45px;
+
+    text-transform:
+        uppercase;
+
 }
+
 
 .detail-value {
-    color: white;
 
-    font-size: 13px;
-    font-weight: 720;
+    color:
+        white;
 
-    overflow-wrap: anywhere;
+    font-size:
+        13px;
+
+    font-weight:
+        720;
+
+    overflow-wrap:
+        anywhere;
+
 }
+
 
 .section-heading {
-    margin: 24px 0 10px;
 
-    font-size: 14px;
-    font-weight: 850;
+    margin:
+        24px 0 10px;
+
+    font-size:
+        14px;
+
+    font-weight:
+        850;
+
 }
+
 
 .chips {
-    display: flex;
-    flex-wrap: wrap;
 
-    gap: 6px;
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        6px;
+
 }
+
 
 .chip {
-    padding: 6px 9px;
 
-    border: 1px solid var(--border);
-    border-radius: 999px;
+    padding:
+        6px 9px;
 
-    background: rgba(255,255,255,.02);
-    color: #cad8dd;
+    border:
+        1px solid var(--border);
 
-    font-size: 11px;
+    border-radius:
+        999px;
+
+    background:
+        rgba(255,255,255,.02);
+
+    color:
+        #cad8dd;
+
+    font-size:
+        11px;
+
 }
+
 
 .finding {
-    margin-top: 8px;
-    padding: 12px;
 
-    border: 1px solid var(--border);
-    border-radius: 11px;
+    margin-top:
+        8px;
 
-    background: rgba(255,255,255,.02);
+    padding:
+        12px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        11px;
+
+    background:
+        rgba(255,255,255,.02);
+
 }
+
 
 .finding-title {
-    font-weight: 800;
+
+    font-weight:
+        800;
+
 }
+
 
 .finding-detail {
-    margin-top: 4px;
 
-    color: var(--muted);
+    margin-top:
+        4px;
 
-    font-size: 12px;
-    line-height: 1.5;
+    color:
+        var(--muted);
+
+    font-size:
+        12px;
+
+    line-height:
+        1.5;
+
 }
+
+
+.learning-box {
+
+    margin-top:
+        22px;
+
+    padding:
+        16px;
+
+    border:
+        1px solid rgba(190,165,255,.20);
+
+    border-radius:
+        13px;
+
+    background:
+        rgba(190,165,255,.055);
+
+}
+
+
+.learning-title {
+
+    font-size:
+        15px;
+
+    font-weight:
+        850;
+
+    color:
+        #d6cbff;
+
+}
+
+
+.learning-text {
+
+    margin-top:
+        6px;
+
+    color:
+        var(--muted);
+
+    font-size:
+        12px;
+
+    line-height:
+        1.5;
+
+}
+
 
 
 /* ============================================================
-   EMPTY
+   EMPTY STATE
 ============================================================ */
 
 .empty {
-    padding: 35px;
 
-    text-align: center;
+    padding:
+        35px;
 
-    color: var(--muted);
+    text-align:
+        center;
+
+    color:
+        var(--muted);
+
 }
+
 
 .empty strong {
-    display: block;
 
-    margin-bottom: 6px;
+    display:
+        block;
 
-    color: white;
+    margin-bottom:
+        6px;
+
+    color:
+        white;
+
 }
+
 
 
 /* ============================================================
@@ -1263,77 +2484,135 @@ tbody tr:hover {
 ============================================================ */
 
 .modal-backdrop {
-    position: fixed;
-    inset: 0;
 
-    z-index: 1000;
+    position:
+        fixed;
 
-    padding: 20px;
+    inset:
+        0;
 
-    display: grid;
-    place-items: center;
+    z-index:
+        1000;
+
+    padding:
+        20px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
 
     background:
         rgba(0,0,0,.72);
 
-    backdrop-filter: blur(7px);
+    backdrop-filter:
+        blur(7px);
+
 }
+
 
 .modal {
-    width: min(520px,100%);
-    max-height: calc(100vh - 40px);
 
-    overflow-y: auto;
+    width:
+        min(520px,100%);
 
-    padding: 25px;
+    max-height:
+        calc(100vh - 40px);
 
-    border: 1px solid var(--border);
-    border-radius: 20px;
+    overflow-y:
+        auto;
 
-    background: #091b24;
+    padding:
+        25px;
 
-    box-shadow: var(--shadow);
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        20px;
+
+    background:
+        #091b24;
+
+    box-shadow:
+        var(--shadow);
+
 }
+
 
 .modal-wide {
-    width: min(800px,100%);
+
+    width:
+        min(820px,100%);
+
 }
+
 
 .modal h2 {
-    margin: 0 0 7px;
+
+    margin:
+        0 0 7px;
+
 }
+
 
 .modal-description {
-    margin: 0 0 19px;
 
-    color: var(--muted);
+    margin:
+        0 0 19px;
 
-    line-height: 1.5;
+    color:
+        var(--muted);
+
+    line-height:
+        1.5;
+
 }
+
 
 .modal-actions {
-    margin-top: 20px;
 
-    display: flex;
-    justify-content: flex-end;
-    flex-wrap: wrap;
+    margin-top:
+        20px;
 
-    gap: 8px;
+    display:
+        flex;
+
+    justify-content:
+        flex-end;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        8px;
+
 }
 
+
 .pair-code {
-    margin: 18px 0;
-    padding: 16px;
 
-    border: 1px solid
-        rgba(53,231,154,.24);
+    margin:
+        18px 0;
 
-    border-radius: 12px;
+    padding:
+        16px;
 
-    background: var(--green-bg);
-    color: var(--green);
+    border:
+        1px solid rgba(53,231,154,.24);
 
-    text-align: center;
+    border-radius:
+        12px;
+
+    background:
+        var(--green-soft);
+
+    color:
+        var(--green);
+
+    text-align:
+        center;
 
     font-family:
         ui-monospace,
@@ -1341,48 +2620,79 @@ tbody tr:hover {
         Menlo,
         monospace;
 
-    font-size: 21px;
-    font-weight: 900;
+    font-size:
+        21px;
 
-    letter-spacing: .8px;
+    font-weight:
+        900;
+
+    letter-spacing:
+        .8px;
+
 }
 
-.download-grid {
-    margin-top: 17px;
 
-    display: grid;
+.download-grid {
+
+    margin-top:
+        17px;
+
+    display:
+        grid;
+
     grid-template-columns:
         repeat(3,1fr);
 
-    gap: 8px;
+    gap:
+        8px;
+
 }
+
 
 .qr-box {
-    width: 230px;
 
-    margin: 18px auto;
-    padding: 12px;
+    width:
+        230px;
 
-    border-radius: 15px;
+    margin:
+        18px auto;
 
-    background: white;
+    padding:
+        12px;
+
+    border-radius:
+        15px;
+
+    background:
+        white;
+
 }
+
 
 .qr-box img {
-    width: 100%;
 
-    display: block;
+    width:
+        100%;
+
+    display:
+        block;
+
 }
 
+
 .secret {
-    padding: 11px;
 
-    border: 1px dashed
-        rgba(255,255,255,.16);
+    padding:
+        11px;
 
-    border-radius: 10px;
+    border:
+        1px dashed rgba(255,255,255,.16);
 
-    background: #061017;
+    border-radius:
+        10px;
+
+    background:
+        #061017;
 
     font-family:
         ui-monospace,
@@ -1390,10 +2700,14 @@ tbody tr:hover {
         Menlo,
         monospace;
 
-    font-size: 11px;
+    font-size:
+        11px;
 
-    overflow-wrap: anywhere;
+    overflow-wrap:
+        anywhere;
+
 }
+
 
 
 /* ============================================================
@@ -1401,170 +2715,330 @@ tbody tr:hover {
 ============================================================ */
 
 .toast {
-    position: fixed;
 
-    right: 22px;
-    bottom: 22px;
+    position:
+        fixed;
 
-    z-index: 3000;
+    right:
+        22px;
 
-    max-width: 390px;
+    bottom:
+        22px;
 
-    padding: 13px 15px;
+    z-index:
+        6000;
 
-    border: 1px solid var(--border);
-    border-radius: 11px;
+    max-width:
+        390px;
 
-    background: #102630;
-    color: white;
+    padding:
+        13px 15px;
 
-    box-shadow: var(--shadow);
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        11px;
+
+    background:
+        #102630;
+
+    color:
+        white;
+
+    box-shadow:
+        var(--shadow);
+
 }
+
 
 .toast.error {
+
     border-color:
         rgba(255,128,135,.35);
+
 }
 
+
 .toast.success {
+
     border-color:
         rgba(53,231,154,.35);
+
 }
+
 
 
 /* ============================================================
    RESPONSIVE
 ============================================================ */
 
-@media (max-width: 1200px) {
+@media (
+    max-width: 1200px
+) {
 
     .stats-grid {
+
         grid-template-columns:
             repeat(3,1fr);
+
     }
 
 }
 
-@media (max-width: 1000px) {
+
+@media (
+    max-width: 1000px
+) {
 
     .auth-screen {
-        grid-template-columns: 1fr;
+
+        grid-template-columns:
+            1fr;
+
     }
+
 
     .auth-hero {
-        display: none;
+
+        display:
+            none;
+
     }
+
 
     .auth-side {
-        min-height: 100vh;
 
-        border-left: 0;
+        min-height:
+            100vh;
+
+        border-left:
+            0;
+
     }
 
-    .settings-grid {
-        grid-template-columns: 1fr;
+
+    .settings-grid,
+    .two-column-grid {
+
+        grid-template-columns:
+            1fr;
+
     }
 
 }
 
-@media (max-width: 760px) {
+
+@media (
+    max-width: 760px
+) {
 
     .app-shell {
-        display: block;
+
+        display:
+            block;
+
     }
+
 
     .sidebar {
-        position: static;
 
-        height: auto;
+        position:
+            static;
 
-        padding: 12px;
+        height:
+            auto;
 
-        border-right: 0;
-        border-bottom: 1px solid var(--border);
+        padding:
+            12px;
+
+        border-right:
+            0;
+
+        border-bottom:
+            1px solid var(--border);
+
     }
+
 
     .sidebar-brand {
-        padding-bottom: 11px;
+
+        padding-bottom:
+            11px;
+
     }
+
 
     .network-picker {
-        padding-bottom: 11px;
+
+        padding-bottom:
+            11px;
+
     }
 
+
     .navigation {
-        display: grid;
+
+        display:
+            grid;
 
         grid-template-columns:
             repeat(4,1fr);
+
     }
+
 
     .nav-btn {
-        justify-content: center;
 
-        padding: 9px 4px;
+        justify-content:
+            center;
 
-        font-size: 10px;
+        padding:
+            9px 4px;
+
+        font-size:
+            10px;
+
     }
+
 
     .nav-count {
-        display: none;
+
+        display:
+            none;
+
     }
+
 
     .sidebar-bottom {
-        display: none;
+
+        display:
+            none;
+
     }
+
 
     .main {
-        padding: 18px 12px 45px;
+
+        padding:
+            18px 12px 45px;
+
     }
+
 
     .topbar {
-        display: block;
+
+        display:
+            block;
+
     }
+
 
     .top-actions {
-        margin-top: 14px;
+
+        margin-top:
+            14px;
+
     }
+
 
     .stats-grid {
+
         grid-template-columns:
             repeat(2,1fr);
+
     }
+
 
     .stat-value {
-        font-size: 29px;
+
+        font-size:
+            29px;
+
     }
+
 
     .filters {
-        grid-template-columns: 1fr;
+
+        grid-template-columns:
+            1fr;
+
     }
+
 
     .agent-row {
+
         grid-template-columns:
             auto 1fr;
+
     }
+
 
     .agent-health {
-        grid-column: 1 / -1;
 
-        align-items: flex-start;
+        grid-column:
+            1 / -1;
+
+        align-items:
+            flex-start;
+
     }
+
 
     .detail-grid {
-        grid-template-columns: 1fr;
+
+        grid-template-columns:
+            1fr;
+
     }
 
+
     .download-grid {
-        grid-template-columns: 1fr;
+
+        grid-template-columns:
+            1fr;
+
     }
 
 }
 
 </style>
+
 </head>
 
+
 <body>
+
+
+<!-- ============================================================
+     LOADING SCREEN
+============================================================ -->
+
+<section
+    id="loadingScreen"
+    class="loading-screen"
+>
+
+    <div class="loading-box">
+
+        <div class="loading-logo">
+            W
+        </div>
+
+        <div class="loading-title">
+            WiFi Watch
+        </div>
+
+        <div class="loading-text">
+            Loading your dashboard...
+        </div>
+
+        <div class="loading-spinner"></div>
+
+    </div>
+
+</section>
+
 
 
 <!-- ============================================================
@@ -1573,7 +3047,7 @@ tbody tr:hover {
 
 <section
     id="authScreen"
-    class="auth-screen"
+    class="auth-screen hidden"
 >
 
     <div class="auth-hero">
@@ -1596,9 +3070,11 @@ tbody tr:hover {
             </h1>
 
             <p>
+
                 Discover devices, build intelligent device identities,
-                monitor changes and review observable security concerns
-                from one dashboard.
+                monitor network changes and review observable security
+                concerns from one dashboard.
+
             </p>
 
 
@@ -1613,6 +3089,10 @@ tbody tr:hover {
                 </div>
 
                 <div class="hero-tag">
+                    Device Learning
+                </div>
+
+                <div class="hero-tag">
                     New Device Alerts
                 </div>
 
@@ -1622,10 +3102,6 @@ tbody tr:hover {
 
                 <div class="hero-tag">
                     Activity History
-                </div>
-
-                <div class="hero-tag">
-                    Mandatory 2FA
                 </div>
 
             </div>
@@ -1665,6 +3141,7 @@ tbody tr:hover {
                 >
                     Sign in
                 </button>
+
 
                 <button
                     id="registerTab"
@@ -1795,6 +3272,7 @@ tbody tr:hover {
                 ◫ Overview
             </button>
 
+
             <button
                 class="nav-btn"
                 data-view="devices"
@@ -1803,6 +3281,7 @@ tbody tr:hover {
                 ◉ Devices
             </button>
 
+
             <button
                 class="nav-btn"
                 data-view="security"
@@ -1810,6 +3289,7 @@ tbody tr:hover {
             >
                 ◈ Security
             </button>
+
 
             <button
                 class="nav-btn"
@@ -1827,6 +3307,7 @@ tbody tr:hover {
 
             </button>
 
+
             <button
                 class="nav-btn"
                 data-view="activity"
@@ -1835,6 +3316,7 @@ tbody tr:hover {
                 ≡ Activity
             </button>
 
+
             <button
                 class="nav-btn"
                 data-view="networks"
@@ -1842,6 +3324,7 @@ tbody tr:hover {
             >
                 ◎ Networks
             </button>
+
 
             <button
                 class="nav-btn"
@@ -1861,6 +3344,7 @@ tbody tr:hover {
                 class="sidebar-email"
             ></div>
 
+
             <button
                 id="logoutButton"
                 class="btn btn-ghost btn-full"
@@ -1872,6 +3356,7 @@ tbody tr:hover {
         </div>
 
     </aside>
+
 
 
     <main class="main">
@@ -1913,6 +3398,7 @@ tbody tr:hover {
                     >
                         Connect Agent
                     </button>
+
 
                     <button
                         id="addNetworkTopButton"
@@ -2012,7 +3498,7 @@ tbody tr:hover {
                 <div class="stat">
 
                     <div class="stat-label">
-                        Unread alerts
+                        Unread Alerts
                     </div>
 
                     <div
@@ -2029,6 +3515,7 @@ tbody tr:hover {
                 </div>
 
             </div>
+
 
 
             <div class="card">
@@ -2056,6 +3543,7 @@ tbody tr:hover {
                 ></div>
 
             </div>
+
 
 
             <div class="card">
@@ -2094,24 +3582,16 @@ tbody tr:hover {
             </div>
 
 
-            <div class="grid"
-                 style="
-                    grid-template-columns:
-                    repeat(2,minmax(0,1fr));
-                 "
-            >
+
+            <div class="grid two-column-grid">
 
                 <div class="card">
 
                     <div class="card-head">
 
-                        <div>
-
-                            <h2 class="card-title">
-                                Latest Alerts
-                            </h2>
-
-                        </div>
+                        <h2 class="card-title">
+                            Latest Alerts
+                        </h2>
 
                     </div>
 
@@ -2128,13 +3608,9 @@ tbody tr:hover {
 
                     <div class="card-head">
 
-                        <div>
-
-                            <h2 class="card-title">
-                                Recent Activity
-                            </h2>
-
-                        </div>
+                        <h2 class="card-title">
+                            Recent Activity
+                        </h2>
 
                     </div>
 
@@ -2368,7 +3844,7 @@ tbody tr:hover {
 
             <p class="page-subtitle">
 
-                WiFi Watch performs limited and non-invasive local network
+                WiFi Watch performs limited and non-invasive local-network
                 observations. “No obvious issues” does not guarantee that a
                 device or network is fully secure.
 
@@ -2402,17 +3878,13 @@ tbody tr:hover {
                 </div>
 
 
-                <div class="top-actions">
-
-                    <button
-                        id="markAllAlertsReadButton"
-                        class="btn btn-secondary"
-                        type="button"
-                    >
-                        Mark all read
-                    </button>
-
-                </div>
+                <button
+                    id="markAllAlertsReadButton"
+                    class="btn btn-secondary"
+                    type="button"
+                >
+                    Mark all read
+                </button>
 
             </div>
 
@@ -2555,12 +4027,8 @@ tbody tr:hover {
 
                     <div class="setting-row">
 
-                        <div>
-
-                            <div class="setting-row-name">
-                                Email
-                            </div>
-
+                        <div class="setting-row-name">
+                            Email
                         </div>
 
                         <strong id="settingsEmail">
@@ -2593,12 +4061,8 @@ tbody tr:hover {
 
                     <div class="setting-row">
 
-                        <div>
-
-                            <div class="setting-row-name">
-                                Authentication level
-                            </div>
-
+                        <div class="setting-row-name">
+                            Authentication level
                         </div>
 
                         <span
@@ -2611,6 +4075,7 @@ tbody tr:hover {
                     </div>
 
                 </div>
+
 
 
                 <div class="setting-card">
@@ -2637,6 +4102,7 @@ tbody tr:hover {
                     </button>
 
                 </div>
+
 
 
                 <div class="setting-card">
@@ -2705,7 +4171,7 @@ tbody tr:hover {
                             </div>
 
                             <div class="setting-row-note">
-                                Alert when WiFi Watch identifies a device differently
+                                Alert when identity information changes
                             </div>
 
                         </div>
@@ -2721,12 +4187,8 @@ tbody tr:hover {
 
                     <div class="setting-row">
 
-                        <div>
-
-                            <div class="setting-row-name">
-                                Agent offline
-                            </div>
-
+                        <div class="setting-row-name">
+                            Agent offline
                         </div>
 
                         <input
@@ -2748,6 +4210,7 @@ tbody tr:hover {
                     </button>
 
                 </div>
+
 
 
                 <div class="setting-card">
@@ -2782,7 +4245,7 @@ tbody tr:hover {
 
 
 <!-- ============================================================
-     ADD NETWORK MODAL
+     ADD NETWORK
 ============================================================ -->
 
 <div
@@ -2797,7 +4260,7 @@ tbody tr:hover {
         </h2>
 
         <p class="modal-description">
-            Give the network a name that is easy to recognize.
+            Give this network an easy-to-recognize name.
         </p>
 
 
@@ -2827,6 +4290,7 @@ tbody tr:hover {
                 Cancel
             </button>
 
+
             <button
                 id="createNetworkButton"
                 class="btn btn-primary"
@@ -2844,7 +4308,7 @@ tbody tr:hover {
 
 
 <!-- ============================================================
-     PAIR AGENT MODAL
+     PAIR AGENT
 ============================================================ -->
 
 <div
@@ -2859,8 +4323,10 @@ tbody tr:hover {
         </h2>
 
         <p class="modal-description">
-            Install the Agent on a computer connected to this network,
-            then enter this one-time pairing code in the Agent.
+
+            Install the Agent on a computer connected to this network
+            and enter this one-time pairing code.
+
         </p>
 
 
@@ -2892,6 +4358,7 @@ tbody tr:hover {
                 Windows
             </a>
 
+
             <a
                 id="downloadMac"
                 class="btn btn-secondary"
@@ -2900,6 +4367,7 @@ tbody tr:hover {
             >
                 macOS
             </a>
+
 
             <a
                 id="downloadLinux"
@@ -2923,6 +4391,7 @@ tbody tr:hover {
                 Copy Code
             </button>
 
+
             <button
                 class="btn btn-primary"
                 data-close="pairModal"
@@ -2940,7 +4409,7 @@ tbody tr:hover {
 
 
 <!-- ============================================================
-     DEVICE MODAL
+     DEVICE DETAILS
 ============================================================ -->
 
 <div
@@ -2979,6 +4448,33 @@ tbody tr:hover {
         <div id="deviceDetailContent"></div>
 
 
+        <div class="learning-box">
+
+            <div class="learning-title">
+                Teach WiFi Watch
+            </div>
+
+            <div class="learning-text">
+
+                If WiFi Watch cannot identify this device correctly,
+                teach it once. WiFi Watch stores a personal fingerprint
+                for this network so future identification can improve.
+
+            </div>
+
+
+            <button
+                id="teachDeviceButton"
+                class="btn btn-purple"
+                type="button"
+                style="margin-top:12px"
+            >
+                Teach WiFi Watch
+            </button>
+
+        </div>
+
+
         <div class="modal-actions">
 
             <button
@@ -2989,6 +4485,7 @@ tbody tr:hover {
                 Acknowledge
             </button>
 
+
             <button
                 id="toggleTrustedButton"
                 class="btn btn-secondary"
@@ -2996,6 +4493,7 @@ tbody tr:hover {
             >
                 Mark Trusted
             </button>
+
 
             <button
                 id="saveDeviceNameButton"
@@ -3005,12 +4503,201 @@ tbody tr:hover {
                 Save Name
             </button>
 
+
             <button
                 class="btn btn-ghost"
                 data-close="deviceModal"
                 type="button"
             >
                 Close
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- ============================================================
+     TEACH WIFI WATCH
+============================================================ -->
+
+<div
+    id="teachModal"
+    class="modal-backdrop hidden"
+>
+
+    <div class="modal">
+
+        <h2>
+            Teach WiFi Watch
+        </h2>
+
+        <p class="modal-description">
+
+            Tell WiFi Watch what this device really is.
+            The identity will be stored as a personal device fingerprint.
+
+        </p>
+
+
+        <div class="field">
+
+            <label>
+                Device name
+            </label>
+
+            <input
+                id="teachName"
+                class="input"
+                maxlength="100"
+                placeholder="Bedroom Camera"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Manufacturer
+            </label>
+
+            <input
+                id="teachManufacturer"
+                class="input"
+                maxlength="100"
+                placeholder="Reolink"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Model
+            </label>
+
+            <input
+                id="teachModel"
+                class="input"
+                maxlength="100"
+                placeholder="E1 Pro"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Device type
+            </label>
+
+            <select
+                id="teachDeviceType"
+                class="select"
+            >
+
+                <option value="unknown">
+                    Unknown Device
+                </option>
+
+                <option value="computer">
+                    Computer
+                </option>
+
+                <option value="mobile">
+                    Phone / Tablet
+                </option>
+
+                <option value="smart_tv_media">
+                    Smart TV / Media
+                </option>
+
+                <option value="printer">
+                    Printer
+                </option>
+
+                <option value="camera">
+                    Camera
+                </option>
+
+                <option value="game_console">
+                    Game Console
+                </option>
+
+                <option value="smart_home">
+                    Smart Home
+                </option>
+
+                <option value="nas">
+                    NAS
+                </option>
+
+                <option value="media_server">
+                    Media Server
+                </option>
+
+                <option value="router_gateway">
+                    Router / Gateway
+                </option>
+
+                <option value="computer_or_nas">
+                    Computer / NAS
+                </option>
+
+                <option value="computer_or_server">
+                    Computer / Server
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                OS / Platform
+            </label>
+
+            <input
+                id="teachOs"
+                class="input"
+                maxlength="100"
+                placeholder="Android TV, macOS, Windows, Embedded Linux..."
+            >
+
+        </div>
+
+
+        <div
+            id="teachEvidence"
+            class="device-small"
+        ></div>
+
+
+        <div class="modal-actions">
+
+            <button
+                class="btn btn-ghost"
+                data-close="teachModal"
+                type="button"
+            >
+                Cancel
+            </button>
+
+
+            <button
+                id="saveLearnedDeviceButton"
+                class="btn btn-purple"
+                type="button"
+            >
+                Save & Learn
             </button>
 
         </div>
@@ -3037,8 +4724,10 @@ tbody tr:hover {
         </h2>
 
         <p class="modal-description">
-            Scan the QR code with Google Authenticator,
+
+            Scan this QR code with Google Authenticator,
             Microsoft Authenticator, 1Password or another TOTP app.
+
         </p>
 
 
@@ -3094,6 +4783,7 @@ tbody tr:hover {
                 Cancel
             </button>
 
+
             <button
                 id="verifyMfaSetup"
                 class="btn btn-primary"
@@ -3111,7 +4801,7 @@ tbody tr:hover {
 
 
 <!-- ============================================================
-     MFA LOGIN CHALLENGE
+     MFA CHALLENGE
 ============================================================ -->
 
 <div
@@ -3157,6 +4847,7 @@ tbody tr:hover {
             >
                 Cancel
             </button>
+
 
             <button
                 id="verifyMfaChallenge"
@@ -3225,7 +4916,7 @@ tbody tr:hover {
 
 
 <!-- ============================================================
-     CONFIRM MODAL
+     CONFIRM
 ============================================================ -->
 
 <div
@@ -3254,6 +4945,7 @@ tbody tr:hover {
             >
                 Cancel
             </button>
+
 
             <button
                 id="confirmAccept"
@@ -3288,7 +4980,7 @@ from
 
 
 /* ============================================================
-   CONFIG
+   CONFIGURATION
 ============================================================ */
 
 const SUPABASE_URL =
@@ -3333,11 +5025,20 @@ const supabase =
         SUPABASE_URL,
         SUPABASE_KEY,
         {
+
             auth: {
-                persistSession: true,
-                autoRefreshToken: true,
-                detectSessionInUrl: true
+
+                persistSession:
+                    true,
+
+                autoRefreshToken:
+                    true,
+
+                detectSessionInUrl:
+                    true
+
             }
+
         }
     );
 
@@ -3347,35 +5048,84 @@ const supabase =
    STATE
 ============================================================ */
 
-let currentUser = null;
+let currentUser =
+    null;
 
-let networks = [];
-let selectedNetwork = null;
 
-let agents = [];
-let devices = [];
-let alerts = [];
-let events = [];
+let networks =
+    [];
 
-let notificationPreferences = null;
 
-let authMode = "login";
+let selectedNetwork =
+    null;
 
-let refreshTimer = null;
-let inactivityTimer = null;
-let lastActivity = Date.now();
 
-let authGateBusy = false;
+let agents =
+    [];
 
-let currentDeviceId = null;
 
-let mfaEnrollment = null;
-let mfaMandatory = false;
-let mfaLoginFactor = null;
+let devices =
+    [];
 
-let confirmResolver = null;
 
-let pairingCountdown = null;
+let alerts =
+    [];
+
+
+let events =
+    [];
+
+
+let learnedFingerprints =
+    [];
+
+
+let notificationPreferences =
+    null;
+
+
+let authMode =
+    "login";
+
+
+let authGateBusy =
+    false;
+
+
+let refreshTimer =
+    null;
+
+
+let inactivityTimer =
+    null;
+
+
+let lastActivity =
+    Date.now();
+
+
+let currentDeviceId =
+    null;
+
+
+let mfaEnrollment =
+    null;
+
+
+let mfaMandatory =
+    false;
+
+
+let mfaLoginFactor =
+    null;
+
+
+let confirmResolver =
+    null;
+
+
+let pairingCountdown =
+    null;
 
 
 
@@ -3384,7 +5134,9 @@ let pairingCountdown = null;
 ============================================================ */
 
 const $ = id =>
-    document.getElementById(id);
+    document.getElementById(
+        id
+    );
 
 
 function escapeHtml(
@@ -3394,22 +5146,27 @@ function escapeHtml(
     return String(
         value ?? ""
     )
+
     .replaceAll(
         "&",
         "&amp;"
     )
+
     .replaceAll(
         "<",
         "&lt;"
     )
+
     .replaceAll(
         ">",
         "&gt;"
     )
+
     .replaceAll(
         '"',
         "&quot;"
     )
+
     .replaceAll(
         "'",
         "&#039;"
@@ -3444,6 +5201,17 @@ function hideModal(
 }
 
 
+function hideLoadingScreen() {
+
+    $("loadingScreen")
+        .classList
+        .add(
+            "hidden"
+        );
+
+}
+
+
 function showToast(
     message,
     type = "success"
@@ -3470,9 +5238,11 @@ function showToast(
         setTimeout(
             () => {
 
-                toast.classList.add(
-                    "hidden"
-                );
+                toast
+                    .classList
+                    .add(
+                        "hidden"
+                    );
 
             },
             4000
@@ -3504,7 +5274,7 @@ function timeAgo(
         return "Never";
 
 
-    const diff =
+    const difference =
         Math.max(
             0,
             Date.now()
@@ -3517,7 +5287,9 @@ function timeAgo(
 
     const seconds =
         Math.floor(
-            diff / 1000
+            difference
+            /
+            1000
         );
 
 
@@ -3549,13 +5321,7 @@ function timeAgo(
         return `${hours}h ago`;
 
 
-    const days =
-        Math.floor(
-            hours / 24
-        );
-
-
-    return `${days}d ago`;
+    return `${Math.floor(hours / 24)}d ago`;
 
 }
 
@@ -3576,11 +5342,13 @@ function qrSource(
     ) {
 
         return (
+
             "data:image/svg+xml;charset=utf-8,"
             +
             encodeURIComponent(
                 qr
             )
+
         );
 
     }
@@ -3648,26 +5416,36 @@ function deviceTypeLabel(
 ) {
 
     return (
+
         DEVICE_TYPE_LABELS[
             value
         ]
+
         ||
+
         (
             value
+
             ?
-            String(value)
-                .replaceAll(
-                    "_",
-                    " "
-                )
-                .replace(
-                    /\b\w/g,
-                    char =>
-                        char.toUpperCase()
-                )
+
+            String(
+                value
+            )
+            .replaceAll(
+                "_",
+                " "
+            )
+            .replace(
+                /\b\w/g,
+                character =>
+                    character.toUpperCase()
+            )
+
             :
+
             "Unknown Device"
         )
+
     );
 
 }
@@ -3678,33 +5456,33 @@ function deviceDisplayName(
 ) {
 
     return (
+
         device.custom_name
+
         ||
+
         device.friendly_name
+
         ||
+
         device.hostname
+
         ||
+
         device.model
+
         ||
-        (
-            device.vendor
-            &&
-            device.device_type
-            &&
-            device.device_type
-            !==
-            "unknown"
-            ?
-            `${device.vendor} ${deviceTypeLabel(device.device_type)}`
-            :
-            null
-        )
-        ||
+
         device.vendor
+
         ||
+
         device.ip
+
         ||
+
         "Unknown Device"
+
     );
 
 }
@@ -3743,7 +5521,9 @@ function deviceIcon(
         value.includes(
             "mobile"
         )
+
         ||
+
         value.includes(
             "apple_device"
         )
@@ -3755,7 +5535,9 @@ function deviceIcon(
         value.includes(
             "tv"
         )
+
         ||
+
         value.includes(
             "media"
         )
@@ -3791,11 +5573,15 @@ function deviceIcon(
         value.includes(
             "computer"
         )
+
         ||
+
         value.includes(
             "server"
         )
+
         ||
+
         value.includes(
             "nas"
         )
@@ -3817,15 +5603,14 @@ function onlineBadge(
     device
 ) {
 
-    const online =
+    return (
+
         device.status
         ===
-        "online";
-
-
-    return online
+        "online"
 
         ?
+
         `
             <span class="badge badge-green">
                 ● Online
@@ -3833,11 +5618,14 @@ function onlineBadge(
         `
 
         :
+
         `
             <span class="badge badge-gray">
                 Offline
             </span>
-        `;
+        `
+
+    );
 
 }
 
@@ -3890,45 +5678,6 @@ function securityBadge(
 }
 
 
-function alertSeverityBadge(
-    severity
-) {
-
-    switch (
-        severity
-    ) {
-
-        case "warning":
-
-            return `
-                <span class="badge badge-red">
-                    Warning
-                </span>
-            `;
-
-
-        case "review":
-
-            return `
-                <span class="badge badge-yellow">
-                    Review
-                </span>
-            `;
-
-
-        default:
-
-            return `
-                <span class="badge badge-blue">
-                    Info
-                </span>
-            `;
-
-    }
-
-}
-
-
 function confidenceHtml(
     value
 ) {
@@ -3948,6 +5697,7 @@ function confidenceHtml(
 
 
     return `
+
         <div class="confidence">
 
             <div class="confidence-track">
@@ -3964,6 +5714,7 @@ function confidenceHtml(
             </span>
 
         </div>
+
     `;
 
 }
@@ -4034,6 +5785,9 @@ function setAuthMode(
 
 function showAuthScreen() {
 
+    hideLoadingScreen();
+
+
     stopAutoRefresh();
 
     stopInactivityGuard();
@@ -4041,13 +5795,6 @@ function showAuthScreen() {
 
     currentUser =
         null;
-
-
-    networks = [];
-    agents = [];
-    devices = [];
-    alerts = [];
-    events = [];
 
 
     $("appScreen")
@@ -4102,17 +5849,26 @@ async function showAppScreen(
         );
 
 
-    startInactivityGuard();
+    try {
+
+        startInactivityGuard();
 
 
-    await loadNetworks();
+        await loadNetworks();
 
-    await loadMfaSettings();
+        await loadMfaSettings();
 
-    await loadNotificationPreferences();
+        await loadNotificationPreferences();
 
 
-    startAutoRefresh();
+        startAutoRefresh();
+
+
+    } finally {
+
+        hideLoadingScreen();
+
+    }
 
 }
 
@@ -4203,8 +5959,10 @@ $("authForm")
                             password,
 
                             options: {
+
                                 emailRedirectTo:
                                     SITE_URL
+
                             }
 
                         });
@@ -4317,11 +6075,16 @@ $("forgotPassword")
                 await supabase
                 .auth
                 .resetPasswordForEmail(
+
                     email,
+
                     {
+
                         redirectTo:
                             SITE_URL
+
                     }
+
                 );
 
 
@@ -4377,7 +6140,9 @@ $("saveNewPassword")
                 await supabase
                 .auth
                 .updateUser({
+
                     password
+
                 });
 
 
@@ -4498,9 +6263,13 @@ async function beginAuthGate() {
             0
         ) {
 
+            hideLoadingScreen();
+
+
             await beginMfaEnrollment(
                 true
             );
+
 
             return;
 
@@ -4526,6 +6295,9 @@ async function beginAuthGate() {
             !==
             "aal2"
         ) {
+
+            hideLoadingScreen();
+
 
             mfaLoginFactor =
                 factors[0];
@@ -4560,6 +6332,9 @@ async function beginAuthGate() {
         );
 
 
+        hideLoadingScreen();
+
+
         showToast(
             error.message
             ||
@@ -4588,13 +6363,13 @@ async function beginMfaEnrollment(
             mandatory;
 
 
-        const allFactors =
+        const factors =
             await listTotpFactors();
 
 
         for (
             const factor
-            of allFactors
+            of factors
         ) {
 
             if (
@@ -4609,8 +6384,10 @@ async function beginMfaEnrollment(
                         .auth
                         .mfa
                         .unenroll({
+
                             factorId:
                                 factor.id
+
                         });
 
                 } catch (_) {}
@@ -4684,7 +6461,7 @@ async function beginMfaEnrollment(
         showToast(
             error.message
             ||
-            "Unable to start authenticator setup.",
+            "Unable to start 2FA setup.",
             "error"
         );
 
@@ -4763,11 +6540,6 @@ $("verifyMfaSetup")
                     null;
 
 
-                showToast(
-                    "Two-factor authentication enabled."
-                );
-
-
                 const {
                     data
                 } =
@@ -4789,6 +6561,11 @@ $("verifyMfaSetup")
                     await loadMfaSettings();
 
                 }
+
+
+                showToast(
+                    "Two-factor authentication enabled."
+                );
 
 
             } catch (
@@ -4830,8 +6607,10 @@ $("cancelMfaSetup")
                         .auth
                         .mfa
                         .unenroll({
+
                             factorId:
                                 mfaEnrollment.id
+
                         });
 
                 } catch (_) {}
@@ -4981,7 +6760,7 @@ $("cancelMfaChallenge")
 
 
 /* ============================================================
-   SESSION TIMEOUT
+   SESSION SECURITY
 ============================================================ */
 
 function noteActivity() {
@@ -5012,12 +6791,18 @@ function startInactivityGuard() {
     ) {
 
         window.addEventListener(
+
             eventName,
+
             noteActivity,
+
             {
+
                 passive:
                     true
+
             }
+
         );
 
     }
@@ -5044,12 +6829,6 @@ function startInactivityGuard() {
             },
             15000
         );
-
-
-    document.addEventListener(
-        "visibilitychange",
-        visibilityCheck
-    );
 
 }
 
@@ -5082,39 +6861,11 @@ function stopInactivityGuard() {
     ) {
 
         window.removeEventListener(
+
             eventName,
+
             noteActivity
-        );
 
-    }
-
-
-    document.removeEventListener(
-        "visibilitychange",
-        visibilityCheck
-    );
-
-}
-
-
-async function visibilityCheck() {
-
-    if (
-        document.visibilityState
-        ===
-        "visible"
-
-        &&
-
-        Date.now()
-        -
-        lastActivity
-        >=
-        INACTIVITY_MS
-    ) {
-
-        await logoutLocal(
-            "You were signed out after 15 minutes of inactivity."
         );
 
     }
@@ -5134,8 +6885,10 @@ async function logoutLocal(
     await supabase
         .auth
         .signOut({
+
             scope:
                 "local"
+
         });
 
 
@@ -5160,12 +6913,14 @@ async function logoutLocal(
    NETWORKS
 ============================================================ */
 
-function selectedNetworkStorageKey() {
+function networkStorageKey() {
 
     return (
+
         "wifiwatch:selectedNetwork:"
         +
         currentUser.id
+
     );
 
 }
@@ -5187,8 +6942,10 @@ async function loadNetworks() {
         .order(
             "created_at",
             {
+
                 ascending:
                     true
+
             }
         );
 
@@ -5218,8 +6975,10 @@ async function loadNetworks() {
                 "networks"
             )
             .insert({
+
                 name:
                     "My Network"
+
             })
             .select()
             .single();
@@ -5236,9 +6995,9 @@ async function loadNetworks() {
     }
 
 
-    const stored =
+    const saved =
         localStorage.getItem(
-            selectedNetworkStorageKey()
+            networkStorageKey()
         );
 
 
@@ -5247,15 +7006,20 @@ async function loadNetworks() {
             network =>
                 network.id
                 ===
-                stored
+                saved
         )
+
         ||
+
         networks[0];
 
 
     localStorage.setItem(
-        selectedNetworkStorageKey(),
+
+        networkStorageKey(),
+
         selectedNetwork.id
+
     );
 
 
@@ -5278,10 +7042,11 @@ function renderNetworkSelector() {
 
                     <option
                         value="${escapeHtml(network.id)}"
+
                         ${
-                            network.id
-                            ===
                             selectedNetwork?.id
+                            ===
+                            network.id
                             ?
                             "selected"
                             :
@@ -5320,8 +7085,11 @@ async function selectNetwork(
 
 
     localStorage.setItem(
-        selectedNetworkStorageKey(),
+
+        networkStorageKey(),
+
         id
+
     );
 
 
@@ -5408,7 +7176,9 @@ $("createNetworkButton")
                     "networks"
                 )
                 .insert({
+
                     name
+
                 })
                 .select()
                 .single();
@@ -5436,8 +7206,11 @@ $("createNetworkButton")
 
 
             localStorage.setItem(
-                selectedNetworkStorageKey(),
+
+                networkStorageKey(),
+
                 data.id
+
             );
 
 
@@ -5471,14 +7244,17 @@ async function deleteNetwork(
     network
 ) {
 
-    const confirmed =
+    const accepted =
         await askConfirm(
+
             "Delete network?",
+
             `Delete "${network.name}" and all of its device data, Agents, alerts and history?`
+
         );
 
 
-    if (!confirmed)
+    if (!accepted)
         return;
 
 
@@ -5508,72 +7284,7 @@ async function deleteNetwork(
     }
 
 
-    networks =
-        networks.filter(
-            item =>
-                item.id
-                !==
-                network.id
-        );
-
-
-    if (
-        networks.length
-        ===
-        0
-    ) {
-
-        const {
-            data,
-            error: createError
-        } =
-            await supabase
-            .from(
-                "networks"
-            )
-            .insert({
-                name:
-                    "My Network"
-            })
-            .select()
-            .single();
-
-
-        if (createError) {
-
-            showToast(
-                createError.message,
-                "error"
-            );
-
-            return;
-
-        }
-
-
-        networks = [
-            data
-        ];
-
-    }
-
-
-    selectedNetwork =
-        networks[0];
-
-
-    localStorage.setItem(
-        selectedNetworkStorageKey(),
-        selectedNetwork.id
-    );
-
-
-    renderNetworkSelector();
-
-    renderNetworks();
-
-
-    await loadNetworkData();
+    await loadNetworks();
 
 
     showToast(
@@ -5585,7 +7296,7 @@ async function deleteNetwork(
 
 
 /* ============================================================
-   LOAD NETWORK DATA
+   NETWORK DATA
 ============================================================ */
 
 async function loadNetworkData() {
@@ -5605,9 +7316,11 @@ async function loadNetworkData() {
         agentsResult,
         devicesResult,
         alertsResult,
-        eventsResult
+        eventsResult,
+        learnedResult
     ] =
         await Promise.all([
+
 
             supabase
                 .from(
@@ -5623,10 +7336,13 @@ async function loadNetworkData() {
                 .order(
                     "created_at",
                     {
+
                         ascending:
                             true
+
                     }
                 ),
+
 
             supabase
                 .from(
@@ -5642,10 +7358,13 @@ async function loadNetworkData() {
                 .order(
                     "last_seen",
                     {
+
                         ascending:
                             false
+
                     }
                 ),
+
 
             supabase
                 .from(
@@ -5661,13 +7380,16 @@ async function loadNetworkData() {
                 .order(
                     "created_at",
                     {
+
                         ascending:
                             false
+
                     }
                 )
                 .limit(
                     200
                 ),
+
 
             supabase
                 .from(
@@ -5683,12 +7405,36 @@ async function loadNetworkData() {
                 .order(
                     "created_at",
                     {
+
                         ascending:
                             false
+
                     }
                 )
                 .limit(
                     300
+                ),
+
+
+            supabase
+                .from(
+                    "learned_fingerprints"
+                )
+                .select(
+                    "*"
+                )
+                .eq(
+                    "network_id",
+                    selectedNetwork.id
+                )
+                .order(
+                    "priority",
+                    {
+
+                        ascending:
+                            false
+
+                    }
                 )
 
         ]);
@@ -5718,6 +7464,12 @@ async function loadNetworkData() {
         throw eventsResult.error;
 
 
+    if (
+        learnedResult.error
+    )
+        throw learnedResult.error;
+
+
     agents =
         agentsResult.data
         ||
@@ -5738,6 +7490,12 @@ async function loadNetworkData() {
 
     events =
         eventsResult.data
+        ||
+        [];
+
+
+    learnedFingerprints =
+        learnedResult.data
         ||
         [];
 
@@ -5798,7 +7556,7 @@ function renderOverview() {
         );
 
 
-    const securityItems =
+    const securityCount =
         devices.filter(
             device =>
                 [
@@ -5808,7 +7566,7 @@ function renderOverview() {
                 .includes(
                     device.security_status
                 )
-        );
+        ).length;
 
 
     const unread =
@@ -5835,7 +7593,7 @@ function renderOverview() {
 
     $("statSecurity")
         .textContent =
-            securityItems.length;
+            securityCount;
 
 
     $("statAlerts")
@@ -5878,7 +7636,7 @@ function renderOverview() {
     renderOverviewNewDevices(
         newDevices.slice(
             0,
-            5
+            6
         )
     );
 
@@ -5939,15 +7697,15 @@ function renderOverviewNewDevices(
 
 function renderOverviewAlerts() {
 
+    const container =
+        $("overviewAlerts");
+
+
     const list =
         alerts.slice(
             0,
             5
         );
-
-
-    const container =
-        $("overviewAlerts");
 
 
     if (
@@ -5964,7 +7722,7 @@ function renderOverviewAlerts() {
                     No alerts
                 </strong>
 
-                WiFi Watch will show network alerts here.
+                WiFi Watch alerts will appear here.
 
             </div>
 
@@ -5990,15 +7748,15 @@ function renderOverviewAlerts() {
 
 function renderOverviewActivity() {
 
+    const container =
+        $("overviewActivity");
+
+
     const list =
         events.slice(
             0,
             5
         );
-
-
-    const container =
-        $("overviewActivity");
 
 
     if (
@@ -6015,7 +7773,7 @@ function renderOverviewActivity() {
                     No activity yet
                 </strong>
 
-                Device changes will be recorded here.
+                Network changes will appear here.
 
             </div>
 
@@ -6048,24 +7806,29 @@ function agentIsOnline(
 ) {
 
     if (
-        agent.status
-        !==
-        "online"
-
-        ||
         !agent.last_seen
     )
         return false;
 
 
     return (
-        Date.now()
-        -
-        new Date(
-            agent.last_seen
-        ).getTime()
+
+        agent.status
+        ===
+        "online"
+
+        &&
+
+        (
+            Date.now()
+            -
+            new Date(
+                agent.last_seen
+            ).getTime()
+        )
         <
         90000
+
     );
 
 }
@@ -6091,7 +7854,7 @@ function renderAgents() {
                     No WiFi Watch Agent connected
                 </strong>
 
-                Connect an Agent to start scanning this network.
+                Connect an Agent to begin monitoring.
 
             </div>
 
@@ -6195,6 +7958,7 @@ function renderAgents() {
                                 )}
 
                                 ·
+
                                 ${escapeHtml(
                                     agent.last_scan_devices
                                     ??
@@ -6203,11 +7967,16 @@ function renderAgents() {
                                 devices
 
                                 ·
+
                                 ${
                                     agent.last_scan_duration_ms
+
                                     ?
+
                                     `${escapeHtml(agent.last_scan_duration_ms)} ms`
+
                                     :
+
                                     "duration unavailable"
                                 }
 
@@ -6225,9 +7994,7 @@ function renderAgents() {
                                         style="color:#ff9ba1"
                                     >
                                         Last error:
-                                        ${escapeHtml(
-                                            agent.last_error
-                                        )}
+                                        ${escapeHtml(agent.last_error)}
                                     </div>
                                 `
 
@@ -6296,14 +8063,17 @@ function renderAgents() {
                             return;
 
 
-                        const confirmed =
+                        const accepted =
                             await askConfirm(
+
                                 "Remove Agent?",
+
                                 `Remove ${agent.hostname || "this Agent"} from this network?`
+
                             );
 
 
-                        if (!confirmed)
+                        if (!accepted)
                             return;
 
 
@@ -6335,11 +8105,6 @@ function renderAgents() {
 
                         await loadNetworkData();
 
-
-                        showToast(
-                            "Agent removed."
-                        );
-
                     }
                 );
 
@@ -6356,32 +8121,24 @@ function renderAgents() {
 
 function populateDeviceTypeFilter() {
 
-    const current =
+    const previous =
         $("deviceTypeFilter")
         .value;
 
 
-    const types = [
-        ...new Set(
-            devices
-            .map(
-                device =>
-                    device.device_type
-                    ||
-                    "unknown"
+    const types =
+        [
+            ...new Set(
+
+                devices.map(
+                    device =>
+                        device.device_type
+                        ||
+                        "unknown"
+                )
+
             )
-        )
-    ]
-    .sort(
-        (
-            a,
-            b
-        ) =>
-            deviceTypeLabel(a)
-            .localeCompare(
-                deviceTypeLabel(b)
-            )
-    );
+        ];
 
 
     $("deviceTypeFilter")
@@ -6395,14 +8152,14 @@ function populateDeviceTypeFilter() {
                 types.map(
                     type => `
 
-                        <option
-                            value="${escapeHtml(type)}"
-                        >
+                        <option value="${escapeHtml(type)}">
+
                             ${escapeHtml(
                                 deviceTypeLabel(
                                     type
                                 )
                             )}
+
                         </option>
 
                     `
@@ -6415,13 +8172,13 @@ function populateDeviceTypeFilter() {
 
     if (
         types.includes(
-            current
+            previous
         )
     ) {
 
         $("deviceTypeFilter")
             .value =
-                current;
+                previous;
 
     }
 
@@ -6456,9 +8213,7 @@ function filteredDevices() {
         device => {
 
             if (
-                status
-                !==
-                "all"
+                status !== "all"
 
                 &&
 
@@ -6469,40 +8224,32 @@ function filteredDevices() {
                 return false;
 
 
-            const deviceSecurity =
-                device.security_status
-                ||
-                "unknown";
-
-
             if (
-                security
-                !==
-                "all"
+                security !== "all"
 
                 &&
 
-                deviceSecurity
+                (
+                    device.security_status
+                    ||
+                    "unknown"
+                )
                 !==
                 security
             )
                 return false;
 
 
-            const deviceType =
-                device.device_type
-                ||
-                "unknown";
-
-
             if (
-                type
-                !==
-                "all"
+                type !== "all"
 
                 &&
 
-                deviceType
+                (
+                    device.device_type
+                    ||
+                    "unknown"
+                )
                 !==
                 type
             )
@@ -6515,19 +8262,27 @@ function filteredDevices() {
 
             const searchable =
                 [
+
                     deviceDisplayName(
                         device
                     ),
-                    device.friendly_name,
+
                     device.hostname,
+
                     device.vendor,
+
                     device.model,
+
                     device.ip,
+
                     device.mac,
+
                     device.os_guess,
+
                     deviceTypeLabel(
                         device.device_type
                     )
+
                 ]
                 .filter(
                     Boolean
@@ -6680,18 +8435,26 @@ function buildDeviceTable(
 
                                                 ${
                                                     device.model
+
                                                     ?
+
                                                     escapeHtml(
                                                         device.model
                                                     )
+
                                                     :
+
                                                     (
                                                         device.hostname
+
                                                         ?
+
                                                         escapeHtml(
                                                             device.hostname
                                                         )
+
                                                         :
+
                                                         "No model information"
                                                     )
                                                 }
@@ -6706,11 +8469,7 @@ function buildDeviceTable(
 
 
                                 <td>
-                                    ${escapeHtml(
-                                        device.ip
-                                        ||
-                                        "—"
-                                    )}
+                                    ${escapeHtml(device.ip || "—")}
                                 </td>
 
 
@@ -6721,13 +8480,7 @@ function buildDeviceTable(
 
                                     `
                                         <td>
-
-                                            ${escapeHtml(
-                                                device.vendor
-                                                ||
-                                                "Unknown"
-                                            )}
-
+                                            ${escapeHtml(device.vendor || "Unknown")}
                                         </td>
                                     `
 
@@ -6758,11 +8511,7 @@ function buildDeviceTable(
 
 
                                 <td>
-
-                                    ${onlineBadge(
-                                        device
-                                    )}
-
+                                    ${onlineBadge(device)}
                                 </td>
 
 
@@ -6825,7 +8574,7 @@ function renderDevices() {
                     No matching devices
                 </strong>
 
-                Adjust the filters or wait for the Agent to scan.
+                Adjust the filters or wait for the next scan.
 
             </div>
 
@@ -6890,15 +8639,15 @@ for (
 
     $(id)
         .addEventListener(
-            id
-            ===
-            "deviceSearch"
+
+            id === "deviceSearch"
             ?
             "input"
             :
             "change",
 
             renderDevices
+
         );
 
 }
@@ -6906,7 +8655,7 @@ for (
 
 
 /* ============================================================
-   DEVICE MODAL
+   DEVICE DETAILS
 ============================================================ */
 
 function chipsHtml(
@@ -6917,7 +8666,9 @@ function chipsHtml(
         !Array.isArray(
             values
         )
+
         ||
+
         values.length
         ===
         0
@@ -6957,7 +8708,7 @@ function chipsHtml(
 
 
 function deviceEventsFor(
-    deviceId
+    id
 ) {
 
     return events
@@ -6965,12 +8716,57 @@ function deviceEventsFor(
             event =>
                 event.device_id
                 ===
-                deviceId
+                id
         )
         .slice(
             0,
             12
         );
+
+}
+
+
+function learnedRuleForDevice(
+    device
+) {
+
+    return learnedFingerprints.find(
+        rule => {
+
+            const match =
+                rule.match_data
+                ||
+                {};
+
+
+            if (
+                match.device_id
+                ===
+                device.id
+            )
+                return true;
+
+
+            if (
+                device.mac
+
+                &&
+
+                match.mac_exact
+
+                &&
+
+                String(match.mac_exact).toLowerCase()
+                ===
+                String(device.mac).toLowerCase()
+            )
+                return true;
+
+
+            return false;
+
+        }
+    );
 
 }
 
@@ -7005,6 +8801,7 @@ function openDevice(
 
     $("deviceModalSubtitle")
         .textContent =
+
             `${device.ip || "No IP"} · ${device.mac || "MAC unavailable"}`;
 
 
@@ -7081,11 +8878,10 @@ function openDevice(
         );
 
 
-    const ruleset =
-        device.fingerprint_data
-        ?.ruleset_version
-        ||
-        "Unknown";
+    const learned =
+        learnedRuleForDevice(
+            device
+        );
 
 
     $("deviceDetailContent")
@@ -7100,11 +8896,7 @@ function openDevice(
                     </div>
 
                     <div class="detail-value">
-                        ${escapeHtml(
-                            device.friendly_name
-                            ||
-                            "Unknown"
-                        )}
+                        ${escapeHtml(device.friendly_name || "Unknown")}
                     </div>
 
                 </div>
@@ -7117,11 +8909,7 @@ function openDevice(
                     </div>
 
                     <div class="detail-value">
-                        ${escapeHtml(
-                            device.hostname
-                            ||
-                            "Unknown"
-                        )}
+                        ${escapeHtml(device.hostname || "Unknown")}
                     </div>
 
                 </div>
@@ -7134,11 +8922,7 @@ function openDevice(
                     </div>
 
                     <div class="detail-value">
-                        ${escapeHtml(
-                            device.vendor
-                            ||
-                            "Unknown"
-                        )}
+                        ${escapeHtml(device.vendor || "Unknown")}
                     </div>
 
                 </div>
@@ -7151,11 +8935,7 @@ function openDevice(
                     </div>
 
                     <div class="detail-value">
-                        ${escapeHtml(
-                            device.model
-                            ||
-                            "Unknown"
-                        )}
+                        ${escapeHtml(device.model || "Unknown")}
                     </div>
 
                 </div>
@@ -7168,11 +8948,13 @@ function openDevice(
                     </div>
 
                     <div class="detail-value">
+
                         ${escapeHtml(
                             deviceTypeLabel(
                                 device.device_type
                             )
                         )}
+
                     </div>
 
                 </div>
@@ -7181,15 +8963,11 @@ function openDevice(
                 <div class="detail-item">
 
                     <div class="detail-label">
-                        OS
+                        OS / Platform
                     </div>
 
                     <div class="detail-value">
-                        ${escapeHtml(
-                            device.os_guess
-                            ||
-                            "Unknown"
-                        )}
+                        ${escapeHtml(device.os_guess || "Unknown")}
                     </div>
 
                 </div>
@@ -7202,11 +8980,7 @@ function openDevice(
                     </div>
 
                     <div class="detail-value">
-                        ${escapeHtml(
-                            device.ip
-                            ||
-                            "Unknown"
-                        )}
+                        ${escapeHtml(device.ip || "Unknown")}
                     </div>
 
                 </div>
@@ -7219,11 +8993,7 @@ function openDevice(
                     </div>
 
                     <div class="detail-value">
-                        ${escapeHtml(
-                            device.mac
-                            ||
-                            "Unavailable"
-                        )}
+                        ${escapeHtml(device.mac || "Unavailable")}
                     </div>
 
                 </div>
@@ -7236,11 +9006,7 @@ function openDevice(
                     </div>
 
                     <div class="detail-value">
-                        ${Number(
-                            device.identity_confidence
-                            ||
-                            0
-                        )}%
+                        ${Number(device.identity_confidence || 0)}%
                     </div>
 
                 </div>
@@ -7253,9 +9019,11 @@ function openDevice(
                     </div>
 
                     <div class="detail-value">
+
                         ${securityBadge(
                             device.security_status
                         )}
+
                     </div>
 
                 </div>
@@ -7268,11 +9036,13 @@ function openDevice(
                     </div>
 
                     <div class="detail-value">
+
                         ${escapeHtml(
                             formatDate(
                                 device.first_seen
                             )
                         )}
+
                     </div>
 
                 </div>
@@ -7285,11 +9055,13 @@ function openDevice(
                     </div>
 
                     <div class="detail-value">
+
                         ${escapeHtml(
                             formatDate(
                                 device.last_seen
                             )
                         )}
+
                     </div>
 
                 </div>
@@ -7302,11 +9074,7 @@ function openDevice(
                     </div>
 
                     <div class="detail-value">
-                        ${escapeHtml(
-                            device.fingerprint_rule
-                            ||
-                            "Built-in intelligence"
-                        )}
+                        ${escapeHtml(device.fingerprint_rule || "Built-in intelligence")}
                     </div>
 
                 </div>
@@ -7315,13 +9083,27 @@ function openDevice(
                 <div class="detail-item">
 
                     <div class="detail-label">
-                        Ruleset
+                        Learned Identity
                     </div>
 
                     <div class="detail-value">
-                        ${escapeHtml(
-                            ruleset
-                        )}
+
+                        ${
+                            learned
+
+                            ?
+
+                            `
+                                <span class="badge badge-purple">
+                                    Learned
+                                </span>
+                            `
+
+                            :
+
+                            "Not taught yet"
+                        }
+
                     </div>
 
                 </div>
@@ -7333,18 +9115,14 @@ function openDevice(
                 Identity Evidence
             </div>
 
-            ${chipsHtml(
-                identitySources
-            )}
+            ${chipsHtml(identitySources)}
 
 
             <div class="section-heading">
                 Discovery Methods
             </div>
 
-            ${chipsHtml(
-                discoveryMethods
-            )}
+            ${chipsHtml(discoveryMethods)}
 
 
             <div class="section-heading">
@@ -7354,9 +9132,7 @@ function openDevice(
             ${chipsHtml(
                 ports.map(
                     port =>
-                        String(
-                            port
-                        )
+                        String(port)
                 )
             )}
 
@@ -7366,8 +9142,10 @@ function openDevice(
             </div>
 
             ${chipsHtml(
+
                 services.map(
                     service =>
+
                         `${
                             service.name
                             ||
@@ -7377,7 +9155,9 @@ function openDevice(
                             ??
                             "?"
                         }`
+
                 )
+
             )}
 
 
@@ -7385,9 +9165,7 @@ function openDevice(
                 Previous IP Addresses
             </div>
 
-            ${chipsHtml(
-                previousIps
-            )}
+            ${chipsHtml(previousIps)}
 
 
             <div class="section-heading">
@@ -7475,6 +9253,7 @@ function openDevice(
                                 )}
 
                                 ·
+
                                 ${escapeHtml(
                                     timeAgo(
                                         event.created_at
@@ -7493,7 +9272,7 @@ function openDevice(
 
                 `
                     <div class="device-small">
-                        No recorded history for this device yet.
+                        No history recorded yet.
                     </div>
                 `
             }
@@ -7513,13 +9292,25 @@ function openDevice(
     $("acknowledgeDeviceButton")
         .classList
         .toggle(
+
             "hidden",
+
             !(
                 device.new_device
                 &&
                 !device.acknowledged
             )
+
         );
+
+
+    $("teachDeviceButton")
+        .textContent =
+            learned
+            ?
+            "Update Learned Identity"
+            :
+            "Teach WiFi Watch";
 
 
     showModal(
@@ -7528,6 +9319,11 @@ function openDevice(
 
 }
 
+
+
+/* ============================================================
+   SAVE CUSTOM DEVICE NAME
+============================================================ */
 
 $("saveDeviceNameButton")
     .addEventListener(
@@ -7547,7 +9343,7 @@ $("saveDeviceNameButton")
                 return;
 
 
-            const value =
+            const name =
                 $("deviceCustomName")
                 .value
                 .trim();
@@ -7561,10 +9357,12 @@ $("saveDeviceNameButton")
                     "devices"
                 )
                 .update({
+
                     custom_name:
-                        value
+                        name
                         ||
                         null
+
                 })
                 .eq(
                     "id",
@@ -7600,6 +9398,11 @@ $("saveDeviceNameButton")
     );
 
 
+
+/* ============================================================
+   TRUST
+============================================================ */
+
 $("toggleTrustedButton")
     .addEventListener(
         "click",
@@ -7626,8 +9429,10 @@ $("toggleTrustedButton")
                     "devices"
                 )
                 .update({
+
                     trusted:
                         !device.trusted
+
                 })
                 .eq(
                     "id",
@@ -7657,6 +9462,11 @@ $("toggleTrustedButton")
         }
     );
 
+
+
+/* ============================================================
+   ACKNOWLEDGE DEVICE
+============================================================ */
 
 $("acknowledgeDeviceButton")
     .addEventListener(
@@ -7721,6 +9531,766 @@ $("acknowledgeDeviceButton")
             showToast(
                 "Device acknowledged."
             );
+
+        }
+    );
+
+
+
+/* ============================================================
+   PRIVATE MAC CHECK
+============================================================ */
+
+function macIsPrivate(
+    mac
+) {
+
+    if (!mac)
+        return false;
+
+
+    const first =
+        parseInt(
+            String(mac)
+            .split(":")[0],
+            16
+        );
+
+
+    if (
+        Number.isNaN(
+            first
+        )
+    )
+        return false;
+
+
+    return Boolean(
+        first
+        &
+        2
+    );
+
+}
+
+
+
+/* ============================================================
+   TEACH WIFI WATCH
+============================================================ */
+
+$("teachDeviceButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            const device =
+                devices.find(
+                    item =>
+                        item.id
+                        ===
+                        currentDeviceId
+                );
+
+
+            if (!device)
+                return;
+
+
+            const learned =
+                learnedRuleForDevice(
+                    device
+                );
+
+
+            const result =
+                learned?.result_data
+                ||
+                {};
+
+
+            $("teachName")
+                .value =
+
+                    result.friendly_name
+                    ||
+                    device.custom_name
+                    ||
+                    device.friendly_name
+                    ||
+                    "";
+
+
+            $("teachManufacturer")
+                .value =
+
+                    result.manufacturer
+                    ||
+                    device.vendor
+                    ||
+                    "";
+
+
+            $("teachModel")
+                .value =
+
+                    result.model
+                    ||
+                    device.model
+                    ||
+                    "";
+
+
+            $("teachDeviceType")
+                .value =
+
+                    result.device_type
+                    ||
+                    device.device_type
+                    ||
+                    "unknown";
+
+
+            $("teachOs")
+                .value =
+
+                    result.os_guess
+                    ||
+                    device.os_guess
+                    ||
+                    "";
+
+
+            const evidence = [];
+
+
+            if (
+                device.mac
+            ) {
+
+                evidence.push(
+
+                    macIsPrivate(
+                        device.mac
+                    )
+
+                    ?
+
+                    "Private/randomized MAC detected"
+
+                    :
+
+                    "Stable MAC address available"
+
+                );
+
+            }
+
+
+            if (
+                device.hostname
+            ) {
+
+                evidence.push(
+                    `Hostname: ${device.hostname}`
+                );
+
+            }
+
+
+            if (
+                device.vendor
+            ) {
+
+                evidence.push(
+                    `Manufacturer evidence: ${device.vendor}`
+                );
+
+            }
+
+
+            if (
+                device.model
+            ) {
+
+                evidence.push(
+                    `Model evidence: ${device.model}`
+                );
+
+            }
+
+
+            const mdns =
+                device.fingerprint_data
+                ?.mdns_services;
+
+
+            if (
+                Array.isArray(
+                    mdns
+                )
+
+                &&
+
+                mdns.length
+            ) {
+
+                evidence.push(
+                    "mDNS evidence available"
+                );
+
+            }
+
+
+            const ssdp =
+                device.fingerprint_data
+                ?.ssdp_devices;
+
+
+            if (
+                Array.isArray(
+                    ssdp
+                )
+
+                &&
+
+                ssdp.length
+            ) {
+
+                evidence.push(
+                    "SSDP / UPnP evidence available"
+                );
+
+            }
+
+
+            $("teachEvidence")
+                .textContent =
+
+                    evidence.length
+
+                    ?
+
+                    "Fingerprint evidence: "
+                    +
+                    evidence.join(
+                        " · "
+                    )
+
+                    :
+
+                    "This device currently exposes very little stable identity evidence. WiFi Watch can still remember your correction, but stronger automatic recognition may require more evidence from the Agent.";
+
+
+            hideModal(
+                "deviceModal"
+            );
+
+
+            showModal(
+                "teachModal"
+            );
+
+        }
+    );
+
+
+
+/* ============================================================
+   BUILD LEARNED MATCH
+============================================================ */
+
+function buildLearnedMatch(
+    device
+) {
+
+    const match = {
+
+        device_id:
+            device.id
+
+    };
+
+
+    if (
+        device.mac
+        &&
+        !macIsPrivate(
+            device.mac
+        )
+    ) {
+
+        match.mac_exact =
+            String(
+                device.mac
+            )
+            .toLowerCase();
+
+    }
+
+
+    if (
+        device.hostname
+    ) {
+
+        match.hostname_contains_any = [
+            device.hostname
+        ];
+
+    }
+
+
+    if (
+        device.vendor
+    ) {
+
+        match.manufacturer_contains = [
+            device.vendor
+        ];
+
+    }
+
+
+    if (
+        device.model
+    ) {
+
+        match.model_contains = [
+            device.model
+        ];
+
+    }
+
+
+    const mdns =
+        device.fingerprint_data
+        ?.mdns_services;
+
+
+    if (
+        Array.isArray(
+            mdns
+        )
+    ) {
+
+        const serviceTypes =
+            [
+                ...new Set(
+
+                    mdns
+
+                    .map(
+                        item =>
+                            item?.service_type
+                    )
+
+                    .filter(
+                        Boolean
+                    )
+
+                )
+            ]
+            .slice(
+                0,
+                10
+            );
+
+
+        if (
+            serviceTypes.length
+        ) {
+
+            match.mdns_contains =
+                serviceTypes;
+
+        }
+
+    }
+
+
+    const ssdp =
+        device.fingerprint_data
+        ?.ssdp_devices;
+
+
+    if (
+        Array.isArray(
+            ssdp
+        )
+    ) {
+
+        const ssdpEvidence = [];
+
+
+        for (
+            const entry
+            of ssdp
+        ) {
+
+            if (
+                entry?.usn
+            ) {
+
+                ssdpEvidence.push(
+                    entry.usn
+                );
+
+            }
+
+
+            if (
+                entry?.server
+            ) {
+
+                ssdpEvidence.push(
+                    entry.server
+                );
+
+            }
+
+
+            if (
+                entry?.st
+            ) {
+
+                ssdpEvidence.push(
+                    entry.st
+                );
+
+            }
+
+        }
+
+
+        const unique =
+            [
+                ...new Set(
+                    ssdpEvidence
+                )
+            ]
+            .slice(
+                0,
+                10
+            );
+
+
+        if (
+            unique.length
+        ) {
+
+            match.ssdp_contains =
+                unique;
+
+        }
+
+    }
+
+
+    return match;
+
+}
+
+
+
+/* ============================================================
+   SAVE LEARNED IDENTITY
+============================================================ */
+
+$("saveLearnedDeviceButton")
+    .addEventListener(
+        "click",
+        async () => {
+
+            const device =
+                devices.find(
+                    item =>
+                        item.id
+                        ===
+                        currentDeviceId
+                );
+
+
+            if (
+                !device
+                ||
+                !selectedNetwork
+                ||
+                !currentUser
+            )
+                return;
+
+
+            const name =
+                $("teachName")
+                .value
+                .trim();
+
+
+            const manufacturer =
+                $("teachManufacturer")
+                .value
+                .trim();
+
+
+            const model =
+                $("teachModel")
+                .value
+                .trim();
+
+
+            const deviceType =
+                $("teachDeviceType")
+                .value;
+
+
+            const osGuess =
+                $("teachOs")
+                .value
+                .trim();
+
+
+            if (
+                !name
+                &&
+                !manufacturer
+                &&
+                !model
+                &&
+                deviceType
+                ===
+                "unknown"
+                &&
+                !osGuess
+            ) {
+
+                showToast(
+                    "Enter at least one piece of identity information.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            const matchData =
+                buildLearnedMatch(
+                    device
+                );
+
+
+            const resultData = {};
+
+
+            if (name)
+                resultData.friendly_name =
+                    name;
+
+
+            if (manufacturer)
+                resultData.manufacturer =
+                    manufacturer;
+
+
+            if (model)
+                resultData.model =
+                    model;
+
+
+            if (
+                deviceType
+                &&
+                deviceType !== "unknown"
+            )
+                resultData.device_type =
+                    deviceType;
+
+
+            if (osGuess)
+                resultData.os_guess =
+                    osGuess;
+
+
+            const existing =
+                learnedRuleForDevice(
+                    device
+                );
+
+
+            $("saveLearnedDeviceButton")
+                .disabled =
+                    true;
+
+
+            try {
+
+                if (
+                    existing
+                ) {
+
+                    const {
+                        error
+                    } =
+                        await supabase
+                        .from(
+                            "learned_fingerprints"
+                        )
+                        .update({
+
+                            name:
+                                `Learned: ${
+                                    name
+                                    ||
+                                    manufacturer
+                                    ||
+                                    model
+                                    ||
+                                    device.ip
+                                }`,
+
+                            priority:
+                                3000,
+
+                            enabled:
+                                true,
+
+                            match_data:
+                                matchData,
+
+                            result_data:
+                                resultData,
+
+                            source:
+                                "user",
+
+                            updated_at:
+                                new Date()
+                                .toISOString()
+
+                        })
+                        .eq(
+                            "id",
+                            existing.id
+                        );
+
+
+                    if (error)
+                        throw error;
+
+
+                } else {
+
+                    const {
+                        error
+                    } =
+                        await supabase
+                        .from(
+                            "learned_fingerprints"
+                        )
+                        .insert({
+
+                            user_id:
+                                currentUser.id,
+
+                            network_id:
+                                selectedNetwork.id,
+
+                            name:
+                                `Learned: ${
+                                    name
+                                    ||
+                                    manufacturer
+                                    ||
+                                    model
+                                    ||
+                                    device.ip
+                                }`,
+
+                            priority:
+                                3000,
+
+                            enabled:
+                                true,
+
+                            match_data:
+                                matchData,
+
+                            result_data:
+                                resultData,
+
+                            source:
+                                "user"
+
+                        });
+
+
+                    if (error)
+                        throw error;
+
+                }
+
+
+                if (
+                    name
+                ) {
+
+                    const {
+                        error
+                    } =
+                        await supabase
+                        .from(
+                            "devices"
+                        )
+                        .update({
+
+                            custom_name:
+                                name
+
+                        })
+                        .eq(
+                            "id",
+                            device.id
+                        );
+
+
+                    if (error)
+                        throw error;
+
+                }
+
+
+                hideModal(
+                    "teachModal"
+                );
+
+
+                await loadNetworkData();
+
+
+                showToast(
+                    "WiFi Watch learned this device."
+                );
+
+
+            } catch (
+                error
+            ) {
+
+                showToast(
+                    error.message
+                    ||
+                    "Unable to save learned identity.",
+                    "error"
+                );
+
+
+            } finally {
+
+                $("saveLearnedDeviceButton")
+                    .disabled =
+                        false;
+
+            }
 
         }
     );
@@ -7795,10 +10365,15 @@ function renderSecurity() {
 
 
     const ordered = [
+
         ...warnings,
+
         ...reviews,
+
         ...unknown,
+
         ...good
+
     ];
 
 
@@ -7820,7 +10395,7 @@ function renderSecurity() {
                     No security data yet
                 </strong>
 
-                Run the WiFi Watch Agent to scan devices.
+                Run WiFi Watch Agent to scan devices.
 
             </div>
 
@@ -7888,11 +10463,7 @@ function renderSecurity() {
 
                                     <div class="device-small">
 
-                                        ${escapeHtml(
-                                            device.vendor
-                                            ||
-                                            "Unknown manufacturer"
-                                        )}
+                                        ${escapeHtml(device.vendor || "Unknown manufacturer")}
 
                                         ·
 
@@ -7908,13 +10479,7 @@ function renderSecurity() {
 
 
                                 <td>
-
-                                    ${escapeHtml(
-                                        device.ip
-                                        ||
-                                        "—"
-                                    )}
-
+                                    ${escapeHtml(device.ip || "—")}
                                 </td>
 
 
@@ -7930,6 +10495,7 @@ function renderSecurity() {
                                 <td>
 
                                     ${escapeHtml(
+
                                         (
                                             device.open_ports
                                             ||
@@ -7938,8 +10504,11 @@ function renderSecurity() {
                                         .join(
                                             ", "
                                         )
+
                                         ||
+
                                         "None observed"
+
                                     )}
 
                                 </td>
@@ -8007,9 +10576,13 @@ function alertFeedHtml(
                     alert.severity
                     ===
                     "warning"
+
                     ?
+
                     "!"
+
                     :
+
                     (
                         alert.severity
                         ===
@@ -8032,10 +10605,6 @@ function alertFeedHtml(
                         alert.title
                         ||
                         alert.alert_type
-                    )}
-
-                    ${alertSeverityBadge(
-                        alert.severity
                     )}
 
                 </div>
@@ -8100,6 +10669,7 @@ function alertFeedHtml(
 
                                 ""
                             }
+
 
                             <button
                                 class="btn btn-danger delete-alert"
@@ -8179,9 +10749,24 @@ function renderAlerts() {
                     "click",
                     async () => {
 
-                        await markAlertRead(
-                            button.dataset.alertId
-                        );
+                        await supabase
+                            .from(
+                                "alerts"
+                            )
+                            .update({
+
+                                read_at:
+                                    new Date()
+                                    .toISOString()
+
+                            })
+                            .eq(
+                                "id",
+                                button.dataset.alertId
+                            );
+
+
+                        await loadNetworkData();
 
                     }
                 );
@@ -8201,89 +10786,24 @@ function renderAlerts() {
                     "click",
                     async () => {
 
-                        await deleteAlert(
-                            button.dataset.alertId
-                        );
+                        await supabase
+                            .from(
+                                "alerts"
+                            )
+                            .delete()
+                            .eq(
+                                "id",
+                                button.dataset.alertId
+                            );
+
+
+                        await loadNetworkData();
 
                     }
                 );
 
             }
         );
-
-}
-
-
-async function markAlertRead(
-    id
-) {
-
-    const {
-        error
-    } =
-        await supabase
-        .from(
-            "alerts"
-        )
-        .update({
-            read_at:
-                new Date()
-                .toISOString()
-        })
-        .eq(
-            "id",
-            id
-        );
-
-
-    if (error) {
-
-        showToast(
-            error.message,
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    await loadNetworkData();
-
-}
-
-
-async function deleteAlert(
-    id
-) {
-
-    const {
-        error
-    } =
-        await supabase
-        .from(
-            "alerts"
-        )
-        .delete()
-        .eq(
-            "id",
-            id
-        );
-
-
-    if (error) {
-
-        showToast(
-            error.message,
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    await loadNetworkData();
 
 }
 
@@ -8307,9 +10827,11 @@ $("markAllAlertsReadButton")
                     "alerts"
                 )
                 .update({
+
                     read_at:
                         new Date()
                         .toISOString()
+
                 })
                 .eq(
                     "network_id",
@@ -8401,11 +10923,7 @@ function eventFeedHtml(
         <div class="feed-item">
 
             <div class="feed-icon">
-
-                ${eventIcon(
-                    event.event_type
-                )}
-
+                ${eventIcon(event.event_type)}
             </div>
 
 
@@ -8526,9 +11044,7 @@ function renderNetworks() {
                 >
 
                     <h3>
-                        ${escapeHtml(
-                            network.name
-                        )}
+                        ${escapeHtml(network.name)}
                     </h3>
 
 
@@ -8674,7 +11190,7 @@ function renderNetworks() {
 
 
 /* ============================================================
-   PAIRING
+   PAIR AGENT
 ============================================================ */
 
 async function openPairing() {
@@ -8693,8 +11209,10 @@ async function openPairing() {
         .rpc(
             "create_pairing_code_mfa",
             {
+
                 p_network_id:
                     selectedNetwork.id
+
             }
         );
 
@@ -8736,42 +11254,43 @@ async function openPairing() {
     );
 
 
-    function updateExpiry() {
+    function updateCountdown() {
 
         const remaining =
             Math.max(
+
                 0,
+
                 new Date(
                     data.expires_at
                 ).getTime()
                 -
                 Date.now()
+
             );
 
 
         const seconds =
             Math.floor(
-                remaining / 1000
+                remaining
+                /
+                1000
             );
-
-
-        const minutes =
-            Math.floor(
-                seconds / 60
-            );
-
-
-        const rest =
-            seconds % 60;
 
 
         $("pairingExpiry")
             .textContent =
+
                 seconds > 0
 
                 ?
 
-                `Expires in ${minutes}:${String(rest).padStart(2,"0")}`
+                `Expires in ${
+                    Math.floor(seconds / 60)
+                }:${
+                    String(seconds % 60)
+                    .padStart(2,"0")
+                }`
 
                 :
 
@@ -8791,12 +11310,12 @@ async function openPairing() {
     }
 
 
-    updateExpiry();
+    updateCountdown();
 
 
     pairingCountdown =
         setInterval(
-            updateExpiry,
+            updateCountdown,
             1000
         );
 
@@ -8838,7 +11357,7 @@ $("copyPairingCode")
 
 
 /* ============================================================
-   NOTIFICATION PREFERENCES
+   NOTIFICATION SETTINGS
 ============================================================ */
 
 async function loadNotificationPreferences() {
@@ -8882,8 +11401,10 @@ async function loadNotificationPreferences() {
                 "notification_preferences"
             )
             .insert({
+
                 user_id:
                     currentUser.id
+
             })
             .select()
             .single();
@@ -9092,28 +11613,6 @@ async function loadMfaSettings() {
             )
             .join("");
 
-
-        container
-            .querySelectorAll(
-                ".remove-factor"
-            )
-            .forEach(
-                button => {
-
-                    button.addEventListener(
-                        "click",
-                        async () => {
-
-                            await removeMfaFactor(
-                                button.dataset.factorId
-                            );
-
-                        }
-                    );
-
-                }
-            );
-
     }
 
 
@@ -9138,75 +11637,6 @@ async function loadMfaSettings() {
 }
 
 
-async function removeMfaFactor(
-    id
-) {
-
-    const factors =
-        await verifiedFactors();
-
-
-    if (
-        factors.length
-        <=
-        1
-    ) {
-
-        showToast(
-            "WiFi Watch requires at least one authenticator.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    const confirmed =
-        await askConfirm(
-            "Remove authenticator?",
-            "This authenticator will stop working for WiFi Watch."
-        );
-
-
-    if (!confirmed)
-        return;
-
-
-    const {
-        error
-    } =
-        await supabase
-        .auth
-        .mfa
-        .unenroll({
-            factorId:
-                id
-        });
-
-
-    if (error) {
-
-        showToast(
-            error.message,
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    await loadMfaSettings();
-
-
-    showToast(
-        "Authenticator removed."
-    );
-
-}
-
-
 $("addAuthenticatorButton")
     .addEventListener(
         "click",
@@ -9225,14 +11655,17 @@ $("logoutOthersButton")
         "click",
         async () => {
 
-            const confirmed =
+            const accepted =
                 await askConfirm(
+
                     "Sign out other sessions?",
+
                     "Your WiFi Watch account will be signed out on other browsers and computers."
+
                 );
 
 
-            if (!confirmed)
+            if (!accepted)
                 return;
 
 
@@ -9242,8 +11675,10 @@ $("logoutOthersButton")
                 await supabase
                 .auth
                 .signOut({
+
                     scope:
                         "others"
+
                 });
 
 
@@ -9283,9 +11718,11 @@ function navigate(
         .forEach(
             section => {
 
-                section.classList.add(
-                    "hidden"
-                );
+                section
+                    .classList
+                    .add(
+                        "hidden"
+                    );
 
             }
         );
@@ -9298,9 +11735,11 @@ function navigate(
         .forEach(
             button => {
 
-                button.classList.remove(
-                    "active"
-                );
+                button
+                    .classList
+                    .remove(
+                        "active"
+                    );
 
             }
         );
@@ -9308,12 +11747,14 @@ function navigate(
 
     const page =
         $(
+
             "view"
             +
             view.charAt(0)
                 .toUpperCase()
             +
             view.slice(1)
+
         );
 
 
@@ -9332,26 +11773,6 @@ function navigate(
         .add(
             "active"
         );
-
-
-    if (
-        view
-        ===
-        "settings"
-    ) {
-
-        loadMfaSettings()
-            .catch(
-                console.error
-            );
-
-
-        loadNotificationPreferences()
-            .catch(
-                console.error
-            );
-
-    }
 
 }
 
@@ -9402,7 +11823,7 @@ document
 
 
 /* ============================================================
-   CONFIRM MODAL
+   CONFIRM
 ============================================================ */
 
 function askConfirm(
@@ -9483,7 +11904,7 @@ $("confirmAccept")
 
 
 /* ============================================================
-   MODAL CLOSE BUTTONS
+   GENERIC MODAL CLOSE
 ============================================================ */
 
 document
@@ -9608,9 +12029,13 @@ supabase
                         "PASSWORD_RECOVERY"
                     ) {
 
+                        hideLoadingScreen();
+
+
                         showModal(
                             "newPasswordModal"
                         );
+
 
                         return;
 
@@ -9623,6 +12048,7 @@ supabase
                         "SIGNED_OUT"
 
                         ||
+
                         !session
                     ) {
 
@@ -9639,6 +12065,7 @@ supabase
                         "SIGNED_IN"
 
                         &&
+
                         $("appScreen")
                             .classList
                             .contains(
@@ -9660,7 +12087,7 @@ supabase
 
 
 /* ============================================================
-   INITIALIZATION
+   INITIALIZE
 ============================================================ */
 
 async function init() {
@@ -9692,9 +12119,13 @@ async function init() {
         )
     ) {
 
+        hideLoadingScreen();
+
+
         alert(
             "Configure your Supabase URL and publishable key in index.html."
         );
+
 
         return;
 
@@ -9745,4 +12176,5 @@ init();
 </script>
 
 </body>
+
 </html>
