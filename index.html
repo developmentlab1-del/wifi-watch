@@ -6594,8 +6594,7 @@ $("verifyMfaSetup")
                 );
 
 
-                mfaEnrollment =
-                    null;
+                clearTotpSetup();
 
 
                 const {
@@ -7223,6 +7222,8 @@ $("createNetworkButton")
     .addEventListener(
         "click",
         async () => {
+            const generation = authGeneration;
+            if (!currentUser) return;
 
             const name =
                 $("newNetworkName")
@@ -7259,6 +7260,7 @@ $("createNetworkButton")
                 .single();
 
 
+            if (generation !== authGeneration) return;
             if (error) {
 
                 showToast(
