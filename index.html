@@ -2911,10 +2911,7 @@ tbody tr:hover {
 
 
     .sidebar-bottom {
-
-        display:
-            none;
-
+        display: block;
     }
 
 
@@ -5048,6 +5045,11 @@ const supabase =
    STATE
 ============================================================ */
 
+let authGeneration = 0;
+let networkRequestGeneration = 0;
+let refreshInFlight = false;
+let mfaRemovalBusy = false;
+
 let currentUser =
     null;
 
@@ -5783,7 +5785,52 @@ function setAuthMode(
 }
 
 
+function clearPrivateState() {
+    authGeneration++;
+    networkRequestGeneration++;
+    currentUser = null;
+    networks = []; agents = []; devices = []; alerts = []; events = [];
+    learnedFingerprints = [];
+    selectedNetwork = null;
+    currentDeviceId = null;
+    notificationPreferences = null;
+    mfaEnrollment = null; mfaLoginFactor = null; mfaMandatory = false;
+    clearInterval(pairingCountdown);
+    pairingCountdown = null;
+    confirmResolver?.(false);
+    confirmResolver = null;
+    document.querySelectorAll('.modal-backdrop').forEach(modal => modal.classList.add('hidden'));
+    for (const id of ['networkSelect', 'networksContainer', 'overviewAgents',
+        'overviewNewDevices', 'overviewAlerts', 'overviewActivity', 'devicesTable',
+        'securityTable', 'alertsContainer', 'activityContainer', 'deviceDetailContent',
+        'deviceModalTitle', 'deviceModalSubtitle', 'teachEvidence', 'mfaFactors',
+        'mfaSecret', 'pairingCode', 'pairingExpiry', 'sidebarEmail', 'settingsEmail',
+        'overviewTitle', 'confirmTitle', 'confirmMessage', 'aalDisplay', 'toast']) {
+        $(id).replaceChildren();
+    }
+    document.querySelectorAll('.stat-value').forEach(node => node.textContent = '0');
+    $('alertNavCount').textContent = '0';
+    $('alertNavCount').classList.add('hidden');
+    $('mfaQr').removeAttribute('src');
+    for (const id of ['authEmail', 'authPassword', 'newPassword', 'mfaSetupCode',
+        'mfaChallengeCode', 'newNetworkName', 'deviceCustomName', 'teachName',
+        'teachManufacturer', 'teachModel', 'teachOs', 'deviceSearch']) $(id).value = '';
+    for (const id of ['prefNewDevices', 'prefSecurity', 'prefIdentity', 'prefAgentOffline']) $(id).checked = false;
+    $('deviceTypeFilter').replaceChildren(new Option('All device types', 'all'));
+    $('deviceStatusFilter').value = 'all';
+    $('deviceSecurityFilter').value = 'all';
+    $('teachDeviceType').value = 'unknown';
+}
+
+function clearTotpSetup() {
+    mfaEnrollment = null;
+    $('mfaSecret').textContent = '';
+    $('mfaQr').removeAttribute('src');
+    $('mfaSetupCode').value = '';
+}
+
 function showAuthScreen() {
+    clearPrivateState();
 
     hideLoadingScreen();
 
@@ -5816,6 +5863,7 @@ function showAuthScreen() {
 async function showAppScreen(
     user
 ) {
+    const generation = authGeneration;
 
     currentUser =
         user;
@@ -5855,10 +5903,11 @@ async function showAppScreen(
 
 
         await loadNetworks();
-
+        if (generation !== authGeneration) return;
         await loadMfaSettings();
-
+        if (generation !== authGeneration) return;
         await loadNotificationPreferences();
+        if (generation !== authGeneration) return;
 
 
         startAutoRefresh();
@@ -6218,6 +6267,7 @@ async function verifiedFactors() {
 
 
 async function beginAuthGate() {
+    const generation = authGeneration;
 
     if (
         authGateBusy
@@ -6238,6 +6288,7 @@ async function beginAuthGate() {
             await supabase
             .auth
             .getUser();
+        if (generation !== authGeneration) return;
 
 
         if (
@@ -6255,6 +6306,7 @@ async function beginAuthGate() {
 
         const factors =
             await verifiedFactors();
+        if (generation !== authGeneration) return;
 
 
         if (
@@ -6284,6 +6336,7 @@ async function beginAuthGate() {
             .auth
             .mfa
             .getAuthenticatorAssuranceLevel();
+        if (generation !== authGeneration) return;
 
 
         if (aalError)
@@ -6356,6 +6409,7 @@ async function beginAuthGate() {
 async function beginMfaEnrollment(
     mandatory = false
 ) {
+    const generation = authGeneration;
 
     try {
 
@@ -6365,6 +6419,7 @@ async function beginMfaEnrollment(
 
         const factors =
             await listTotpFactors();
+        if (generation !== authGeneration) return;
 
 
         for (
@@ -6419,6 +6474,7 @@ async function beginMfaEnrollment(
             throw error;
 
 
+        if (generation !== authGeneration) return;
         mfaEnrollment =
             data;
 
@@ -6474,6 +6530,7 @@ $("verifyMfaSetup")
     .addEventListener(
         "click",
         async () => {
+            const generation = authGeneration;
 
             if (
                 !mfaEnrollment
@@ -6527,6 +6584,7 @@ $("verifyMfaSetup")
                     });
 
 
+                if (generation !== authGeneration) return;
                 if (error)
                     throw error;
 
@@ -6546,6 +6604,7 @@ $("verifyMfaSetup")
                     await supabase
                     .auth
                     .getUser();
+                if (generation !== authGeneration) return;
 
 
                 if (
@@ -6618,8 +6677,7 @@ $("cancelMfaSetup")
             }
 
 
-            mfaEnrollment =
-                null;
+            clearTotpSetup();
 
 
             hideModal(
@@ -6643,6 +6701,7 @@ $("verifyMfaChallenge")
     .addEventListener(
         "click",
         async () => {
+            const generation = authGeneration;
 
             if (
                 !mfaLoginFactor
@@ -6696,6 +6755,7 @@ $("verifyMfaChallenge")
                     });
 
 
+                if (generation !== authGeneration) return;
                 if (error)
                     throw error;
 
@@ -6711,6 +6771,7 @@ $("verifyMfaChallenge")
                     await supabase
                     .auth
                     .getUser();
+                if (generation !== authGeneration) return;
 
 
                 await showAppScreen(
@@ -6882,6 +6943,8 @@ async function logoutLocal(
     stopInactivityGuard();
 
 
+    showAuthScreen();
+
     await supabase
         .auth
         .signOut({
@@ -6892,7 +6955,7 @@ async function logoutLocal(
         });
 
 
-    showAuthScreen();
+
 
 
     if (
@@ -6927,6 +6990,9 @@ function networkStorageKey() {
 
 
 async function loadNetworks() {
+    const user = currentUser;
+    const generation = authGeneration;
+    if (!user) return;
 
     const {
         data,
@@ -6950,6 +7016,7 @@ async function loadNetworks() {
         );
 
 
+    if (generation !== authGeneration || currentUser !== user) return;
     if (error)
         throw error;
 
@@ -6984,6 +7051,7 @@ async function loadNetworks() {
             .single();
 
 
+        if (generation !== authGeneration || currentUser !== user) return;
         if (createError)
             throw createError;
 
@@ -7080,8 +7148,15 @@ async function selectNetwork(
         return;
 
 
-    selectedNetwork =
-        network;
+    selectedNetwork = network;
+    networkRequestGeneration++;
+    agents = []; devices = []; alerts = []; events = []; learnedFingerprints = [];
+    currentDeviceId = null;
+    hideModal('deviceModal'); hideModal('teachModal'); hideModal('pairModal');
+    $('deviceDetailContent').replaceChildren();
+    $('pairingCode').textContent = '';
+    clearInterval(pairingCountdown);
+    renderEverything();
 
 
     localStorage.setItem(
@@ -7300,6 +7375,10 @@ async function deleteNetwork(
 ============================================================ */
 
 async function loadNetworkData() {
+    if (!currentUser || !selectedNetwork) return;
+    const generation = ++networkRequestGeneration;
+    const auth = authGeneration;
+    const networkId = selectedNetwork.id;
 
     if (
         !selectedNetwork
@@ -7331,7 +7410,7 @@ async function loadNetworkData() {
                 )
                 .eq(
                     "network_id",
-                    selectedNetwork.id
+                    networkId
                 )
                 .order(
                     "created_at",
@@ -7353,7 +7432,7 @@ async function loadNetworkData() {
                 )
                 .eq(
                     "network_id",
-                    selectedNetwork.id
+                    networkId
                 )
                 .order(
                     "last_seen",
@@ -7375,7 +7454,7 @@ async function loadNetworkData() {
                 )
                 .eq(
                     "network_id",
-                    selectedNetwork.id
+                    networkId
                 )
                 .order(
                     "created_at",
@@ -7400,7 +7479,7 @@ async function loadNetworkData() {
                 )
                 .eq(
                     "network_id",
-                    selectedNetwork.id
+                    networkId
                 )
                 .order(
                     "created_at",
@@ -7425,7 +7504,7 @@ async function loadNetworkData() {
                 )
                 .eq(
                     "network_id",
-                    selectedNetwork.id
+                    networkId
                 )
                 .order(
                     "priority",
@@ -7439,6 +7518,8 @@ async function loadNetworkData() {
 
         ]);
 
+
+    if (auth !== authGeneration || generation !== networkRequestGeneration || selectedNetwork?.id !== networkId) return;
 
     if (
         agentsResult.error
@@ -11194,6 +11275,8 @@ function renderNetworks() {
 ============================================================ */
 
 async function openPairing() {
+    const generation = authGeneration;
+    const networkId = selectedNetwork?.id;
 
     if (
         !selectedNetwork
@@ -11217,6 +11300,7 @@ async function openPairing() {
         );
 
 
+    if (generation !== authGeneration || selectedNetwork?.id !== networkId) return;
     if (error) {
 
         showToast(
@@ -11361,6 +11445,9 @@ $("copyPairingCode")
 ============================================================ */
 
 async function loadNotificationPreferences() {
+    const generation = authGeneration;
+    const user = currentUser;
+    if (!user) return;
 
     const {
         data,
@@ -11375,11 +11462,12 @@ async function loadNotificationPreferences() {
         )
         .eq(
             "user_id",
-            currentUser.id
+            user.id
         )
         .maybeSingle();
 
 
+    if (generation !== authGeneration || currentUser !== user) return;
     if (error)
         throw error;
 
@@ -11403,13 +11491,14 @@ async function loadNotificationPreferences() {
             .insert({
 
                 user_id:
-                    currentUser.id
+                    user.id
 
             })
             .select()
             .single();
 
 
+        if (generation !== authGeneration || currentUser !== user) return;
         if (insertError)
             throw insertError;
 
@@ -11513,6 +11602,9 @@ $("savePreferencesButton")
 ============================================================ */
 
 async function loadMfaSettings() {
+    const generation = authGeneration;
+    const user = currentUser;
+    if (!user) return;
 
     if (
         !currentUser
@@ -11522,6 +11614,7 @@ async function loadMfaSettings() {
 
     const factors =
         await verifiedFactors();
+    if (generation !== authGeneration || currentUser !== user) return;
 
 
     const container =
@@ -11625,6 +11718,7 @@ async function loadMfaSettings() {
         .getAuthenticatorAssuranceLevel();
 
 
+    if (generation !== authGeneration || currentUser !== user) return;
     $("aalDisplay")
         .textContent =
             (
@@ -11636,6 +11730,35 @@ async function loadMfaSettings() {
 
 }
 
+
+$('mfaFactors').addEventListener('click', async event => {
+    const button = event.target.closest('.remove-factor');
+    if (!button || mfaRemovalBusy || !currentUser) return;
+    const generation = authGeneration;
+    mfaRemovalBusy = true;
+    button.disabled = true;
+    try {
+        const accepted = await askConfirm('Remove authenticator?', 'Remove this authenticator? At least one verified authenticator must remain.');
+        if (!accepted || generation !== authGeneration) return;
+        const {data: aal, error: aalError} = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (generation !== authGeneration) return;
+        if (aalError || aal?.currentLevel !== 'aal2') throw new Error('Verify two-factor authentication before removing an authenticator.');
+        const factors = await verifiedFactors();
+        if (generation !== authGeneration) return;
+        if (factors.length <= 1) throw new Error('At least one verified authenticator must remain.');
+        if (!factors.some(factor => factor.id === button.dataset.factorId)) throw new Error('Authenticator is no longer available.');
+        const {error} = await supabase.auth.mfa.unenroll({factorId: button.dataset.factorId});
+        if (generation !== authGeneration) return;
+        if (error) throw error;
+        await loadMfaSettings();
+        showToast('Authenticator removed.');
+    } catch (error) {
+        if (generation === authGeneration) showToast(error.message || 'Unable to remove authenticator.', 'error');
+    } finally {
+        mfaRemovalBusy = false;
+        button.disabled = false;
+    }
+});
 
 $("addAuthenticatorButton")
     .addEventListener(
@@ -11960,13 +12083,14 @@ function startAutoRefresh() {
             async () => {
 
                 if (
-                    !selectedNetwork
+                    refreshInFlight || !currentUser || !selectedNetwork
                     ||
                     document.hidden
                 )
                     return;
 
 
+                refreshInFlight = true;
                 try {
 
                     await loadNetworkData();
@@ -11975,10 +12099,9 @@ function startAutoRefresh() {
                     error
                 ) {
 
-                    console.error(
-                        error
-                    );
-
+                    console.error(error);
+                } finally {
+                    refreshInFlight = false;
                 }
 
             },

@@ -3656,80 +3656,33 @@ def ssdp_discovery():
 # UPNP
 # ============================================================
 
-def allowed_upnp_location(
-
-    url,
-
-    network
-
-):
-
+def resolve_upnp_location(url, network):
+    """Resolve once, then connect to the validated literal IPv4 destination."""
     try:
-
-        parsed = (
-            urllib.parse.urlparse(
-                url
-            )
-        )
-
-
-        if (
-
-            parsed.scheme
-            not in (
-                "http",
-                "https",
-            )
-
-            or
-
-            not parsed.hostname
-
-        ):
-
-            return False
-
-
+        if any(c in url for c in ('\r', '\n', '\x00')):
+            return None
+        parsed = urllib.parse.urlparse(url)
+        if (parsed.scheme not in ('http', 'https') or not parsed.hostname
+                or parsed.username is not None or parsed.password is not None):
+            return None
         try:
-
-            address = (
-                ipaddress.ip_address(
-                    parsed.hostname
-                )
-            )
-
-
-        except Exception:
-
-            address = (
-                ipaddress.ip_address(
-
-                    socket.gethostbyname(
-                        parsed.hostname
-                    )
-
-                )
-            )
+            address = ipaddress.ip_address(parsed.hostname)
+        except ValueError:
+            address = ipaddress.ip_address(socket.gethostbyname(parsed.hostname))
+        if address.version != 4 or address not in network:
+            return None
+        port = parsed.port
+        if port is not None and not 1 <= port <= 65535:
+            return None
+        destination = str(address) + (f':{port}' if port is not None else '')
+        host = parsed.hostname + (f':{port}' if port is not None else '')
+        return parsed._replace(netloc=destination, fragment='').geturl(), host
+    except (ValueError, TypeError, OSError):
+        return None
 
 
-        return (
-
-            address.version
-            ==
-            4
-
-            and
-
-            address
-            in
-            network
-
-        )
-
-
-    except Exception:
-
-        return False
+def allowed_upnp_location(url, network):
+    return resolve_upnp_location(url, network) is not None
 
 
 def xml_value(
@@ -3781,181 +3734,42 @@ def xml_value(
     return None
 
 
-def upnp_identity(
-
-    location,
-
-    network
-
-):
-
-    if not allowed_upnp_location(
-
-        location,
-
-        network
-
-    ):
-
+def upnp_identity(location, network):
+    destination = resolve_upnp_location(location, network)
+    if destination is None:
         return None
-
-
+    session = requests.Session()
+    response = None
     try:
-
-        session = (
-            requests.Session()
-        )
-
-
         session.trust_env = False
-
-
-        response = session.get(
-
-            location,
-
-            timeout=(
-                0.8,
-                1.7
-            ),
-
-            allow_redirects=False,
-
-            verify=False,
-
-            headers={
-
-                "User-Agent":
-                    f"WiFiWatch/{APP_VERSION}"
-
-            }
-
-        )
-
-
+        response = session.get(destination[0], timeout=(0.8, 1.7), allow_redirects=False, verify=False, stream=True, headers={'User-Agent': f'WiFiWatch/{APP_VERSION}', 'Host': destination[1]})
         if not response.ok:
-
             return None
-
-
-        root = ET.fromstring(
-
-            response.content[
-                :524288
-            ]
-
-        )
-
-
-        friendly = (
-            clean_identity_text(
-
-                xml_value(
-                    root,
-                    "friendlyName"
-                ),
-
-                require_letters=True
-
-            )
-        )
-
-
-        manufacturer = (
-            clean_identity_text(
-
-                xml_value(
-                    root,
-                    "manufacturer"
-                ),
-
-                require_letters=True
-
-            )
-        )
-
-
-        model_name = (
-            valid_model(
-
-                xml_value(
-                    root,
-                    "modelName"
-                )
-
-            )
-        )
-
-
-        model_number = (
-            valid_model(
-
-                xml_value(
-                    root,
-                    "modelNumber"
-                )
-
-            )
-        )
-
-
-        model = (
-            model_name
-            or
-            model_number
-        )
-
-
-        if (
-
-            model_name
-
-            and
-
-            model_number
-
-            and
-
-            model_number.lower()
-            not in
-            model_name.lower()
-
-        ):
-
-            model = (
-
-                model_name
-                +
-                " "
-                +
-                model_number
-
-            )
-
-
-        return {
-
-            "friendly_name":
-                friendly,
-
-            "manufacturer":
-                manufacturer,
-
-            "model":
-                model,
-
-            "device_type":
-                xml_value(
-                    root,
-                    "deviceType"
-                ),
-
-        }
-
-
+        maximum = 524288
+        length = response.headers.get('Content-Length')
+        if length is not None and int(length) > maximum:
+            return None
+        body = bytearray()
+        deadline = time.monotonic() + 3.0
+        for chunk in response.iter_content(chunk_size=4096):
+            if time.monotonic() > deadline or len(body) + len(chunk) > maximum:
+                return None
+            body.extend(chunk)
+        root = ET.fromstring(bytes(body))
+        friendly = clean_identity_text(xml_value(root, 'friendlyName'), require_letters=True)
+        manufacturer = clean_identity_text(xml_value(root, 'manufacturer'), require_letters=True)
+        model_name = valid_model(xml_value(root, 'modelName'))
+        model_number = valid_model(xml_value(root, 'modelNumber'))
+        model = model_name or model_number
+        if model_name and model_number and (model_number.lower() not in model_name.lower()):
+            model = model_name + ' ' + model_number
+        return {'friendly_name': friendly, 'manufacturer': manufacturer, 'model': model, 'device_type': xml_value(root, 'deviceType')}
     except Exception:
-
         return None
+    finally:
+        if response is not None:
+            response.close()
+        session.close()
 
 
 
@@ -10102,6 +9916,8 @@ class WiFiWatchApp:
         self
     ):
 
+        self.pairing_busy = False
+        self.disconnecting = False
         self.root = (
             tk.Tk()
         )
@@ -10623,98 +10439,31 @@ class WiFiWatchApp:
         )
 
 
-    def pair(
-        self
-    ):
-
-        code = (
-
-            self.code_entry
-            .get()
-            .strip()
-
-        )
-
-
-        if not code:
-
-            messagebox.showerror(
-
-                "WiFi Watch",
-
-                "Enter a pairing code."
-
-            )
-
+    def pair(self):
+        if self.pairing_busy or self.disconnecting:
             return
+        code = self.code_entry.get().strip()
+        if not code:
+            messagebox.showerror('WiFi Watch', 'Enter a pairing code.')
+            return
+        self.pairing_busy = True
+        self.pair_status.config(text='Connecting...')
+        threading.Thread(target=self.pair_worker, args=(code,), daemon=True).start()
 
 
-        self.pair_status.config(
-
-            text="Connecting..."
-
-        )
-
-
-        threading.Thread(
-
-            target=
-                self.pair_worker,
-
-            args=(
-                code,
-            ),
-
-            daemon=True
-
-        ).start()
-
-
-    def pair_worker(
-
-        self,
-
-        code
-
-    ):
-
+    def pair_worker(self, code):
         try:
-
-            self.config = (
-                claim_pairing_code(
-                    code
-                )
-            )
-
-
-            self.root.after(
-
-                0,
-
-                self.pair_success
-
-            )
-
-
+            with self.scan_lock:
+                if self.is_paired():
+                    return
+                self.config = claim_pairing_code(code)
+            self.root.after(0, self.pair_success)
         except Exception as exc:
-
-            log(
-                f"Pairing error: {exc}"
-            )
-
-
-            self.root.after(
-
-                0,
-
-                lambda:
-                    self.pair_error(
-                        str(
-                            exc
-                        )
-                    )
-
-            )
+            error = str(exc)
+            log(f'Pairing error: {error}')
+            self.root.after(0, lambda error=error: self.pair_error(error))
+        finally:
+            self.pairing_busy = False
 
 
     def pair_success(
@@ -11119,59 +10868,18 @@ class WiFiWatchApp:
     # MONITORING
     # ========================================================
 
-    def start_monitoring(
-        self
-    ):
-
-        if (
-
-            self.monitor_thread
-
-            and
-
-            self.monitor_thread
-            .is_alive()
-
-        ):
-
+    def start_monitoring(self):
+        if self.monitor_thread and self.monitor_thread.is_alive() and not self.stop_event.is_set():
             return
-
-
-        self.stop_event.clear()
-
-
-        self.monitor_thread = (
-            threading.Thread(
-
-                target=
-                    self.monitor_loop,
-
-                daemon=True
-
-            )
-        )
-
-
+        self.stop_event = threading.Event()
+        self.monitor_thread = threading.Thread(target=self.monitor_loop, args=(self.stop_event,), daemon=True)
         self.monitor_thread.start()
 
 
-    def monitor_loop(
-        self
-    ):
-
-        while not (
-            self.stop_event
-            .is_set()
-        ):
-
-            self.perform_scan(
-                False
-            )
-
-
-            self.stop_event.wait(
-                SCAN_INTERVAL
-            )
+    def monitor_loop(self, stop_event):
+        while not stop_event.is_set():
+            self.perform_scan(False, expected_stop=stop_event)
+            stop_event.wait(SCAN_INTERVAL)
 
 
     def manual_scan(
@@ -11210,320 +10918,49 @@ class WiFiWatchApp:
         ).start()
 
 
-    def perform_scan(
-
-        self,
-
-        force_rules=False
-
-    ):
-
-        if not self.is_paired():
-
+    def perform_scan(self, force_rules=False, expected_stop=None):
+        if not self.scan_lock.acquire(blocking=False):
             return
-
-
-        if not self.scan_lock.acquire(
-            blocking=False
-        ):
-
+        if (not self.is_paired() or self.disconnecting or self.stop_event.is_set()
+                or (expected_stop is not None and expected_stop is not self.stop_event)):
+            self.scan_lock.release()
             return
-
-
-        started = (
-            time.time()
-        )
-
-
+        config = dict(self.config)
+        scan_stop = self.stop_event
+        def update_ui(callback):
+            if not scan_stop.is_set() and scan_stop is self.stop_event:
+                callback()
+        started = time.time()
         last_local_ip = None
-
-        ruleset = "unknown"
-
-
+        ruleset = 'unknown'
         try:
-
-            self.root.after(
-
-                0,
-
-                lambda:
-                    self.status_value.set(
-                        "Expert scanning..."
-                    )
-
-            )
-
-
-            heartbeat(
-                self.config
-            )
-
-
-            result = (
-                scan_network(
-
-                    self.config,
-
-                    force_rules=
-                        force_rules
-
-                )
-            )
-
-
-            devices = (
-                result[
-                    "devices"
-                ]
-            )
-
-
-            network = (
-                result[
-                    "network"
-                ]
-            )
-
-
-            local_ip = (
-                result[
-                    "local_ip"
-                ]
-            )
-
-
-            last_local_ip = (
-                local_ip
-            )
-
-
-            ruleset = (
-                result[
-                    "ruleset_version"
-                ]
-            )
-
-
-            learned_rules = (
-                result[
-                    "learned_rules"
-                ]
-            )
-
-
-            duration_ms = (
-                result[
-                    "duration_ms"
-                ]
-            )
-
-
-            sync_devices(
-
-                self.config,
-
-                devices
-
-            )
-
-
-            identified = sum(
-
-                1
-
-                for device in devices
-
-                if (
-
-                    device.get(
-                        "friendly_name"
-                    )
-
-                    or
-
-                    device.get(
-                        "hostname"
-                    )
-
-                    or
-
-                    device.get(
-                        "vendor"
-                    )
-
-                    or
-
-                    device.get(
-                        "model"
-                    )
-
-                )
-
-            )
-
-
-            warnings = sum(
-
-                1
-
-                for device in devices
-
-                if (
-                    device.get(
-                        "security_status"
-                    )
-                    ==
-                    "warning"
-                )
-
-            )
-
-
-            reviews = sum(
-
-                1
-
-                for device in devices
-
-                if (
-                    device.get(
-                        "security_status"
-                    )
-                    ==
-                    "review"
-                )
-
-            )
-
-
-            unknown_security = sum(
-
-                1
-
-                for device in devices
-
-                if (
-                    device.get(
-                        "security_status"
-                    )
-                    ==
-                    "unknown"
-                )
-
-            )
-
-
-            report_scan(
-
-                self.config,
-
-                ruleset,
-
-                duration_ms,
-
-                len(
-                    devices
-                ),
-
-                local_ip,
-
-                None
-
-            )
-
-
-            self.root.after(
-
-                0,
-
-                lambda:
-                    self.scan_success(
-
-                        len(
-                            devices
-                        ),
-
-                        identified,
-
-                        str(
-                            network
-                        ),
-
-                        local_ip,
-
-                        warnings,
-
-                        reviews,
-
-                        unknown_security,
-
-                        ruleset,
-
-                        learned_rules
-
-                    )
-
-            )
-
-
+            self.root.after(0, lambda: update_ui(lambda: self.status_value.set('Expert scanning...')))
+            heartbeat(config)
+            result = scan_network(config, force_rules=force_rules)
+            devices = result['devices']
+            network = result['network']
+            local_ip = result['local_ip']
+            last_local_ip = local_ip
+            ruleset = result['ruleset_version']
+            learned_rules = result['learned_rules']
+            duration_ms = result['duration_ms']
+            if scan_stop.is_set():
+                return
+            sync_devices(config, devices)
+            identified = sum((1 for device in devices if device.get('friendly_name') or device.get('hostname') or device.get('vendor') or device.get('model')))
+            warnings = sum((1 for device in devices if device.get('security_status') == 'warning'))
+            reviews = sum((1 for device in devices if device.get('security_status') == 'review'))
+            unknown_security = sum((1 for device in devices if device.get('security_status') == 'unknown'))
+            report_scan(config, ruleset, duration_ms, len(devices), local_ip, None)
+            self.root.after(0, lambda: update_ui(lambda: self.scan_success(len(devices), identified, str(network), local_ip, warnings, reviews, unknown_security, ruleset, learned_rules)))
         except Exception as exc:
-
-            duration_ms = int(
-
-                (
-                    time.time()
-                    -
-                    started
-                )
-
-                *
-                1000
-
-            )
-
-
-            log(
-                f"SCAN ERROR: {exc}"
-            )
-
-
-            if self.is_paired():
-
-                report_scan(
-
-                    self.config,
-
-                    ruleset,
-
-                    duration_ms,
-
-                    0,
-
-                    last_local_ip,
-
-                    str(
-                        exc
-                    )
-
-                )
-
-
-            self.root.after(
-
-                0,
-
-                lambda:
-                    self.scan_error(
-                        str(
-                            exc
-                        )
-                    )
-
-            )
-
-
+            duration_ms = int((time.time() - started) * 1000)
+            log(f'SCAN ERROR: {exc}')
+            if not scan_stop.is_set():
+                report_scan(config, ruleset, duration_ms, 0, last_local_ip, str(exc))
+            error = str(exc)
+            self.root.after(0, lambda error=error: update_ui(lambda: self.scan_error(error)))
         finally:
-
             self.scan_lock.release()
 
 
@@ -11783,33 +11220,27 @@ class WiFiWatchApp:
     # DISCONNECT
     # ========================================================
 
-    def disconnect(
-        self
-    ):
-
-        if not messagebox.askyesno(
-
-            "Disconnect Agent",
-
-            (
-                "Disconnect this computer "
-                "from WiFi Watch?"
-            )
-
-        ):
-
+    def disconnect(self):
+        if self.disconnecting:
             return
-
-
+        if not messagebox.askyesno('Disconnect Agent', 'Disconnect this computer from WiFi Watch?'):
+            return
+        self.disconnecting = True
         self.stop_event.set()
+        self.status_value.set('Disconnecting...')
+        threading.Thread(target=self.disconnect_worker, daemon=True).start()
 
 
-        delete_config()
+    def disconnect_worker(self):
+        # Wait off the UI thread; no pairing is offered while a scan can still upload.
+        with self.scan_lock:
+            delete_config()
+            self.config = {}
+        self.root.after(0, self.finish_disconnect)
 
 
-        self.config = {}
-
-
+    def finish_disconnect(self):
+        self.disconnecting = False
         self.show_pairing()
 
 
